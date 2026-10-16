@@ -664,3 +664,146 @@
 
 /* The client workspace has its own shell and should not inherit the public-site top offset. */
 body.dashboard-body { padding-top: 0 !important; }
+
+
+/* Shared client workspace chrome */
+body.dashboard-body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-top: 0 !important;
+  background: #f5f7fb;
+}
+
+.client-app-header {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  width: 100%;
+  min-height: 72px;
+  padding: 0.8rem clamp(1rem, 3vw, 2.5rem);
+  border-bottom: 1px solid #e6ebf2;
+  background: #fff;
+}
+
+.client-app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: #172033;
+  font-size: 1rem;
+  font-weight: 850;
+  line-height: 1.1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.client-app-brand:hover { color: var(--app-primary, #0d6efd); }
+
+.client-app-brand > span:last-child { display: grid; gap: 0.25rem; }
+
+.client-app-brand small {
+  color: #718096;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.client-app-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--app-primary, #0d6efd);
+  color: #fff;
+}
+
+.client-app-brand-mark svg { width: 21px; height: 21px; }
+
+.client-app-header nav,
+.client-app-footer nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.client-app-header nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 40px;
+  padding: 0.55rem 0.75rem;
+  border-radius: 9px;
+  color: #5d6b80;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.client-app-header nav a:hover {
+  background: #f1f6fc;
+  color: var(--app-primary, #0d6efd);
+}
+
+.client-app-header nav svg { width: 16px; height: 16px; }
+
+body.dashboard-body > .client-dashboard {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+.client-app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  margin-top: auto;
+  padding: 1.2rem clamp(1rem, 3vw, 2.5rem);
+  border-top: 1px solid #e6ebf2;
+  background: #fff;
+  color: #718096;
+  font-size: 0.78rem;
+}
+
+.client-app-footer nav { gap: 0.9rem; }
+
+.client-app-footer a {
+  color: #5d6b80;
+  text-decoration: none;
+}
+
+.client-app-footer a:hover {
+  color: var(--app-primary, #0d6efd);
+  text-decoration: underline;
+}
+
+@media (max-width: 700px) {
+  .client-app-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding-block: 0.8rem;
+  }
+
+  .client-app-header nav {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 0.1rem;
+  }
+
+  .client-app-header nav a { flex: 0 0 auto; }
+
+  .client-app-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .client-app-footer nav { gap: 0.65rem 1rem; }
+}
