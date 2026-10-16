@@ -44,6 +44,17 @@
   <?php endif; ?>
 </head>
 <body class="dashboard-body">
+  <div class="client-app-header">
+    <a class="client-app-brand" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>">
+      <span class="client-app-brand-mark"><i data-lucide="layers"></i></span>
+      <span>InstaWeb<small>Client workspace</small></span>
+    </a>
+    <nav aria-label="Quick navigation">
+      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="globe-2"></i> Manage my sites</a>
+      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/profile', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="user-round"></i> Account</a>
+    </nav>
+  </div>
   <?php foreach (['success' => 'success', 'warning' => 'warning', 'error' => 'danger'] as $key => $type): ?>
     <?php $message = \App\Core\Session::pullFlash($key); ?>
     <?php if ($message): ?>
@@ -132,6 +143,15 @@
     </script>
   <?php endif; ?>
   <?= $content ?? '' ?>
+  <footer class="client-app-footer">
+    <span>© <?= date('Y') ?> InstaWeb. Your websites, in one place.</span>
+    <nav aria-label="Footer navigation">
+      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>">Manage sites</a>
+      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/profile', ENT_QUOTES, 'UTF-8') ?>">Account settings</a>
+      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/terms', ENT_QUOTES, 'UTF-8') ?>">Terms</a>
+      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/privacy', ENT_QUOTES, 'UTF-8') ?>">Privacy</a>
+    </nav>
+  </footer>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script src="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/js/main.js?v=20260629-tabs', ENT_QUOTES, 'UTF-8') ?>"></script>
