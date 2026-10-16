@@ -28,7 +28,13 @@ $formatBytes = static function (int $bytes): string {
       <div>
         <p class="auth-eyebrow">Project Summary</p>
         <h1><?= htmlspecialchars($website['website_name'] ?: 'Website', ENT_QUOTES, 'UTF-8') ?></h1>
-        <p><?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?></p>
+        <?php if ($liveUrl !== ''): ?>
+          <p><?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?></p>
+        <?php elseif (($website['status'] ?? '') === 'draft'): ?>
+          <p>This is a draft. Publish it when you are ready to make it public.</p>
+        <?php else: ?>
+          <p>This website is not currently available publicly.</p>
+        <?php endif; ?>
       </div>
       <div class="d-flex gap-2 flex-wrap">
         <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/edit?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="pencil"></i> Edit</a>
