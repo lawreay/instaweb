@@ -165,11 +165,13 @@ class WebsiteController extends Controller
             'title' => $website['website_name'] ?: 'Website Project',
             'website' => $website,
             'draftPath' => (new ProjectStorageService())->projectPath($userId, $website['slug']),
-            'liveUrl' => (new PublicSiteUrlService())->absoluteUrl(
-                (string) ($this->config['base_url'] ?? ''),
-                (int) $website['id'],
-                (string) $website['slug']
-            ),
+            'liveUrl' => ($website['status'] ?? '') === 'published'
+                ? (new PublicSiteUrlService())->absoluteUrl(
+                    (string) ($this->config['base_url'] ?? ''),
+                    (int) $website['id'],
+                    (string) $website['slug']
+                )
+                : '',
             'active' => 'websites',
         ], 'layouts/dashboard');
     }
