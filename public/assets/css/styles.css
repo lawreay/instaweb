@@ -5024,3 +5024,668 @@ body:not(.admin-body):not(.settings-shell):not(.admin-shell) {
     padding-top: 5rem;
   }
 }
+
+
+/* --------------------------------------------------------------------------
+   InstaWeb client workspace refresh
+   Scoped to the authenticated client dashboard; leaves public/admin pages alone.
+   -------------------------------------------------------------------------- */
+.client-dashboard {
+  --client-ink: #172033;
+  --client-muted: #718096;
+  --client-line: #e6ebf2;
+  --client-surface: #ffffff;
+  --client-canvas: #f5f7fb;
+  grid-template-columns: 248px minmax(0, 1fr);
+  background: var(--client-canvas);
+  color: var(--client-ink);
+  font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.client-dashboard .client-sidebar {
+  z-index: 20;
+  height: 100vh;
+  padding: 1.35rem 1rem 1rem;
+  background: #fff;
+  color: var(--client-ink);
+  border-right: 1px solid var(--client-line);
+  box-shadow: 8px 0 28px rgba(24, 39, 75, 0.025);
+}
+
+.client-dashboard .client-profile {
+  text-align: left;
+  padding: 0.35rem 0.55rem 1.35rem;
+  border-bottom: 1px solid var(--client-line);
+}
+
+.client-dashboard .client-avatar {
+  width: 46px;
+  height: 46px;
+  margin: 0 0 0.8rem;
+  border-radius: 14px;
+  background: linear-gradient(145deg, var(--app-primary, #0d6efd), var(--app-secondary, #00b4d8));
+  box-shadow: none;
+  font-size: 1.2rem;
+}
+
+.client-dashboard .client-profile strong {
+  color: var(--client-ink);
+  font-size: 0.98rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.client-dashboard .client-profile .plan-chip {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.55rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: #eef5ff;
+  color: var(--app-primary, #0d6efd);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.client-dashboard .client-nav {
+  gap: 0.3rem;
+  margin-top: 1.2rem;
+}
+
+.client-dashboard .client-nav a,
+.client-dashboard .client-logout {
+  min-height: 44px;
+  padding: 0.72rem 0.8rem;
+  border-radius: 11px;
+  color: #68758a;
+  font-size: 0.9rem;
+  font-weight: 650;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.client-dashboard .client-nav a:hover,
+.client-dashboard .client-nav a.active {
+  color: var(--app-primary, #0d6efd);
+  background: color-mix(in srgb, var(--app-primary, #0d6efd) 9%, white);
+  transform: none;
+}
+
+.client-dashboard .client-nav a.active {
+  box-shadow: inset 3px 0 0 var(--app-primary, #0d6efd);
+}
+
+.client-dashboard .client-nav i,
+.client-dashboard .client-logout i {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+}
+
+.client-dashboard .client-logout {
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--client-line);
+  border-radius: 0;
+  color: #8b5b62;
+}
+
+.client-dashboard .client-logout:hover {
+  color: #b42332;
+  background: #fff1f2;
+  transform: none;
+}
+
+.client-dashboard .client-main {
+  min-width: 0;
+  padding: clamp(1rem, 2.3vw, 2rem);
+  overflow-x: clip;
+}
+
+.client-dashboard .client-header {
+  position: relative;
+  top: auto;
+  align-items: center;
+  margin-bottom: 1.35rem;
+  padding: clamp(1.1rem, 2.3vw, 1.75rem);
+  border: 1px solid var(--client-line);
+  border-radius: 18px;
+  background: var(--client-surface);
+  box-shadow: 0 4px 18px rgba(24, 39, 75, 0.035);
+}
+
+.client-dashboard .client-header .auth-eyebrow {
+  margin-bottom: 0.55rem;
+  color: var(--app-primary, #0d6efd);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.client-dashboard .client-header h1 {
+  margin-bottom: 0.4rem;
+  color: var(--client-ink);
+  font-size: clamp(1.55rem, 2.2vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.client-dashboard .client-header p:last-child {
+  max-width: 600px;
+  color: var(--client-muted);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.client-dashboard .client-header-actions {
+  gap: 0.5rem;
+}
+
+.client-dashboard .client-header-action {
+  min-height: 40px;
+  padding: 0.55rem 0.7rem;
+  border-color: var(--client-line);
+  border-radius: 10px;
+  color: #536176;
+  font-size: 0.84rem;
+  box-shadow: none;
+}
+
+.client-dashboard .client-header-action:hover {
+  color: var(--app-primary, #0d6efd);
+  border-color: color-mix(in srgb, var(--app-primary, #0d6efd) 30%, white);
+  background: #f8fbff;
+  transform: none;
+  box-shadow: none;
+}
+
+.client-dashboard .client-header .btn-primary,
+.client-dashboard .client-card .btn-primary {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  background: var(--app-primary, #0d6efd);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 750;
+  box-shadow: 0 5px 12px color-mix(in srgb, var(--app-primary, #0d6efd) 18%, transparent);
+}
+
+.client-dashboard .client-header .btn-primary:hover,
+.client-dashboard .client-card .btn-primary:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
+.client-dashboard .client-stat-grid {
+  gap: 0.9rem;
+  margin-bottom: 1.1rem;
+}
+
+.client-dashboard .client-card {
+  min-width: 0;
+  padding: 1.2rem;
+  border: 1px solid var(--client-line);
+  border-radius: 16px;
+  background: var(--client-surface);
+  box-shadow: 0 3px 14px rgba(24, 39, 75, 0.035);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.client-dashboard .client-card:hover {
+  border-color: #d7e0ec;
+  box-shadow: 0 8px 24px rgba(24, 39, 75, 0.055);
+}
+
+.client-dashboard .client-stat {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 0.1rem;
+}
+
+.client-dashboard .client-stat i {
+  width: 2.35rem;
+  height: 2.35rem;
+  margin-bottom: 0.7rem;
+  padding: 0.58rem;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--app-primary, #0d6efd) 9%, white);
+  color: var(--app-primary, #0d6efd);
+}
+
+.client-dashboard .client-stat span {
+  color: var(--client-muted);
+  font-size: 0.83rem;
+  font-weight: 650;
+}
+
+.client-dashboard .client-stat strong {
+  margin: 0.28rem 0 0.15rem;
+  color: var(--client-ink);
+  font-size: clamp(1.35rem, 1.7vw, 1.75rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+.client-dashboard .client-stat small {
+  color: var(--client-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.client-dashboard .client-grid {
+  align-items: start;
+  gap: 1rem;
+}
+
+.client-dashboard .client-wide {
+  grid-row: span 3;
+}
+
+.client-dashboard .client-card-head {
+  margin-bottom: 1rem;
+}
+
+.client-dashboard .client-card-head h2 {
+  margin: 0;
+  color: var(--client-ink);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.client-dashboard .client-card-head .btn {
+  box-shadow: none;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.client-dashboard .client-site-list,
+.client-dashboard .client-mini-list {
+  display: grid;
+  gap: 0;
+}
+
+.client-dashboard .client-site {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.client-dashboard .client-site:last-child {
+  border-bottom: 0;
+}
+
+.client-dashboard .site-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #e5edf7;
+  border-radius: 12px;
+  background: #f7faff;
+  color: var(--app-primary, #0d6efd);
+}
+
+.client-dashboard .site-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.client-dashboard .client-site strong,
+.client-dashboard .client-mini-list strong,
+.client-dashboard .notification-item strong {
+  display: block;
+  color: var(--client-ink);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.client-dashboard .client-site strong a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.client-dashboard .client-site strong a:hover {
+  color: var(--app-primary, #0d6efd);
+}
+
+.client-dashboard .client-site span:not(.client-status),
+.client-dashboard .client-mini-list span,
+.client-dashboard .notification-item span {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--client-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.client-dashboard .client-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.58rem;
+  border: 1px solid #dcefe5;
+  border-radius: 999px;
+  background: #f0faf4;
+  color: #197348;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.client-dashboard .client-status::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
+.client-dashboard .client-status.draft,
+.client-dashboard .client-status.pending {
+  border-color: #f3e4c2;
+  background: #fff9e9;
+  color: #946200;
+}
+
+.client-dashboard .client-status.suspended,
+.client-dashboard .client-status.failed,
+.client-dashboard .client-status.disabled {
+  border-color: #f4d5d8;
+  background: #fff3f4;
+  color: #b42332;
+}
+
+.client-dashboard .client-empty {
+  display: grid;
+  justify-items: start;
+  padding: 2rem 1rem;
+  border: 1px dashed #d9e2ef;
+  border-radius: 13px;
+  background: #fafcff;
+}
+
+.client-dashboard .client-empty > i {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.55rem;
+  border-radius: 12px;
+  background: #eef5ff;
+  color: var(--app-primary, #0d6efd);
+}
+
+.client-dashboard .client-empty strong {
+  color: var(--client-ink);
+}
+
+.client-dashboard .client-empty p {
+  max-width: 420px;
+  margin: 0.35rem 0 0;
+  color: var(--client-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.client-dashboard .plan-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.client-dashboard .plan-panel > i {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.6rem;
+  border-radius: 12px;
+  background: #fff7e5;
+  color: #b7791f;
+}
+
+.client-dashboard .plan-panel > strong {
+  color: var(--client-ink);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.client-dashboard .plan-panel ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.1rem 0 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.client-dashboard .plan-panel li {
+  position: relative;
+  padding-left: 1.35rem;
+  color: #58667b;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.client-dashboard .plan-panel li::before {
+  position: absolute;
+  left: 0;
+  color: #199264;
+  font-weight: 900;
+  content: "✓";
+}
+
+.client-dashboard .storage-meter {
+  display: grid;
+  gap: 0.85rem;
+  color: #65738a;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.client-dashboard .storage-meter .progress {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf1f7;
+}
+
+.client-dashboard .storage-meter .progress-bar {
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--app-primary, #0d6efd), var(--app-secondary, #00b4d8));
+}
+
+.client-dashboard .notification-item {
+  align-items: start;
+  padding: 0.85rem 0;
+  border-color: #edf0f5;
+}
+
+.client-dashboard .notification-item small {
+  color: #8994a6;
+  font-size: 0.72rem;
+}
+
+.client-dashboard .client-mini-list > div {
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.client-dashboard .client-mini-list > div:last-child {
+  border-bottom: 0;
+}
+
+.client-dashboard a:focus-visible,
+.client-dashboard button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--app-primary, #0d6efd) 45%, white);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1200px) {
+  .client-dashboard {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .client-dashboard .client-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .client-dashboard .client-header-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 991px) {
+  .client-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .client-dashboard .client-sidebar {
+    position: relative;
+    height: auto;
+    padding: 0.85rem 1rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--client-line);
+  }
+
+  .client-dashboard .client-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.2rem 0 0.8rem;
+  }
+
+  .client-dashboard .client-avatar {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    flex: 0 0 40px;
+  }
+
+  .client-dashboard .client-profile strong {
+    max-width: 45%;
+  }
+
+  .client-dashboard .client-profile .plan-chip {
+    margin: 0 0 0 auto;
+  }
+
+  .client-dashboard .client-nav {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.8rem;
+    padding-bottom: 0.1rem;
+    overflow-x: auto;
+  }
+
+  .client-dashboard .client-nav a {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0.62rem 0.75rem;
+    white-space: nowrap;
+  }
+
+  .client-dashboard .client-nav a.active {
+    box-shadow: inset 0 -2px 0 var(--app-primary, #0d6efd);
+  }
+
+  .client-dashboard .client-logout {
+    align-self: flex-start;
+    margin-top: 0.6rem;
+    padding: 0.55rem 0.7rem;
+    border-top: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .client-dashboard .client-main {
+    padding: 0.85rem;
+  }
+
+  .client-dashboard .client-header {
+    padding: 1.1rem;
+    border-radius: 14px;
+  }
+
+  .client-dashboard .client-header-actions {
+    width: 100%;
+  }
+
+  .client-dashboard .client-header-actions .btn-primary {
+    flex: 1 1 100%;
+  }
+
+  .client-dashboard .client-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  .client-dashboard .client-stat {
+    padding: 0.95rem;
+  }
+
+  .client-dashboard .client-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .client-dashboard .client-wide {
+    grid-row: auto;
+  }
+
+  .client-dashboard .client-card {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .client-dashboard .client-site {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 0.7rem;
+  }
+
+  .client-dashboard .site-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .client-dashboard .client-site .client-status {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .client-dashboard .notification-item {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .client-dashboard .client-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .client-dashboard .client-header-action span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .client-dashboard *,
+  .client-dashboard *::before,
+  .client-dashboard *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
