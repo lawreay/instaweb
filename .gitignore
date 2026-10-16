@@ -1,10 +1,13 @@
+# Local environment and secrets
 .env
 .env.*
 !.env.example
 !.env.sample
-storage/backups/*
-storage/exports/*
-storage/projects/*
-!storage/backups/.gitkeep
-!storage/exports/.gitkeep
-!storage/projects/.gitkeep
+
+# Runtime data must never be committed
+**/storage/
+**/uploads/
+public/sites/
+
+# Local dependency trees
+node_modules/
