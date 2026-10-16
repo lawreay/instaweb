@@ -1,0 +1,32 @@
+name: PHP syntax checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "feature/**"
+
+permissions:
+  contents: read
+
+jobs:
+  php-lint:
+    name: PHP lint (PHP 8.0)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.0"
+          coverage: none
+
+      - name: Lint application PHP files
+        shell: bash
+        run: |
+          set -euo pipefail
+          find app -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
+          php -l index.php
