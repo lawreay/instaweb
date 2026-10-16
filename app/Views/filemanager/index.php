@@ -27,7 +27,13 @@ $formatBytes = static function (int $bytes): string {
       <div>
         <p class="auth-eyebrow">Draft Storage</p>
         <h1><?= htmlspecialchars($website['website_name'] ?: 'Website Files', ENT_QUOTES, 'UTF-8') ?></h1>
-        <p>Manage files in private draft storage. Publishing comes after validation in a later phase.</p>
+        <p>Upload, organise, edit, and export this site's files. Your live website remains separate from draft storage.</p>
+      </div>
+      <div class="client-header-actions">
+        <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage site</a>
+        <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
+          <a class="btn btn-primary" href="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit live site</a>
+        <?php endif; ?>
       </div>
     </header>
 

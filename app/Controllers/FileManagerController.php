@@ -10,6 +10,7 @@ use App\Services\AuthService;
 use App\Services\NotificationManager;
 use App\Services\NotificationService;
 use App\Services\PlanService;
+use App\Services\PublicSiteUrlService;
 use App\Services\ProjectArchiveService;
 use App\Services\ProjectStorageService;
 use App\Services\UploadValidationService;
@@ -26,6 +27,7 @@ class FileManagerController extends Controller
     {
         [$userId, $website] = $this->requireWebsite();
         $storage = new ProjectStorageService();
+        $website = (new PublicSiteUrlService())->withPublicUrl($website, (string) ($this->config['base_url'] ?? ''));
 
         $this->view('filemanager/index', [
             'title' => 'File Manager',
