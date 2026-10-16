@@ -807,3 +807,47 @@ body.dashboard-body > .client-dashboard {
 
   .client-app-footer nav { gap: 0.65rem 1rem; }
 }
+
+
+/* Website actions stay grouped, tappable and readable at every viewport. */
+.client-dashboard .client-site-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.client-dashboard .client-site-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 34px;
+  padding: 0.42rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.client-dashboard .client-site-actions .btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.client-dashboard .client-site-actions .client-status { margin-right: 0.15rem; }
+
+@media (max-width: 760px) {
+  .client-dashboard .client-site-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 440px) {
+  .client-dashboard .client-site-actions .btn {
+    flex: 1 1 auto;
+  }
+}
