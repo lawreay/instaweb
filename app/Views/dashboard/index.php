@@ -99,7 +99,15 @@ $formatBytes = static function (int $bytes): string {
                 <div class="site-icon"><i data-lucide="globe-2"></i></div>
                 <div>
                   <strong><a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($website['website_name'] ?: 'Untitled website', ENT_QUOTES, 'UTF-8') ?></a></strong>
-                  <span><?= htmlspecialchars($website['custom_domain'] ?: ($website['subdomain'] ?: ($website['public_url'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span>
+                  <span>
+                    <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
+                      <?= htmlspecialchars((string) $website['public_url'], ENT_QUOTES, 'UTF-8') ?>
+                    <?php elseif (($website['status'] ?? '') === 'draft'): ?>
+                      Not published yet
+                    <?php else: ?>
+                      Public URL unavailable
+                    <?php endif; ?>
+                  </span>
                 </div>
                 <div class="client-site-actions">
                   <span class="client-status <?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?></span>
