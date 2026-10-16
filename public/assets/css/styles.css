@@ -5689,3 +5689,6 @@ body:not(.admin-body):not(.settings-shell):not(.admin-shell) {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* The client workspace has its own shell and should not inherit the public-site top offset. */
+body.dashboard-body { padding-top: 0 !important; }
