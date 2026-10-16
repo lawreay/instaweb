@@ -27,7 +27,7 @@ $formatBytes = static function (int $bytes): string {
       <div>
         <p class="auth-eyebrow">Website Projects</p>
         <h1>My Websites</h1>
-        <p>Create and manage the draft projects that will later power file manager, preview, and publishing.</p>
+        <p>Create and manage website projects, edit draft files, preview changes, and publish when ready.</p>
       </div>
       <a class="btn btn-primary <?= $canCreate ? '' : 'disabled' ?>" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/create', ENT_QUOTES, 'UTF-8') ?>">
         <i data-lucide="plus"></i> Create Website
@@ -57,14 +57,29 @@ $formatBytes = static function (int $bytes): string {
                     <?= htmlspecialchars($website['website_name'] ?: 'Untitled website', ENT_QUOTES, 'UTF-8') ?>
                   </a>
                 </strong>
-                <span><?= htmlspecialchars((string) ($website['public_url'] ?? ''), ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars($formatBytes((int) $website['storage_used']), ENT_QUOTES, 'UTF-8') ?></span>
+                <span>
+                  <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
+                    <?= htmlspecialchars((string) $website['public_url'], ENT_QUOTES, 'UTF-8') ?>
+                  <?php elseif (($website['status'] ?? '') === 'draft'): ?>
+                    Not published yet
+                  <?php else: ?>
+                    Public URL unavailable
+                  <?php endif; ?>
+                  · <?= htmlspecialchars($formatBytes((int) $website['storage_used']), ENT_QUOTES, 'UTF-8') ?>
+                </span>
               </div>
               <div class="client-site-actions">
                 <span class="client-status <?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?></span>
-                <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
-                <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> File manager</a>
                 <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
                   <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit site</a>
+                  <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
+                <?php elseif (($website['status'] ?? '') === 'draft'): ?>
+                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="pencil"></i> Continue editing</a>
+                <?php else: ?>
+                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
+                <?php endif; ?>
+                <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> File manager</a>
+                <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
                   <button type="button" class="btn btn-sm btn-outline-secondary btn-share-site" data-share-url="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" title="Share site"><i data-lucide="share-2"></i> Share</button>
                 <?php endif; ?>
               </div>
