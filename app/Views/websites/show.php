@@ -93,12 +93,17 @@ $formatBytes = static function (int $bytes): string {
         </div>
       </div>
       <div class="d-flex gap-2 flex-wrap mt-4">
-        <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/publish', ENT_QUOTES, 'UTF-8') ?>">
-          <?= \App\Core\Csrf::field() ?>
-          <input type="hidden" name="website_id" value="<?= (int) $website['id'] ?>">
-          <button class="btn btn-primary" type="submit"><i data-lucide="rocket"></i> Publish Website</button>
-        </form>
-        <?php if ($website['status'] === 'published'): ?>
+        <?php if (($website['status'] ?? '') === 'draft'): ?>
+          <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/publish', ENT_QUOTES, 'UTF-8') ?>">
+            <?= \App\Core\Csrf::field() ?>
+            <input type="hidden" name="website_id" value="<?= (int) $website['id'] ?>">
+            <button class="btn btn-primary" type="submit"><i data-lucide="rocket"></i> Publish Website</button>
+          </form>
+        <?php elseif (($website['status'] ?? '') === 'suspended'): ?>
+          <p class="alert alert-warning mb-0" role="status">This website is suspended by an administrator and cannot be published.</p>
+        <?php endif; ?>
+        <?php if (($website['status'] ?? '') === 'published'): ?>
+
           <a class="btn btn-outline-primary" target="_blank" rel="noopener" href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="external-link"></i> Open Live Site</a>
           <button type="button" class="btn btn-outline-secondary btn-share-site" data-share-url="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="share-2"></i> Share</button>
           <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/unpublish', ENT_QUOTES, 'UTF-8') ?>">
