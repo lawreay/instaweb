@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tsogolo Hub icon">
-  <rect width="512" height="512" rx="96" fill="#132318" />
-  <rect x="44" y="44" width="424" height="424" rx="88" fill="#0f7a6c" />
-  <path d="M118 308c43-82 86-124 132-124 46 0 89 42 132 124" fill="none" stroke="#e8a83c" stroke-width="28" stroke-linecap="round" />
-  <circle cx="256" cy="160" r="52" fill="#f7f2e2" />
-  <path d="M180 330h152" stroke="#f7f2e2" stroke-width="24" stroke-linecap="round" />
-</svg>
