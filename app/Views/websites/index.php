@@ -61,10 +61,16 @@ $formatBytes = static function (int $bytes): string {
               </div>
               <div class="client-site-actions">
                 <span class="client-status <?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?></span>
-                <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
-                <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> File manager</a>
                 <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
                   <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit site</a>
+                  <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
+                <?php elseif (($website['status'] ?? '') === 'draft'): ?>
+                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="pencil"></i> Continue editing</a>
+                <?php else: ?>
+                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
+                <?php endif; ?>
+                <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> File manager</a>
+                <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
                   <button type="button" class="btn btn-sm btn-outline-secondary btn-share-site" data-share-url="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" title="Share site"><i data-lucide="share-2"></i> Share</button>
                 <?php endif; ?>
               </div>
