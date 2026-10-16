@@ -28,7 +28,13 @@ $formatBytes = static function (int $bytes): string {
       <div>
         <p class="auth-eyebrow">Project Summary</p>
         <h1><?= htmlspecialchars($website['website_name'] ?: 'Website', ENT_QUOTES, 'UTF-8') ?></h1>
-        <p><?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?></p>
+        <?php if ($liveUrl !== ''): ?>
+          <p><?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?></p>
+        <?php elseif (($website['status'] ?? '') === 'draft'): ?>
+          <p>This is a draft. Publish it when you are ready to make it public.</p>
+        <?php else: ?>
+          <p>This website is not currently available publicly.</p>
+        <?php endif; ?>
       </div>
       <div class="d-flex gap-2 flex-wrap">
         <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/edit?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="pencil"></i> Edit</a>
@@ -43,7 +49,15 @@ $formatBytes = static function (int $bytes): string {
         <i data-lucide="activity"></i>
         <span>Status</span>
         <strong><?= htmlspecialchars(ucfirst($website['status']), ENT_QUOTES, 'UTF-8') ?></strong>
-        <small>Publish comes in Phase 4</small>
+        <small>
+          <?php if (($website['status'] ?? '') === 'published'): ?>
+            Marked as published
+          <?php elseif (($website['status'] ?? '') === 'draft'): ?>
+            Not published yet
+          <?php else: ?>
+            This website requires attention
+          <?php endif; ?>
+        </small>
       </div>
       <div class="client-card client-stat">
         <i data-lucide="hard-drive"></i>
@@ -79,12 +93,17 @@ $formatBytes = static function (int $bytes): string {
         </div>
       </div>
       <div class="d-flex gap-2 flex-wrap mt-4">
-        <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/publish', ENT_QUOTES, 'UTF-8') ?>">
-          <?= \App\Core\Csrf::field() ?>
-          <input type="hidden" name="website_id" value="<?= (int) $website['id'] ?>">
-          <button class="btn btn-primary" type="submit"><i data-lucide="rocket"></i> Publish Website</button>
-        </form>
-        <?php if ($website['status'] === 'published'): ?>
+        <?php if (($website['status'] ?? '') === 'draft'): ?>
+          <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/publish', ENT_QUOTES, 'UTF-8') ?>">
+            <?= \App\Core\Csrf::field() ?>
+            <input type="hidden" name="website_id" value="<?= (int) $website['id'] ?>">
+            <button class="btn btn-primary" type="submit"><i data-lucide="rocket"></i> Publish Website</button>
+          </form>
+        <?php elseif (($website['status'] ?? '') === 'suspended'): ?>
+          <p class="alert alert-warning mb-0" role="status">This website is suspended by an administrator and cannot be published.</p>
+        <?php endif; ?>
+        <?php if (($website['status'] ?? '') === 'published'): ?>
+
           <a class="btn btn-outline-primary" target="_blank" rel="noopener" href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="external-link"></i> Open Live Site</a>
           <button type="button" class="btn btn-outline-secondary btn-share-site" data-share-url="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="share-2"></i> Share</button>
           <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/unpublish', ENT_QUOTES, 'UTF-8') ?>">
