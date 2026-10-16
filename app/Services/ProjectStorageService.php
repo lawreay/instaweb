@@ -134,6 +134,11 @@ HTML;
             throw new \RuntimeException('Unable to prepare the temporary WordPress folder.');
         }
 
+        // Project backups keep WordPress files at the archive root, while the
+        // preserved installer package keeps them in a `wordpress/` directory.
+        // Support both trusted layouts so a preserved project backup can be
+        // restored as the package when necessary.
+        $archivePrefix = $zip->locateName('wordpress/') !== false ? 'wordpress/' : '';
         $totalBytes = 0;
         $fileCount = 0;
         $maxBytes = max(1, (int) env('WORDPRESS_MAX_EXTRACTED_BYTES', 512 * BYTES_PER_MB));
@@ -141,11 +146,11 @@ HTML;
         try {
             for ($index = 0; $index < $zip->numFiles; $index++) {
                 $name = str_replace('\\', '/', (string) $zip->getNameIndex($index));
-                if (!str_starts_with($name, 'wordpress/')) {
+                if (!str_starts_with($name, $archivePrefix)) {
                     continue;
                 }
 
-                $relative = substr($name, strlen('wordpress/'));
+                $relative = substr($name, strlen($archivePrefix));
                 if ($relative === '') {
                     continue;
                 }
