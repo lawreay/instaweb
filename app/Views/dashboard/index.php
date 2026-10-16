@@ -101,7 +101,14 @@ $formatBytes = static function (int $bytes): string {
                   <strong><a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($website['website_name'] ?: 'Untitled website', ENT_QUOTES, 'UTF-8') ?></a></strong>
                   <span><?= htmlspecialchars($website['custom_domain'] ?: ($website['subdomain'] ?: ($website['public_url'] ?? '')), ENT_QUOTES, 'UTF-8') ?></span>
                 </div>
-                <span class="client-status <?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?></span>
+                <div class="client-site-actions">
+                  <span class="client-status <?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?></span>
+                  <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
+                  <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> Files</a>
+                  <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
+                    <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit site</a>
+                  <?php endif; ?>
+                </div>
               </article>
             <?php endforeach; ?>
           </div>
