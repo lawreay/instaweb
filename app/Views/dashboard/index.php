@@ -25,8 +25,8 @@ $formatBytes = static function (int $bytes): string {
       <a class="<?= ($active ?? '') === 'dashboard' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
       <a class="<?= ($active ?? '') === 'profile' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/profile', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="user"></i> Profile</a>
       <a class="<?= ($active ?? '') === 'websites' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="globe-2"></i> Websites</a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="hard-drive"></i> Storage</a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="badge-dollar-sign"></i> Subscription</a>
+      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard#storage', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="hard-drive"></i> Storage</a>
+      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard#subscription', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="badge-dollar-sign"></i> Subscription</a>
       <a class="<?= ($active ?? '') === 'notifications' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/notifications', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="bell"></i> Notifications</a>
       <?php if ($isAdmin): ?>
 
