@@ -196,5 +196,40 @@
       navigator.clipboard.writeText(url).then(showCopiedToast).catch(showCopyFallback);
     });
   </script>
+  <script>
+    (function () {
+      var toggle = document.querySelector('[data-client-menu-toggle]');
+      var navigation = document.getElementById('clientHeaderNav');
+      if (!toggle || !navigation) return;
+
+      function setMenuOpen(open) {
+        navigation.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+        toggle.innerHTML = '<i data-lucide="' + (open ? 'x' : 'menu') + '"></i>';
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
+
+      toggle.addEventListener('click', function () {
+        setMenuOpen(toggle.getAttribute('aria-expanded') !== 'true');
+      });
+
+      navigation.addEventListener('click', function (event) {
+        if (event.target.closest('a') && window.matchMedia('(max-width: 700px)').matches) {
+          setMenuOpen(false);
+        }
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') setMenuOpen(false);
+      });
+
+      window.addEventListener('resize', function () {
+        if (!window.matchMedia('(max-width: 700px)').matches) setMenuOpen(false);
+      });
+    }());
+  </script>
 </body>
 </html>
