@@ -44,17 +44,21 @@
   <?php endif; ?>
 </head>
 <body class="dashboard-body">
-  <div class="client-app-header">
-    <a class="client-app-brand" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>">
+  <?php $clientHeaderPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/'; ?>
+  <header class="client-app-header">
+    <a class="client-app-brand" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>" aria-label="InstaWeb client workspace home">
       <span class="client-app-brand-mark"><i data-lucide="layers"></i></span>
       <span>InstaWeb<small>Client workspace</small></span>
     </a>
-    <nav aria-label="Quick navigation">
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="globe-2"></i> Manage my sites</a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/profile', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="user-round"></i> Account</a>
+    <button class="client-header-menu" type="button" aria-controls="clientHeaderNav" aria-expanded="false" aria-label="Open navigation" data-client-menu-toggle>
+      <i data-lucide="menu"></i>
+    </button>
+    <nav id="clientHeaderNav" aria-label="Quick navigation">
+      <a class="<?= $clientHeaderPath === '/dashboard' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a class="<?= str_starts_with($clientHeaderPath, '/dashboard/websites') ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="globe-2"></i> Manage my sites</a>
+      <a class="<?= str_starts_with($clientHeaderPath, '/profile') ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/profile', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="user-round"></i> Account</a>
     </nav>
-  </div>
+  </header>
   <?php foreach (['success' => 'success', 'warning' => 'warning', 'error' => 'danger'] as $key => $type): ?>
     <?php $message = \App\Core\Session::pullFlash($key); ?>
     <?php if ($message): ?>
