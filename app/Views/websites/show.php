@@ -43,7 +43,15 @@ $formatBytes = static function (int $bytes): string {
         <i data-lucide="activity"></i>
         <span>Status</span>
         <strong><?= htmlspecialchars(ucfirst($website['status']), ENT_QUOTES, 'UTF-8') ?></strong>
-        <small><?= ($website['status'] ?? '') === 'published' ? 'Marked as published' : 'Not published yet' ?></small>
+        <small>
+          <?php if (($website['status'] ?? '') === 'published'): ?>
+            Marked as published
+          <?php elseif (($website['status'] ?? '') === 'draft'): ?>
+            Not published yet
+          <?php else: ?>
+            This website requires attention
+          <?php endif; ?>
+        </small>
       </div>
       <div class="client-card client-stat">
         <i data-lucide="hard-drive"></i>
