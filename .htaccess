@@ -1,7 +1,7 @@
 Options -Indexes
 DirectoryIndex index.php
 RewriteEngine On
-RewriteBase /
+RewriteBase /instaweb1/
 
 # Support direct public asset requests and fallback from /public paths
 RewriteRule ^public/(assets|sites|uploads)/(.*)$ public/$1/$2 [L,NC,QSA]
