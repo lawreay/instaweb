@@ -93,10 +93,15 @@ Core tables include:
 
 ## Storage model
 
-The project saves draft content in a user/project-based folder structure:
+Runtime files are deliberately excluded from Git. The application creates working directories as needed, and the web-server account must have write access to the runtime locations:
 
 - `storage/projects/{userId}/{slug}` for active draft content
+- `storage/backups/{userId}/{slug}` for generated project backups
+- `storage/exports` for generated ZIP exports
 - `public/sites/{projectId}/{slug}` for published static content or WordPress output
+- `uploads/` for application-managed uploads, where used
+
+These folders may be absent in a fresh checkout. Do not commit customer projects, published output, uploads, backups, exports, or other runtime data. Ensure the deployment environment creates the required folders and grants the PHP process the minimum write permissions it needs.
 
 The storage service manages safe path creation, path sanitization, file creation, folder creation, and directory size checks.
 
@@ -144,27 +149,25 @@ The file management logic keeps operations inside the project directory and uses
 
 The editor lets a user open text-based project files and save them back.
 
-This is implemented via:
+Th### 6. WordPress support
 
-- `EditorController`
-- `ProjectStorageService`
-- `Website` model
+WordPress installs are handled by `ProjectStorageService::installWordPress()`.
 
-The editor updates both the file content and the cached storage usage.
+**Deployment requirement:** the WordPress ZIP package is not stored in Git. Upload the approved WordPress package to the server at the configured `WORDPRESS_PACKAGE_PATH` (defaults to `storage/wordpress/wordpress-6.9.3.zip`) and set `WORDPRESS_PACKAGE_SHA256` in the server-side `.env` to the package's actual SHA-256 checksum. Keep the package outside source control and make sure the PHP process can read it.
 
-### 5. Publishing
+The installer:
 
-`PublishingService` publishes a draft project to the public site location.
+- resolves the package path
+- verifies the package checksum
+- checks the archive for unsafe paths and symbolic links
+- extracts into a temporary directory
+- validates required WordPress files exist
+- writes the generated configuration
+- moves the final installation into the project directory
 
-It:
+This reduces the risk of partially installed or maliciously crafted WordPress packages.
 
-- validates the draft path
-- clears the public output folder
-- copies approved files to the live public folder
-- writes WordPress-specific `.htaccess` rules when needed
-- leaves static projects restricted to safe static extensions
-
-This keeps public files separate from editable draft storage.
+public files separate from editable draft storage.
 
 ### 6. WordPress support
 
