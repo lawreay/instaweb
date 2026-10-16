@@ -156,26 +156,40 @@
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script src="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/js/main.js?v=20260629-tabs', ENT_QUOTES, 'UTF-8') ?>"></script>
   <script>
-    // Share button handler: copy site URL to clipboard and show a short confirmation toast
+    // Share button handler: copy the public URL when the browser permits it.
     document.addEventListener('click', function (e) {
       var el = e.target.closest && e.target.closest('.btn-share-site');
       if (!el) return;
+
       var url = el.getAttribute('data-share-url') || '';
       if (!url) return;
-      navigator.clipboard?.writeText(url).then(function () {
-        // create temporary toast
+
+      var showCopyFallback = function () {
+        window.prompt('Copy this site URL:', url);
+      };
+
+      var showCopiedToast = function () {
         var toast = document.createElement('div');
         toast.className = 'admin-toast alert alert-success shadow-sm';
+        toast.setAttribute('role', 'status');
         toast.style.position = 'fixed';
         toast.style.right = '20px';
         toast.style.bottom = '20px';
         toast.style.zIndex = 2000;
         toast.textContent = 'Link copied to clipboard';
         document.body.appendChild(toast);
-        setTimeout(function () { document.body.removeChild(toast); }, 2500);
-      }).catch(function () {
-        alert('Unable to copy link to clipboard. Here it is: ' + url);
-      });
+        window.setTimeout(function () {
+          if (toast.isConnected) toast.remove();
+        }, 2500);
+      };
+
+      // Clipboard access is usually unavailable on insecure HTTP origins.
+      if (!window.isSecureContext || !navigator.clipboard || !navigator.clipboard.writeText) {
+        showCopyFallback();
+        return;
+      }
+
+      navigator.clipboard.writeText(url).then(showCopiedToast).catch(showCopyFallback);
     });
   </script>
 </body>
