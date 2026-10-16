@@ -69,6 +69,12 @@ class PublishController extends Controller
         [$userId, $website] = $this->requireWebsiteFromPost();
         $this->requireCsrf('/dashboard/websites/show?id=' . (int) $website['id']);
 
+        if (($website['status'] ?? '') === 'suspended') {
+            Session::flash('error', 'This website is suspended by an administrator. Its status cannot be changed by the site owner.');
+            $this->redirectTo('/dashboard/websites/show?id=' . (int) $website['id']);
+            return;
+        }
+
         try {
             $websiteModel = new Website();
             (new PublishingService())->unpublish((int) $website['id'], $website['slug']);
