@@ -1,0 +1,10 @@
+Options -Indexes
+DirectoryIndex index.php index.html index.htm
+
+<FilesMatch "\.(php|phtml|phar)$">
+  Require all granted
+</FilesMatch>
+
+<FilesMatch "^(wp-config\.php|\.env|\.git.*|.*\.(sql|sqlite|log|bak|ini))$">
+    Require all denied
+</FilesMatch>
