@@ -1307,3 +1307,55 @@ body.dashboard-body > .client-dashboard {
 @media (prefers-reduced-motion: reduce) {
   .client-dashboard { transition: none !important; }
 }
+
+
+/* Predictable independent sidebar scrolling on desktop; natural page scrolling on mobile. */
+@media (min-width: 992px) {
+  .client-dashboard {
+    align-items: start;
+    min-height: 100vh;
+  }
+
+  .client-dashboard .client-sidebar {
+    position: sticky;
+    inset-block-start: 0;
+    align-self: start;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .client-dashboard .client-main {
+    min-height: 100vh;
+    min-width: 0;
+    overflow-x: clip;
+  }
+}
+
+@media (max-width: 991px) {
+  .client-dashboard .client-sidebar {
+    position: relative;
+    inset-block-start: auto;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior: auto;
+  }
+
+  .client-dashboard .client-main {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .client-dashboard .client-nav {
+    overscroll-behavior-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
