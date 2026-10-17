@@ -36,7 +36,7 @@
     }
   </style>
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/styles.css', ENT_QUOTES, 'UTF-8') ?>">
-  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard.css?v=20261016-sidebar-header', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard.css?v=20261017-icon-sidebar', ENT_QUOTES, 'UTF-8') ?>">
   <?php $appIcon = trim((string) ($themeSettings['app_icon_url'] ?? '')); ?>
   <?php if ($appIcon !== ''): ?>
     <link rel="icon" href="<?= htmlspecialchars($appIcon, ENT_QUOTES, 'UTF-8') ?>">
@@ -228,6 +228,67 @@
 
       window.addEventListener('resize', function () {
         if (!window.matchMedia('(max-width: 700px)').matches) setMenuOpen(false);
+      });
+    }());
+  </script>
+  <script>
+    (function () {
+      var workspaces = document.querySelectorAll('.client-dashboard');
+      if (!workspaces.length) return;
+
+      workspaces.forEach(function (workspace) {
+        var sidebar = workspace.querySelector('.client-sidebar');
+        if (!sidebar) return;
+
+        var navLinks = sidebar.querySelectorAll('.client-nav a');
+        navLinks.forEach(function (link) {
+          var label = (link.textContent || '').replace(/\\s+/g, ' ').trim();
+          if (label) {
+            link.setAttribute('data-sidebar-label', label);
+            link.setAttribute('title', label);
+            link.setAttribute('aria-label', label);
+          }
+        });
+
+        var logout = sidebar.querySelector('.client-logout');
+        if (logout) {
+          logout.setAttribute('data-sidebar-label', 'Logout');
+          logout.setAttribute('title', 'Logout');
+          logout.setAttribute('aria-label', 'Logout');
+        }
+
+        var toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'client-sidebar-toggle';
+        toggle.setAttribute('aria-controls', 'client-sidebar-navigation');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.innerHTML = '<i data-lucide="chevrons-right"></i>';
+        toggle.setAttribute('aria-label', 'Expand sidebar');
+        toggle.setAttribute('title', 'Expand sidebar');
+        sidebar.insertBefore(toggle, sidebar.firstChild);
+
+        var nav = sidebar.querySelector('.client-nav');
+        if (nav && !nav.id) nav.id = 'client-sidebar-navigation';
+
+        var storageKey = 'instaweb-client-sidebar-expanded';
+        var expanded = false;
+        try { expanded = window.localStorage.getItem(storageKey) === 'true'; } catch (error) { /* Storage may be disabled. */ }
+
+        function applyState(isExpanded) {
+          workspace.classList.toggle('sidebar-expanded', isExpanded);
+          toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+          toggle.setAttribute('aria-label', isExpanded ? 'Collapse sidebar' : 'Expand sidebar');
+          toggle.setAttribute('title', isExpanded ? 'Collapse sidebar' : 'Expand sidebar');
+          toggle.innerHTML = '<i data-lucide="' + (isExpanded ? 'chevrons-left' : 'chevrons-right') + '"></i>';
+          if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+        }
+
+        applyState(expanded);
+        toggle.addEventListener('click', function () {
+          expanded = !workspace.classList.contains('sidebar-expanded');
+          applyState(expanded);
+          try { window.localStorage.setItem(storageKey, expanded ? 'true' : 'false'); } catch (error) { /* Keep working without storage. */ }
+        });
       });
     }());
   </script>

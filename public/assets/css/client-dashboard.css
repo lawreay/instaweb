@@ -1076,3 +1076,234 @@ body.dashboard-body > .client-dashboard {
   .client-app-header *,
   .client-dashboard .client-nav a { transition: none !important; }
 }
+
+
+/* Desktop icon rail: expanded labels are opt-in, not the default. */
+@media (min-width: 992px) {
+  .client-dashboard {
+    grid-template-columns: 76px minmax(0, 1fr);
+    transition: grid-template-columns 180ms ease;
+  }
+
+  .client-dashboard.sidebar-expanded { grid-template-columns: 252px minmax(0, 1fr); }
+
+  .client-dashboard .client-sidebar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    min-width: 0;
+    padding: 1rem 0.65rem;
+    align-items: stretch;
+    transition: padding 180ms ease;
+  }
+
+  .client-sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    width: 40px;
+    height: 40px;
+    margin: 0 0 1rem;
+    border: 1px solid var(--client-line, #e6ebf2);
+    border-radius: 12px;
+    background: #fff;
+    color: #344054;
+    cursor: pointer;
+  }
+
+  .client-sidebar-toggle:hover { background: #f5f8fc; color: var(--app-primary, #0d6efd); }
+  .client-sidebar-toggle:focus-visible { outline: 3px solid color-mix(in srgb, var(--app-primary, #0d6efd) 40%, white); outline-offset: 2px; }
+  .client-sidebar-toggle svg { width: 19px; height: 19px; }
+
+  .client-dashboard .client-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.25rem 0 1rem;
+    text-align: center;
+  }
+
+  .client-dashboard .client-profile .client-avatar,
+  .client-dashboard .client-profile .client-sidebar-avatar {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    margin: 0;
+  }
+
+  .client-dashboard .client-profile strong,
+  .client-dashboard .client-profile > span { display: none; }
+
+  .client-dashboard .client-nav { width: 100%; margin-top: 0.9rem; gap: 0.45rem; }
+  .client-dashboard .client-nav a,
+  .client-dashboard .client-logout {
+    position: relative;
+    justify-content: center;
+    gap: 0;
+    width: 100%;
+    min-height: 46px;
+    padding: 0.7rem 0.25rem;
+    font-size: 0;
+    overflow: visible;
+  }
+
+  .client-dashboard .client-nav a i,
+  .client-dashboard .client-logout i { width: 20px; height: 20px; }
+
+  .client-dashboard .client-nav a::after,
+  .client-dashboard .client-logout::after {
+    content: attr(data-sidebar-label);
+    position: absolute;
+    z-index: 60;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+    width: max-content;
+    max-width: 220px;
+    padding: 0.55rem 0.7rem;
+    border-radius: 9px;
+    background: #172033;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+    font-size: 0.78rem;
+    font-weight: 650;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .client-dashboard .client-nav a:hover::after,
+  .client-dashboard .client-nav a:focus-visible::after,
+  .client-dashboard .client-logout:hover::after,
+  .client-dashboard .client-logout:focus-visible::after { display: block; }
+
+  .client-dashboard .client-logout {
+    margin-top: auto;
+    border-top: 1px solid var(--client-line, #e6ebf2);
+  }
+
+  .client-dashboard.sidebar-expanded .client-sidebar { padding: 1rem; }
+  .client-dashboard.sidebar-expanded .client-profile {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 0.7rem;
+    text-align: left;
+    padding: 0.25rem 0 1rem;
+  }
+  .client-dashboard.sidebar-expanded .client-profile .client-avatar,
+  .client-dashboard.sidebar-expanded .client-profile .client-sidebar-avatar { grid-row: span 2; }
+  .client-dashboard.sidebar-expanded .client-profile strong,
+  .client-dashboard.sidebar-expanded .client-profile > span { display: block; min-width: 0; overflow-wrap: anywhere; }
+  .client-dashboard.sidebar-expanded .client-profile strong { font-size: 0.88rem; }
+  .client-dashboard.sidebar-expanded .client-profile .plan-chip { margin: 0; font-size: 0.68rem; }
+  .client-dashboard.sidebar-expanded .client-nav a,
+  .client-dashboard.sidebar-expanded .client-logout {
+    justify-content: flex-start;
+    gap: 0.75rem;
+    padding: 0.72rem 0.8rem;
+    font-size: 0.88rem;
+  }
+  .client-dashboard.sidebar-expanded .client-nav a::after,
+  .client-dashboard.sidebar-expanded .client-logout::after { display: none !important; }
+}
+
+/* Mobile gets a compact account strip and a deliberate, horizontally scrollable nav. */
+@media (max-width: 991px) {
+  .client-sidebar-toggle { display: none !important; }
+  .client-dashboard { display: block; }
+  .client-dashboard .client-sidebar {
+    display: block;
+    width: auto;
+    min-height: 0;
+    height: auto;
+    margin: 0.75rem 0.75rem 0;
+    padding: 0.85rem;
+    border: 1px solid #e7ecf3;
+    border-radius: 16px;
+    box-shadow: 0 5px 18px rgba(24, 39, 75, 0.045);
+    background: #fff;
+  }
+  .client-dashboard .client-profile {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+    padding: 0 0 0.8rem;
+    text-align: left;
+  }
+  .client-dashboard .client-profile .client-avatar,
+  .client-dashboard .client-profile .client-sidebar-avatar {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    margin: 0;
+  }
+  .client-dashboard .client-profile strong {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.9rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .client-dashboard .client-profile > span {
+    display: inline-flex;
+    margin-left: auto;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+  .client-dashboard .client-nav {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0.75rem 0 0.15rem;
+    border-top: 1px solid #edf0f5;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+  .client-dashboard .client-nav a {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    width: auto;
+    min-height: 42px;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid #e8edf4;
+    border-radius: 10px;
+    background: #fff;
+    color: #536176;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+  .client-dashboard .client-nav a.active {
+    border-color: color-mix(in srgb, var(--app-primary, #0d6efd) 22%, white);
+    background: color-mix(in srgb, var(--app-primary, #0d6efd) 7%, white);
+    box-shadow: none;
+  }
+  .client-dashboard .client-nav a i { width: 17px; height: 17px; }
+  .client-dashboard .client-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    width: auto;
+    margin-top: 0.6rem;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid #f4dfe2;
+    border-radius: 10px;
+    font-size: 0.82rem;
+  }
+  .client-dashboard .client-main { padding: 1rem 0.85rem 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .client-dashboard { transition: none !important; }
+}
