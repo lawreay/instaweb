@@ -1,5 +1,5 @@
 <?php $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/'); ?>
-<section class="client-dashboard">
+<section class="client-dashboard iw-client-page iw-website-form">
 <div class="client-main">
     <header class="client-header">
       <div>
