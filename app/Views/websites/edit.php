@@ -1,5 +1,5 @@
 <?php $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/'); ?>
-<section class="client-dashboard">
+<section class="client-dashboard iw-client-page iw-website-form">
   <aside class="client-sidebar">
     <div class="client-profile">
       <div class="client-avatar"><?= htmlspecialchars(strtoupper(substr((string) ($website['website_name'] ?? 'W'), 0, 1)), ENT_QUOTES, 'UTF-8') ?></div>
