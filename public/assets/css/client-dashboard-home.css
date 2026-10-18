@@ -431,3 +431,39 @@
 @media (prefers-reduced-motion: reduce) {
   .iw-home *, .iw-home *::before, .iw-home *::after { transition: none !important; scroll-behavior: auto !important; }
 }
+
+
+/* Match the shared workspace chrome to the new dashboard palette without replacing
+   the legacy layout rules used by profile, notifications and website-management pages. */
+body.dashboard-body {
+  background: #f4f7f3;
+  color: #182522;
+}
+body.dashboard-body .client-app-header {
+  border-bottom-color: #e4eae5;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 3px 16px rgba(24, 37, 34, 0.035);
+}
+body.dashboard-body .client-app-brand { color: #182522; }
+body.dashboard-body .client-app-brand:hover { color: #496d2d; }
+body.dashboard-body .client-app-brand-mark {
+  background: #182522;
+  color: #b9e769;
+}
+body.dashboard-body .client-app-header nav a:hover,
+body.dashboard-body .client-app-header nav a.active {
+  border-color: #dce8d4;
+  background: #eff5e8;
+  color: #3f6427;
+}
+body.dashboard-body .client-header-menu {
+  border-color: #e4eae5;
+  color: #182522;
+}
+body.dashboard-body .client-app-footer {
+  border-top-color: #e4eae5;
+  background: #fff;
+  color: #71807a;
+}
+body.dashboard-body .client-app-footer a:hover { color: #496d2d; }
+
