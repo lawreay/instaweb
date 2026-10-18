@@ -8,7 +8,7 @@ $formatBytes = static function (int $bytes): string {
     return $bytes > 0 ? number_format($bytes / 1024, 2) . ' KB' : '0 KB';
 };
 ?>
-<section class="client-dashboard">
+<section class="client-dashboard iw-client-page iw-filemanager-page">
   <aside class="client-sidebar">
     <div class="client-profile">
       <div class="client-avatar"><i data-lucide="folder"></i></div>
