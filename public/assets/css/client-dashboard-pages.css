@@ -237,3 +237,5 @@
   .iw-filemanager-page .client-header-actions .btn { flex: 1 1 auto; }
   .iw-editor-page textarea.form-control { min-height: 45vh; font-size: .78rem; }
 }
+/* Utility screens intentionally use the full workspace width and do not render a sidebar. */
+.iw-filemanager-page > .client-main, .iw-editor-page > .client-main { grid-column: 1 / -1; width: 100%; min-width: 0; }
