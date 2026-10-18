@@ -37,7 +37,7 @@
   </style>
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/styles.css', ENT_QUOTES, 'UTF-8') ?>">
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard.css?v=20261017-sidebar-scroll', ENT_QUOTES, 'UTF-8') ?>">
-  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard-home.css?v=20261018-workspace', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard-home.css?v=20261018-workspace-v2', ENT_QUOTES, 'UTF-8') ?>">
   <?php $appIcon = trim((string) ($themeSettings['app_icon_url'] ?? '')); ?>
   <?php if ($appIcon !== ''): ?>
     <link rel="icon" href="<?= htmlspecialchars($appIcon, ENT_QUOTES, 'UTF-8') ?>">
