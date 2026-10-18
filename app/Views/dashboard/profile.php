@@ -3,7 +3,7 @@ $joinedAt = isset($user['created_at']) ? date('F j, Y', strtotime($user['created
 $isVerified = ((int) ($user['email_verified'] ?? 0)) === 1;
 $status = (string) ($user['account_status'] ?? 'pending');
 ?>
-<section class="client-dashboard">
+<section class="client-dashboard iw-client-page iw-profile-page">
 <div class="client-main">
     <header class="client-header profile-header">
       <div>
