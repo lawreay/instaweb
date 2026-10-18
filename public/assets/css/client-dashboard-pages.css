@@ -202,3 +202,38 @@
 @media (prefers-reduced-motion: reduce) {
   .iw-client-page *, .iw-client-page *::before, .iw-client-page *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+/* File manager and code editor: tools stay secondary to the file list and editor canvas. */
+.iw-filemanager-page .client-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 1rem;
+  max-width: 1480px; margin: 0 auto;
+}
+.iw-filemanager-page .client-grid > .client-card { min-width: 0; margin: 0; }
+.iw-filemanager-page .client-grid > .client-wide { grid-column: 1 / -1; }
+.iw-filemanager-page .client-header-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.iw-filemanager-page .client-site { grid-template-columns: 42px minmax(0, 1fr) auto; align-items: center; }
+.iw-filemanager-page .client-site > div:nth-child(2) strong { display: block; font-size: .88rem; font-weight: 800; overflow-wrap: anywhere; }
+.iw-filemanager-page .client-site > div:nth-child(2) span { display: block; margin-top: .3rem; color: var(--iw-muted); font-size: .76rem; overflow-wrap: anywhere; }
+.iw-filemanager-page .client-site .d-flex { align-items: center; }
+.iw-filemanager-page .client-site form { margin: 0; }
+.iw-filemanager-page .client-site-actions .btn, .iw-filemanager-page .client-site .btn { min-width: 36px; }
+.iw-filemanager-page .client-card form { min-width: 0; }
+.iw-editor-page .client-header { max-width: 1480px; }
+.iw-editor-page .client-card { max-width: 1480px; margin-inline: auto; }
+.iw-editor-page textarea.form-control {
+  min-height: 55vh; padding: 1rem; border: 1px solid #d5dfd6; border-radius: 12px;
+  background: #17231e; color: #e6f0e8; font-size: .86rem; line-height: 1.7;
+  tab-size: 2; resize: vertical;
+}
+.iw-editor-page textarea.form-control:focus { border-color: #8aaa78; box-shadow: 0 0 0 3px rgba(121, 155, 101, .14); }
+@media (max-width: 900px) {
+  .iw-filemanager-page .client-grid { grid-template-columns: minmax(0, 1fr); }
+  .iw-filemanager-page .client-grid > .client-wide { grid-column: auto; }
+}
+@media (max-width: 760px) {
+  .iw-filemanager-page .client-site { grid-template-columns: 36px minmax(0, 1fr); }
+  .iw-filemanager-page .client-site > .d-flex { grid-column: 1 / -1; justify-content: flex-start !important; }
+  .iw-filemanager-page .client-header-actions { width: 100%; }
+  .iw-filemanager-page .client-header-actions .btn { flex: 1 1 auto; }
+  .iw-editor-page textarea.form-control { min-height: 45vh; font-size: .78rem; }
+}
