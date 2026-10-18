@@ -17,7 +17,7 @@ $url = static function (string $target) use ($baseUrl): string {
 
 $heroKicker = $value('homepage_hero_kicker', 'Build · Host · Grow');
 $heroTitle = $value('homepage_hero_title', 'Build and host websites in minutes.');
-$heroSubtitle = $value('homepage_hero_subtitle', 'Create websites directly in your browser — no advanced technical skills needed. Perfect for schools, shops, churches, and growing brands across Malawi.');
+$heroSubtitle = $value('homepage_hero_subtitle', 'Create, host, and manage websites in one place. Publish static websites or start a WordPress project for a dynamic, database-driven website, with straightforward tools built for individuals and growing organisations across Malawi.');
 $heroNote = trim((string) ($settings['homepage_hero_note'] ?? 'Create your account and publish your first site with Instaweb in minutes.'));
 $primaryUrl = $url((string) ($settings['homepage_cta_url'] ?? '/register'));
 $secondaryUrl = $url((string) ($settings['homepage_secondary_cta_url'] ?? '/login'));
@@ -36,11 +36,10 @@ $heroAlt = $value('homepage_hero_media_alt', 'Instaweb dashboard showcase');
         <?php if ($secondaryUrl !== ''): ?><a href="#templates" class="btn-ghost">See Templates</a><?php endif; ?>
       </div>
       <?php if ($heroNote !== ''): ?><p class="hero-note"><?= $heroNote ?></p><?php endif; ?>
-      <div class="hero-stats">
-        <div class="stat"><div class="num">10,000+</div><div class="lbl">Sites Hosted</div></div>
-        <div class="stat"><div class="num">5,000+</div><div class="lbl">Users</div></div>
-        <div class="stat"><div class="num">50+</div><div class="lbl">Countries</div></div>
-        <div class="stat"><div class="num">99.9%</div><div class="lbl">Uptime</div></div>
+      <div class="hero-capabilities" aria-label="Supported website types">
+        <span>Static websites</span>
+        <span>WordPress projects</span>
+        <span>File management</span>
       </div>
     </div>
     <div class="editor-shell">
@@ -65,8 +64,8 @@ $heroAlt = $value('homepage_hero_media_alt', 'Instaweb dashboard showcase');
         </div>
       </div>
       <div class="col-lg-6 reveal">
-        <p>Whether you are creating a portfolio, a church outreach page, a school notice board, or a small business website, Instaweb helps you share your work online without needing advanced technical skills.</p>
-        <p class="text-secondary">You do not need to be a web developer to launch a strong website. Instaweb is designed to make publishing feel clear, practical, and local.</p>
+        <p>Whether you need a lightweight static website or a WordPress-powered site with dynamic pages and database-backed content, Instaweb brings core website creation and management tools into one workspace.</p>
+        <p class="text-secondary">Start with a static project for simple pages, or choose WordPress when you need its content management features. WordPress setup still depends on the hosting server's PHP and database configuration.</p>
         <ul class="feature-list mt-4">
           <li><i data-lucide="arrow-right"></i> Quick setup with beginner-friendly controls</li>
           <li><i data-lucide="arrow-right"></i> Upload files and publish your site in minutes</li>
@@ -88,21 +87,21 @@ $heroAlt = $value('homepage_hero_media_alt', 'Instaweb dashboard showcase');
         <div class="feature-card h-100">
           <i data-lucide="plus-circle"></i>
           <h3>Create Project</h3>
-          <p>Create a website using the built-in editor and starter structure.</p>
+          <p>Start a static website or create a WordPress project from the available options.</p>
         </div>
       </div>
       <div class="col-md-4">
         <div class="feature-card h-100">
           <i data-lucide="upload"></i>
           <h3>Upload Files</h3>
-          <p>Manage HTML, CSS, JavaScript, images, and media from your dashboard.</p>
+          <p>Manage project files from your dashboard. WordPress projects include the files needed to complete WordPress setup.</p>
         </div>
       </div>
       <div class="col-md-4">
         <div class="feature-card h-100">
           <i data-lucide="globe-2"></i>
           <h3>Publish</h3>
-          <p>Get your website online instantly with an Instaweb subdomain.</p>
+          <p>Publish your project to its Instaweb address. WordPress sites require a working PHP and database environment to complete setup.</p>
         </div>
       </div>
     </div>
@@ -119,7 +118,8 @@ $heroAlt = $value('homepage_hero_media_alt', 'Instaweb dashboard showcase');
       <?php foreach ([
         ['code-2', 'Built-in Code Editor', 'Syntax highlighting, project files, and live preview.'],
         ['folder-open', 'File Manager', 'Upload and organize files easily.'],
-        ['server', 'Website Hosting', 'Fast and reliable hosting with a simple publishing flow.'],
+        ['server', 'Static Website Hosting', 'Publish HTML, CSS, JavaScript, images, and other static assets.'],
+        ['layers', 'WordPress Projects', 'Prepare a WordPress website for setup on a PHP-enabled host with database access.'],
         ['bar-chart-3', 'Analytics', 'Track visitors and traffic as your project grows.'],
         ['link', 'Custom Domains', 'Connect a custom domain on Premium.'],
         ['shield-check', 'Secure Platform', 'Protected with modern security and validation.'],
