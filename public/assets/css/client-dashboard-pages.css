@@ -239,3 +239,19 @@
 }
 /* Utility screens intentionally use the full workspace width and do not render a sidebar. */
 .iw-filemanager-page > .client-main, .iw-editor-page > .client-main { grid-column: 1 / -1; width: 100%; min-width: 0; }
+
+/* Preview workspace: make the draft state and embedded viewport feel intentional. */
+.iw-preview-page .client-header { align-items: flex-start; }
+.iw-preview-page .client-header > div { min-width: 0; }
+.iw-preview-page .client-card { padding: clamp(.65rem, 1.5vw, 1rem); }
+.iw-preview-page iframe {
+  display: block;
+  width: 100%;
+  min-height: 70vh;
+  border: 1px solid #dbe4dc !important;
+  border-radius: 12px !important;
+  background: #fff;
+}
+@media (max-width: 760px) {
+  .iw-preview-page iframe { min-height: 62vh; }
+}
