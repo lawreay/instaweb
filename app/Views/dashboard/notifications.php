@@ -4,33 +4,7 @@ $isVerified = ((int) ($user['email_verified'] ?? 0)) === 1;
 $status = (string) ($user['account_status'] ?? 'pending');
 ?>
 <section class="client-dashboard">
-  <aside class="client-sidebar">
-    <div class="client-profile">
-      <?php if (!empty($user['avatar']) && $user['avatar'] !== 'default.png'): ?>
-        <img class="client-sidebar-avatar" src="<?= htmlspecialchars(($app['base_url'] ?? '') . '/' . $user['avatar'], ENT_QUOTES, 'UTF-8') ?>" alt="Profile avatar">
-      <?php else: ?>
-        <div class="client-avatar"><?= htmlspecialchars(strtoupper(substr((string) $user['fullname'], 0, 1)), ENT_QUOTES, 'UTF-8') ?></div>
-      <?php endif; ?>
-      <strong><?= htmlspecialchars($user['fullname'], ENT_QUOTES, 'UTF-8') ?></strong>
-      <span><?= htmlspecialchars(ucfirst($user['role']), ENT_QUOTES, 'UTF-8') ?></span>
-    </div>
-
-    <nav class="client-nav">
-      <a class="<?= ($active ?? '') === 'dashboard' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-      <a class="<?= ($active ?? '') === 'profile' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/profile', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="user"></i> Profile</a>
-      <a class="<?= ($active ?? '') === 'websites' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="globe-2"></i> Websites</a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="hard-drive"></i> Storage</a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="badge-dollar-sign"></i> Subscription</a>
-      <a class="<?= ($active ?? '') === 'notifications' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/notifications', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="bell"></i> Notifications</a>
-      <?php if ($isAdmin): ?>
-        <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="shield-check"></i> Admin Console</a>
-      <?php endif; ?>
-    </nav>
-
-    <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/logout', ENT_QUOTES, 'UTF-8') ?>" class="client-logout"><i data-lucide="log-out"></i> Logout</a>
-  </aside>
-
-  <div class="client-main">
+<div class="client-main">
     <header class="client-header profile-header">
       <div>
         <p class="admin-pro-kicker">Notification center</p>

@@ -1,19 +1,6 @@
 <?php $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/'); ?>
 <section class="client-dashboard">
-  <aside class="client-sidebar">
-    <div class="client-profile">
-      <div class="client-avatar"><i data-lucide="eye"></i></div>
-      <strong>Preview</strong>
-      <span><?= htmlspecialchars($website['website_name'] ?: 'Website', ENT_QUOTES, 'UTF-8') ?></span>
-    </div>
-    <nav class="client-nav">
-      <a href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="arrow-left"></i> Project</a>
-      <a href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder"></i> File Manager</a>
-      <a href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/editor?id=' . (int) $website['id'] . '&path=index.html', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="code-2"></i> Editor</a>
-    </nav>
-  </aside>
-
-  <div class="client-main">
+<div class="client-main">
     <header class="client-header">
       <div>
         <p class="auth-eyebrow">Owner-Only Draft</p>

@@ -9,20 +9,7 @@ $formatBytes = static function (int $bytes): string {
 };
 ?>
 <section class="client-dashboard">
-  <aside class="client-sidebar">
-    <div class="client-profile">
-      <div class="client-avatar"><i data-lucide="folder"></i></div>
-      <strong>File Manager</strong>
-      <span><?= htmlspecialchars($website['website_name'] ?: 'Website', ENT_QUOTES, 'UTF-8') ?></span>
-    </div>
-    <nav class="client-nav">
-      <a href="<?= htmlspecialchars($baseUrl . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-      <a class="active" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="globe-2"></i> Websites</a>
-      <a href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="arrow-left"></i> Project</a>
-    </nav>
-  </aside>
-
-  <div class="client-main">
+<div class="client-main">
     <header class="client-header">
       <div>
         <p class="auth-eyebrow">Draft Storage</p>

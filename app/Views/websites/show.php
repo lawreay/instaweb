@@ -10,20 +10,7 @@ $formatBytes = static function (int $bytes): string {
 };
 ?>
 <section class="client-dashboard">
-  <aside class="client-sidebar">
-    <div class="client-profile">
-      <div class="client-avatar"><?= htmlspecialchars(strtoupper(substr((string) ($website['website_name'] ?? 'W'), 0, 1)), ENT_QUOTES, 'UTF-8') ?></div>
-      <strong><?= htmlspecialchars($website['website_name'] ?: 'Website', ENT_QUOTES, 'UTF-8') ?></strong>
-      <span><?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?></span>
-    </div>
-    <nav class="client-nav">
-      <a href="<?= htmlspecialchars($baseUrl . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-      <a class="active" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="globe-2"></i> Websites</a>
-      <a href="<?= htmlspecialchars($baseUrl . '/profile', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="user"></i> Profile</a>
-    </nav>
-  </aside>
-
-  <div class="client-main">
+<div class="client-main">
     <header class="client-header">
       <div>
         <p class="auth-eyebrow">Project Summary</p>
