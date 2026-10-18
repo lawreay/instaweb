@@ -8,7 +8,7 @@ $formatBytes = static function (int $bytes): string {
     return number_format($bytes / 1048576, 2) . ' MB';
 };
 ?>
-<section class="client-dashboard">
+<section class="client-dashboard iw-client-page iw-websites-list">
   <aside class="client-sidebar">
     <div class="client-profile">
       <div class="client-avatar">W</div>
