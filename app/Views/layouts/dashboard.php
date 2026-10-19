@@ -36,7 +36,7 @@
     }
   </style>
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/styles.css', ENT_QUOTES, 'UTF-8') ?>">
-  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard.css?v=20261017-sidebar-scroll', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard.css?v=20261019-shared-sidebar', ENT_QUOTES, 'UTF-8') ?>">
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard-home.css?v=20261018-client-pages', ENT_QUOTES, 'UTF-8') ?>">
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard-pages.css?v=20261018-pages-v1', ENT_QUOTES, 'UTF-8') ?>">
   <?php $appIcon = trim((string) ($themeSettings['app_icon_url'] ?? '')); ?>
@@ -288,7 +288,7 @@
       closeButton.addEventListener('click', function () { setMobileOpen(false); });
       sidebar.querySelectorAll('.iw-client-nav a').forEach(function (link) {
         link.addEventListener('click', function () {
-          if (!desktopQuery.matches) shell.classList.remove('mobile-nav-open');
+          if (!desktopQuery.matches) setMobileOpen(false);
         });
       });
       document.addEventListener('keydown', function (event) {
