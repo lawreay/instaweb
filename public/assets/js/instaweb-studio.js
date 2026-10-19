@@ -257,8 +257,6 @@
       savedVersion = 0;
       lastSaveError = '';
       if (pathInput) pathInput.value = currentPath;
-      setCurrentValue(currentContent);
-
       if (editor && !fallbackMode && window.monaco) {
         var modelKey = currentPath;
         if (!models[modelKey]) models[modelKey] = window.monaco.editor.createModel(currentContent, languageFor(currentExtension), window.monaco.Uri.parse('inmemory://instaweb/' + encodeURIComponent(modelKey)));
