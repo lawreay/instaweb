@@ -1,14 +1,14 @@
 <?php
 
-namespace App\\Controllers;
+namespace App\Controllers;
 
-use App\\Core\\Controller;
-use App\\Core\\Csrf;
-use App\\Core\\Session;
-use App\\Models\\Website;
-use App\\Services\\AuthService;
-use App\\Services\\ProjectStorageService;
-use App\\Services\\PublicSiteUrlService;
+use App\Core\Controller;
+use App\Core\Csrf;
+use App\Core\Session;
+use App\Models\Website;
+use App\Services\AuthService;
+use App\Services\ProjectStorageService;
+use App\Services\PublicSiteUrlService;
 
 /**
  * Handles browser-based editing for safe static text files.
@@ -23,7 +23,7 @@ class EditorController extends Controller
         try {
             $path = (string) $this->input('path', 'index.html');
             $file = $storage->readTextFile($userId, $website['slug'], $path);
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             Session::flash('error', $exception->getMessage());
             $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
         }
@@ -62,7 +62,7 @@ class EditorController extends Controller
                 'content' => $file['content'],
                 'extension' => $file['extension'],
             ]);
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             $this->respondJson(['ok' => false, 'message' => $exception->getMessage()], 422);
         }
     }
@@ -112,7 +112,7 @@ class EditorController extends Controller
 
             Session::flash('success', 'File saved.');
             $this->redirectTo('/dashboard/websites/editor?id=' . (int) $website['id'] . '&path=' . rawurlencode($safePath));
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             $this->respondSaveError($isAjax, $exception->getMessage(), 422, $fallback);
         }
     }
