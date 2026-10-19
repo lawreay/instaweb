@@ -1,0 +1,400 @@
+(function () {
+  'use strict';
+
+  var root = document.querySelector('[data-iw-studio]');
+  if (!root) return;
+
+  var config;
+  try { config = JSON.parse(root.getAttribute('data-config') || '{}'); }
+  catch (error) { return; }
+
+  var treeHost = root.querySelector('[data-file-tree]');
+  var searchInput = root.querySelector('[data-file-search]');
+  var saveStatus = root.querySelector('[data-save-status]');
+  var statusMessage = root.querySelector('[data-status-message]');
+  var loading = root.querySelector('[data-editor-loading]');
+  var fallback = root.querySelector('[data-editor-fallback]');
+  var host = root.querySelector('[data-monaco-host]');
+  var form = root.querySelector('[data-save-form]');
+  var contentInput = root.querySelector('[data-save-content]');
+  var pathInput = form ? form.querySelector('[name="path"]') : null;
+  var previewFrame = root.querySelector('[data-preview-frame]');
+  var panes = root.querySelector('[data-panes]');
+  var dirtyIndicator = root.querySelector('[data-dirty-indicator]');
+  var currentPathLabel = root.querySelector('[data-current-path]');
+  var breadcrumb = root.querySelector('[data-breadcrumb]');
+  var languageStatus = root.querySelector('[data-language-status]');
+  var cursorStatus = root.querySelector('[data-cursor-status]');
+  var currentTab = root.querySelector('[data-current-tab]');
+  var editor = null;
+  var models = {};
+  var currentPath = String(config.currentPath || 'index.html');
+  var currentContent = String(config.currentContent || '');
+  var currentExtension = String(config.extension || 'html').toLowerCase();
+  var editVersion = 0;
+  var savedVersion = 0;
+  var saveTimer = null;
+  var saving = false;
+  var saveAgain = false;
+  var lastSaveError = '';
+  var fallbackMode = true;
+  var previewVisible = true;
+  var latestRequest = 0;
+
+  function languageFor(extension) {
+    return ({ html: 'html', htm: 'html', css: 'css', js: 'javascript', json: 'json', md: 'markdown', txt: 'plaintext' })[extension] || 'plaintext';
+  }
+
+  function iconFor(item) {
+    if (item.type === 'folder') return 'folder';
+    return ({ html: 'file-code-2', htm: 'file-code-2', css: 'file-code-2', js: 'file-code-2', json: 'file-json', md: 'file-text', txt: 'file-text' })[item.extension] || 'file';
+  }
+
+  function refreshIcons() {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+  }
+
+  function setStatus(state, message) {
+    if (!saveStatus) return;
+    saveStatus.classList.remove('is-saving', 'is-error');
+    if (state === 'saving') saveStatus.classList.add('is-saving');
+    if (state === 'error') saveStatus.classList.add('is-error');
+    var label = state === 'saving' ? 'Saving…' : state === 'error' ? 'Save failed' : state === 'dirty' ? 'Unsaved changes' : 'All changes saved';
+    saveStatus.lastChild.textContent = ' ' + label;
+    if (statusMessage) statusMessage.textContent = message || label;
+  }
+
+  function isDirty() { return editVersion !== savedVersion; }
+
+  function updateDirtyUi() {
+    if (dirtyIndicator) dirtyIndicator.classList.toggle('is-dirty', isDirty());
+    if (currentTab) currentTab.setAttribute('aria-label', currentPath + (isDirty() ? ', unsaved changes' : ''));
+    if (isDirty()) setStatus('dirty', 'Changes will autosave');
+    else if (!lastSaveError) setStatus('saved', 'Autosave enabled');
+  }
+
+  function currentValue() {
+    return editor && !fallbackMode ? editor.getValue() : (fallback ? fallback.value : currentContent);
+  }
+
+  function setCurrentValue(value) {
+    currentContent = String(value);
+    if (editor && !fallbackMode) editor.setValue(currentContent);
+    if (fallback) fallback.value = currentContent;
+  }
+
+  function refreshPreview() {
+    if (!previewFrame) return;
+    var url = config.previewUrl || '';
+    if (!url) return;
+    previewFrame.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_preview=' + Date.now();
+  }
+
+  function scheduleSave(delay) {
+    window.clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(function () { saveBuffer(); }, typeof delay === 'number' ? delay : 850);
+  }
+
+  async function saveBuffer() {
+    if (!isDirty()) return true;
+    if (saving) { saveAgain = true; return false; }
+    if (!form || !pathInput || !contentInput) return false;
+
+    saving = true;
+    saveAgain = false;
+    lastSaveError = '';
+    var snapshotVersion = editVersion;
+    var snapshotContent = currentValue();
+    contentInput.value = snapshotContent;
+    setStatus('saving', 'Saving draft to server…');
+
+    try {
+      var body = new FormData(form);
+      var response = await fetch(config.saveUrl, {
+        method: 'POST',
+        body: body,
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      var payload;
+      try { payload = await response.json(); }
+      catch (error) { throw new Error('The server returned an unexpected response. Refresh and sign in again if this continues.'); }
+      if (!response.ok || !payload || payload.ok !== true) {
+        throw new Error(payload && payload.message ? payload.message : 'Unable to save this file.');
+      }
+
+      savedVersion = snapshotVersion;
+      currentContent = snapshotContent;
+      if (snapshotVersion === editVersion) {
+        setStatus('saved', 'Saved to draft storage');
+        refreshPreview();
+      }
+    } catch (error) {
+      lastSaveError = error && error.message ? error.message : 'Unable to save this file.';
+      setStatus('error', lastSaveError);
+      if (statusMessage) statusMessage.textContent = lastSaveError;
+    } finally {
+      saving = false;
+      updateDirtyUi();
+      if (lastSaveError) setStatus('error', lastSaveError);
+      if (saveAgain || editVersion !== savedVersion) scheduleSave(lastSaveError ? 2500 : 150);
+    }
+
+    return !isDirty() && !lastSaveError;
+  }
+
+  function onEdit() {
+    editVersion += 1;
+    lastSaveError = '';
+    updateDirtyUi();
+    scheduleSave();
+  }
+
+  function renderTree(query) {
+    if (!treeHost) return;
+    treeHost.replaceChildren();
+    var normalizedQuery = String(query || '').trim().toLowerCase();
+    var files = Array.isArray(config.files) ? config.files : [];
+    var rootNode = { name: '', type: 'folder', children: {} };
+
+    files.forEach(function (file) {
+      var path = String(file.path || '').replace(/\\/g, '/');
+      if (normalizedQuery && path.toLowerCase().indexOf(normalizedQuery) === -1) return;
+      var segments = path.split('/').filter(Boolean);
+      var cursor = rootNode;
+      segments.forEach(function (segment, index) {
+        if (!cursor.children[segment]) {
+          cursor.children[segment] = { name: segment, path: segments.slice(0, index + 1).join('/'), type: index === segments.length - 1 ? 'file' : 'folder', children: {} };
+        }
+        cursor = cursor.children[segment];
+        if (index === segments.length - 1) {
+          cursor.type = 'file';
+          cursor.extension = String(file.extension || '').toLowerCase();
+          cursor.path = path;
+        }
+      });
+    });
+
+    function appendChildren(parent, node, depth) {
+      var children = Object.keys(node.children).map(function (key) { return node.children[key]; });
+      children.sort(function (a, b) {
+        if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
+        return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+      });
+      children.forEach(function (item) {
+        var wrap = document.createElement('div');
+        wrap.className = 'iw-tree-node';
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = item.type === 'folder' ? 'iw-tree-folder' : 'iw-tree-file';
+        button.style.paddingLeft = (8 + Math.min(depth, 8) * 9) + 'px';
+        if (item.type === 'folder') {
+          button.setAttribute('aria-expanded', 'true');
+          var caret = document.createElement('i');
+          caret.setAttribute('data-lucide', 'chevron-down');
+          caret.className = 'iw-tree-caret';
+          button.appendChild(caret);
+        } else {
+          if (item.path === currentPath) button.classList.add('is-active');
+          var icon = document.createElement('i');
+          icon.setAttribute('data-lucide', iconFor(item));
+          button.appendChild(icon);
+        }
+        var label = document.createElement('span');
+        label.className = 'iw-tree-label';
+        label.textContent = item.name;
+        button.appendChild(label);
+        wrap.appendChild(button);
+
+        if (item.type === 'folder') {
+          var childrenHost = document.createElement('div');
+          childrenHost.className = 'iw-tree-children';
+          appendChildren(childrenHost, item, depth + 1);
+          button.addEventListener('click', function () {
+            var expanded = button.getAttribute('aria-expanded') === 'true';
+            button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            childrenHost.hidden = expanded;
+            var caretIcon = button.querySelector('.iw-tree-caret');
+            if (caretIcon) caretIcon.setAttribute('data-lucide', expanded ? 'chevron-right' : 'chevron-down');
+            refreshIcons();
+          });
+          wrap.appendChild(childrenHost);
+        } else {
+          button.title = item.path;
+          button.addEventListener('click', function () { openFile(item.path); });
+        }
+        parent.appendChild(wrap);
+      });
+    }
+
+    appendChildren(treeHost, rootNode, 0);
+    if (!treeHost.children.length) {
+      var empty = document.createElement('div');
+      empty.className = 'iw-tree-empty';
+      empty.textContent = normalizedQuery ? 'No editable files match your search.' : 'No editable text files found. Use File Manager to upload or create files.';
+      treeHost.appendChild(empty);
+    }
+    refreshIcons();
+  }
+
+  async function openFile(path) {
+    if (path === currentPath) return;
+    if (isDirty() && !(await saveBuffer())) return;
+
+    var requestId = ++latestRequest;
+    setStatus('saving', 'Opening ' + path + '…');
+    try {
+      var url = config.editorUrl + '/file?id=' + encodeURIComponent(config.websiteId) + '&path=' + encodeURIComponent(path);
+      var response = await fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
+      var payload = await response.json();
+      if (requestId !== latestRequest) return;
+      if (!response.ok || !payload || payload.ok !== true) throw new Error(payload && payload.message ? payload.message : 'Unable to open file.');
+
+      currentPath = payload.path;
+      currentExtension = String(payload.extension || '').toLowerCase();
+      currentContent = String(payload.content || '');
+      editVersion = 0;
+      savedVersion = 0;
+      lastSaveError = '';
+      if (pathInput) pathInput.value = currentPath;
+      setCurrentValue(currentContent);
+
+      if (editor && !fallbackMode && window.monaco) {
+        var modelKey = currentPath;
+        if (!models[modelKey]) models[modelKey] = window.monaco.editor.createModel(currentContent, languageFor(currentExtension), window.monaco.Uri.parse('inmemory://instaweb/' + encodeURIComponent(modelKey)));
+        editor.setModel(models[modelKey]);
+        editor.focus();
+      } else if (fallback) {
+        fallback.value = currentContent;
+      }
+
+      if (currentPathLabel) currentPathLabel.textContent = currentPath;
+      if (breadcrumb) breadcrumb.textContent = currentPath;
+      if (languageStatus) languageStatus.textContent = currentExtension.toUpperCase();
+      var langIcon = root.querySelector('[data-language-icon]');
+      if (langIcon) langIcon.textContent = currentExtension === 'html' || currentExtension === 'htm' ? '◇' : currentExtension === 'css' ? '#' : currentExtension === 'js' ? 'JS' : '{}';
+      renderTree(searchInput ? searchInput.value : '');
+      updateDirtyUi();
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, '', config.editorUrl + '?id=' + encodeURIComponent(config.websiteId) + '&path=' + encodeURIComponent(currentPath));
+      }
+      setStatus('saved', 'File ready');
+    } catch (error) {
+      setStatus('error', error && error.message ? error.message : 'Unable to open file.');
+    }
+  }
+
+  function setPreviewVisible(visible) {
+    previewVisible = visible;
+    if (panes) {
+      panes.classList.toggle('is-preview-hidden', !visible);
+      panes.classList.toggle('is-preview-visible', visible && window.matchMedia('(max-width: 760px)').matches);
+    }
+    var toggle = root.querySelector('[data-action="toggle-preview"]');
+    if (toggle) toggle.setAttribute('aria-pressed', visible ? 'true' : 'false');
+  }
+
+  function updateCursor() {
+    if (!cursorStatus) return;
+    if (editor && !fallbackMode) {
+      var pos = editor.getPosition();
+      if (pos) cursorStatus.textContent = 'Ln ' + pos.lineNumber + ', Col ' + pos.column;
+    } else if (fallback) {
+      var before = fallback.value.slice(0, fallback.selectionStart);
+      var lines = before.split('\n');
+      cursorStatus.textContent = 'Ln ' + lines.length + ', Col ' + (lines[lines.length - 1].length + 1);
+    }
+  }
+
+  function startFallback() {
+    fallbackMode = true;
+    if (fallback) {
+      fallback.classList.add('is-visible');
+      fallback.value = currentContent;
+      fallback.addEventListener('input', onEdit);
+      fallback.addEventListener('keyup', updateCursor);
+      fallback.addEventListener('click', updateCursor);
+    }
+    if (loading) loading.classList.add('is-hidden');
+    setStatus('saved', 'Basic editor mode · autosave enabled');
+  }
+
+  function startMonaco() {
+    if (!window.require || !window.require.config) { startFallback(); return; }
+    window.require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs' } });
+    window.require(['vs/editor/editor.main'], function () {
+      try {
+        window.monaco.editor.setTheme('vs-dark');
+        var initialUri = window.monaco.Uri.parse('inmemory://instaweb/' + encodeURIComponent(currentPath));
+        models[currentPath] = window.monaco.editor.createModel(currentContent, languageFor(currentExtension), initialUri);
+        editor = window.monaco.editor.create(host, {
+          model: models[currentPath],
+          theme: 'vs-dark',
+          automaticLayout: true,
+          minimap: { enabled: false },
+          fontSize: 13,
+          lineHeight: 21,
+          tabSize: 2,
+          insertSpaces: true,
+          wordWrap: 'off',
+          scrollBeyondLastLine: false,
+          smoothScrolling: true,
+          cursorBlinking: 'smooth',
+          renderLineHighlight: 'all',
+          bracketPairColorization: { enabled: true },
+          guides: { indentation: true, bracketPairs: true },
+          padding: { top: 12, bottom: 12 },
+          ariaLabel: 'InstaWeb code editor'
+        });
+        fallbackMode = false;
+        if (fallback) fallback.classList.remove('is-visible');
+        if (loading) loading.classList.add('is-hidden');
+        editor.onDidChangeModelContent(onEdit);
+        editor.onDidChangeCursorPosition(updateCursor);
+        editor.addCommand(window.monaco.KeyMod.CtrlCmd | window.monaco.KeyCode.KeyS, function () { saveBuffer(); });
+        editor.focus();
+        setStatus('saved', 'Autosave enabled · Ctrl/Cmd+S to save');
+      } catch (error) {
+        startFallback();
+      }
+    }, startFallback);
+  }
+
+  root.querySelectorAll('[data-action]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var action = button.getAttribute('data-action');
+      if (action === 'save') saveBuffer();
+      if (action === 'preview') { saveBuffer().then(function (ok) { if (ok) { setPreviewVisible(true); refreshPreview(); } }); }
+      if (action === 'refresh-preview') { saveBuffer().then(function (ok) { if (ok) refreshPreview(); }); }
+      if (action === 'toggle-preview') setPreviewVisible(!previewVisible);
+    });
+  });
+
+  if (searchInput) searchInput.addEventListener('input', function () { renderTree(searchInput.value); });
+  if (fallback) {
+    fallback.addEventListener('keydown', function (event) {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        var start = fallback.selectionStart;
+        var end = fallback.selectionEnd;
+        fallback.setRangeText('  ', start, end, 'end');
+        onEdit();
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        saveBuffer();
+      }
+    });
+  }
+
+  renderTree('');
+  if (document.readyState === 'complete') startMonaco();
+  else window.addEventListener('load', startMonaco, { once: true });
+  window.addEventListener('beforeunload', function (event) {
+    if (isDirty()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  });
+  window.addEventListener('resize', function () { setPreviewVisible(previewVisible); });
+}());
