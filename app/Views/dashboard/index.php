@@ -14,25 +14,19 @@ $formatBytes = static function (int $bytes): string {
 };
 $websiteCount = (int) ($stats['websites'] ?? count($websites ?? []));
 $publishedCount = (int) ($stats['published_websites'] ?? 0);
-$notificationCount = count($notifications ?? []);
+$draftCount = (int) ($stats['draft_websites'] ?? 0);
 $baseUrl = (string) ($app['base_url'] ?? '');
 ?>
 <main class="iw-home">
   <div class="iw-page-heading">
     <div>
-      <p class="iw-eyebrow">Your workspace / Overview</p>
-      <h1>Welcome back, <?= htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') ?>.</h1>
-      <p>Your websites, files and hosting details, all in one place. Pick up where you left off.</p>
+      <h1><?= htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') ?></h1>
     </div>
     <a class="iw-button" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/create', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="plus"></i> Create a website</a>
   </div>
 
-  <section class="iw-hero" aria-labelledby="iwHeroTitle">
-    <div class="iw-hero-copy">
-      <span class="iw-hero-kicker">Make your next move</span>
-      <h2 id="iwHeroTitle">Your online presence, under control.</h2>
-      <p>Publish a new idea, update an existing site, or check how your hosting resources are doing. No digging through menus required.</p>
-    </div>
+  <section class="iw-hero iw-hero-compact" aria-label="Website management">
+    <p>Manage your websites and files.</p>
     <div class="iw-hero-action">
       <a class="iw-button iw-button-light" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>">Manage websites <i data-lucide="arrow-up-right"></i></a>
     </div>
@@ -50,14 +44,19 @@ $baseUrl = (string) ($app['base_url'] ?? '');
       <span class="iw-stat-note">Live and ready to visit</span>
     </article>
     <article class="iw-stat">
+      <div class="iw-stat-top"><span>Draft sites</span><span class="iw-stat-icon"><i data-lucide="file-pen-line"></i></span></div>
+      <strong class="iw-stat-value"><?= number_format($draftCount) ?></strong>
+      <span class="iw-stat-note">Still being prepared</span>
+    </article>
+    <article class="iw-stat">
       <div class="iw-stat-top"><span>Storage used</span><span class="iw-stat-icon"><i data-lucide="database"></i></span></div>
       <strong class="iw-stat-value"><?= htmlspecialchars($formatBytes($storageUsed), ENT_QUOTES, 'UTF-8') ?></strong>
       <span class="iw-stat-note"><?= $storageLimit > 0 ? $storagePercent . '% of your storage limit' : 'Unlimited storage' ?></span>
     </article>
     <article class="iw-stat">
-      <div class="iw-stat-top"><span>Bandwidth</span><span class="iw-stat-icon"><i data-lucide="activity"></i></span></div>
-      <strong class="iw-stat-value"><?= htmlspecialchars($formatBytes((int) ($stats['bandwidth_used'] ?? 0)), ENT_QUOTES, 'UTF-8') ?></strong>
-      <span class="iw-stat-note">Recorded usage</span>
+      <div class="iw-stat-top"><span>Current plan</span><span class="iw-stat-icon"><i data-lucide="<?= $plan === 'premium' ? 'crown' : 'zap' ?>"></i></span></div>
+      <strong class="iw-stat-value"><?= htmlspecialchars((string) ($currentPlan['name'] ?? 'Free'), ENT_QUOTES, 'UTF-8') ?></strong>
+      <span class="iw-stat-note"><?= htmlspecialchars((string) ($subscription['status'] ?? 'active'), ENT_QUOTES, 'UTF-8') ?></span>
     </article>
   </section>
 
@@ -131,27 +130,6 @@ $baseUrl = (string) ($app['base_url'] ?? '');
     </div>
 
     <div class="iw-column iw-side-column">
-      <section class="iw-panel" id="iwSubscription" aria-labelledby="iwPlanTitle">
-        <div class="iw-panel-heading"><div><h2 id="iwPlanTitle">Your plan</h2><p>Know what’s included in your workspace.</p></div></div>
-        <div class="iw-plan-banner">
-          <div class="iw-plan-top">
-            <div class="iw-plan-name"><i data-lucide="<?= $plan === 'premium' ? 'crown' : 'zap' ?>"></i><?= htmlspecialchars((string) ($currentPlan['name'] ?? 'Free'), ENT_QUOTES, 'UTF-8') ?></div>
-            <span class="iw-plan-label"><?= htmlspecialchars((string) ($subscription['status'] ?? 'active'), ENT_QUOTES, 'UTF-8') ?></span>
-          </div>
-          <ul class="iw-benefits">
-            <?php foreach (($currentPlan['benefits'] ?? []) as $benefit): ?><li><?= htmlspecialchars((string) $benefit, ENT_QUOTES, 'UTF-8') ?></li><?php endforeach; ?>
-          </ul>
-          <?php if ($plan === 'premium'): ?>
-            <a class="iw-button iw-button-outline iw-full-button" href="<?= htmlspecialchars($baseUrl . '/pricing', ENT_QUOTES, 'UTF-8') ?>">View plans</a>
-          <?php else: ?>
-            <form method="POST" action="<?= htmlspecialchars($baseUrl . '/payments/paychangu/premium', ENT_QUOTES, 'UTF-8') ?>">
-              <?= \App\Core\Csrf::field() ?>
-              <button class="iw-button iw-button-light iw-full-button" type="submit">Upgrade plan <i data-lucide="arrow-up-right"></i></button>
-            </form>
-          <?php endif; ?>
-        </div>
-      </section>
-
       <section class="iw-panel" id="iwStorage" aria-labelledby="iwStorageTitle">
         <div class="iw-panel-heading"><div><h2 id="iwStorageTitle">Storage</h2><p>Space used by your website files.</p></div></div>
         <div class="iw-storage-head"><span>Used</span><strong><?= htmlspecialchars($formatBytes($storageUsed), ENT_QUOTES, 'UTF-8') ?></strong></div>
@@ -159,29 +137,6 @@ $baseUrl = (string) ($app['base_url'] ?? '');
         <p class="iw-storage-note"><?= $storageLimit > 0 ? htmlspecialchars($formatBytes($storageLimit), ENT_QUOTES, 'UTF-8') . ' total available · ' . max(0, 100 - $storagePercent) . '% remaining' : 'Your current plan has no configured storage limit.' ?></p>
       </section>
 
-      <section class="iw-panel" aria-labelledby="iwNotificationsTitle">
-        <div class="iw-panel-heading">
-          <div><h2 id="iwNotificationsTitle">Latest updates</h2><p><?= number_format($notificationCount) ?> recent notification<?= $notificationCount === 1 ? '' : 's' ?></p></div>
-          <a class="iw-text-link" href="<?= htmlspecialchars($baseUrl . '/dashboard/notifications', ENT_QUOTES, 'UTF-8') ?>">All <i data-lucide="arrow-right"></i></a>
-        </div>
-        <?php if (empty($notifications)): ?>
-          <p class="iw-muted-empty">You’re all caught up. New account and website updates will appear here.</p>
-        <?php else: ?>
-          <div class="iw-notifications">
-            <?php foreach (array_slice($notifications, 0, 4) as $notification): ?>
-              <article class="iw-notification">
-                <span class="iw-notification-dot" aria-hidden="true"></span>
-                <div>
-                  <strong><?= htmlspecialchars((string) ($notification['title'] ?? 'Update'), ENT_QUOTES, 'UTF-8') ?></strong>
-                  <p><?= htmlspecialchars((string) ($notification['message'] ?? ''), ENT_QUOTES, 'UTF-8') ?></p>
-                  <?php $notificationTime = strtotime((string) ($notification['created_at'] ?? '')); ?>
-                  <?php if ($notificationTime !== false): ?><time datetime="<?= htmlspecialchars(date(DATE_ATOM, $notificationTime), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(date('M j, Y · H:i', $notificationTime), ENT_QUOTES, 'UTF-8') ?></time><?php endif; ?>
-                </div>
-              </article>
-            <?php endforeach; ?>
-          </div>
-        <?php endif; ?>
-      </section>
       <?php if (!empty($isAdmin)): ?><a class="iw-button iw-button-outline iw-full-button" href="<?= htmlspecialchars($baseUrl . '/admin', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="shield-check"></i> Open admin console</a><?php endif; ?>
     </div>
   </div>

@@ -43,7 +43,8 @@ class ClientDashboardRepository
             'SELECT COUNT(*) AS websites,
                     COALESCE(SUM(storage_used), 0) AS storage_used,
                     COALESCE(SUM(bandwidth_used), 0) AS bandwidth_used,
-                    SUM(status = "published") AS published_websites
+                    SUM(status = "published") AS published_websites,
+                    SUM(status = "draft") AS draft_websites
              FROM websites
              WHERE user_id = :user_id'
         );
@@ -53,6 +54,7 @@ class ClientDashboardRepository
         return [
             'websites' => (int) ($stats['websites'] ?? 0),
             'published_websites' => (int) ($stats['published_websites'] ?? 0),
+            'draft_websites' => (int) ($stats['draft_websites'] ?? 0),
             'storage_used' => (int) ($stats['storage_used'] ?? 0),
             'bandwidth_used' => (int) ($stats['bandwidth_used'] ?? 0),
         ];
