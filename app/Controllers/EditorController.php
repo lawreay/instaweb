@@ -47,6 +47,27 @@ class EditorController extends Controller
     }
 
     /**
+     * Fetch a project text file as JSON so the explorer can switch files
+     * without a full dashboard reload.
+     */
+    public function openFile(): void
+    {
+        [$userId, $website] = $this->requireWebsite();
+        try {
+            $path = (string) $this->input('path', 'index.html');
+            $file = (new ProjectStorageService())->readTextFile($userId, $website['slug'], $path);
+            $this->respondJson([
+                'ok' => true,
+                'path' => $file['relative_path'],
+                'content' => $file['content'],
+                'extension' => $file['extension'],
+            ]);
+        } catch (\\Throwable $exception) {
+            $this->respondJson(['ok' => false, 'message' => $exception->getMessage()], 422);
+        }
+    }
+
+    /**
      * Save an editor buffer. AJAX requests receive JSON; regular form posts
      * retain the existing redirect-based fallback.
      */
