@@ -202,3 +202,38 @@
 @media (prefers-reduced-motion: reduce) {
   .iw-client-page *, .iw-client-page *::before, .iw-client-page *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+
+/* Mobile compatibility: prevent legacy dashboard rules from pinning page
+   headings over the shared shell's hamburger/topbar. */
+body.dashboard-body .iw-client-page > .client-main {
+  min-height: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+body.dashboard-body .iw-client-page .client-header {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  width: auto;
+  margin: 0 auto 1.5rem;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 1024px) {
+  body.dashboard-body .iw-client-page .client-header {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: auto;
+    margin-top: 0;
+  }
+
+  body.dashboard-body .iw-client-page > .client-main {
+    padding-top: 0;
+  }
+}
