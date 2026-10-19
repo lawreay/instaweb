@@ -8,6 +8,7 @@ use App\Core\Session;
 use App\Models\Website;
 use App\Services\AuthService;
 use App\Services\ProjectStorageService;
+use App\Services\PublicSiteUrlService;
 
 /**
  * Handles browser-based editing for safe static text files.
@@ -29,10 +30,19 @@ class EditorController extends Controller
             $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
         }
 
+        $liveUrl = ($website['status'] ?? '') === 'published'
+            ? (new PublicSiteUrlService())->absoluteUrl(
+                (string) ($this->config['base_url'] ?? ''),
+                (int) $website['id'],
+                (string) $website['slug']
+            )
+            : '';
+
         $this->view('editor/edit', [
             'title' => 'Code Editor',
             'website' => $website,
             'file' => $file,
+            'liveUrl' => $liveUrl,
             'active' => 'websites',
         ], 'layouts/dashboard');
     }
