@@ -1855,3 +1855,9 @@ body.dashboard-body > .client-dashboard {
     transition: none;
   }
 }
+
+/* Prevent the document behind the mobile navigation drawer from scrolling. */
+body.client-nav-locked {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
