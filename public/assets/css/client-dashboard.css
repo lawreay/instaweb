@@ -1359,3 +1359,505 @@ body.dashboard-body > .client-dashboard {
     -webkit-overflow-scrolling: touch;
   }
 }
+
+
+/* --------------------------------------------------------------------------
+   Shared InstaWeb client shell
+   This shell is rendered by layouts/dashboard.php for every authenticated
+   client page. Keep these rules separate from admin and public marketing UI.
+   -------------------------------------------------------------------------- */
+.iw-client-shell {
+  --iw-shell-ink: #182b25;
+  --iw-shell-muted: #6b756f;
+  --iw-shell-border: #e3e6df;
+  --iw-shell-canvas: #f7f6f0;
+  --iw-shell-surface: #ffffff;
+  --iw-shell-primary: #153e35;
+  --iw-shell-primary-hover: #205747;
+  --iw-shell-accent: #b6d96c;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: var(--iw-shell-ink);
+  background: var(--iw-shell-canvas);
+  font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.iw-client-shell,
+.iw-client-shell * {
+  box-sizing: border-box;
+}
+
+.iw-client-shell.is-expanded {
+  grid-template-columns: 248px minmax(0, 1fr);
+}
+
+.iw-client-sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  padding: 1rem 0.65rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right: 1px solid var(--iw-shell-border);
+  background: var(--iw-shell-surface);
+  color: var(--iw-shell-ink);
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+}
+
+.iw-client-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 48px;
+  color: var(--iw-shell-ink);
+  text-decoration: none;
+}
+
+.iw-client-brand:hover {
+  color: var(--iw-shell-primary);
+}
+
+.iw-client-brand-mark {
+  display: grid;
+  flex: 0 0 42px;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: var(--iw-shell-primary);
+  color: #fff;
+}
+
+.iw-client-brand-mark svg {
+  width: 21px;
+  height: 21px;
+}
+
+.iw-client-brand-copy {
+  display: none;
+  min-width: 0;
+  color: var(--iw-shell-ink);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.iw-client-brand-copy small {
+  display: block;
+  margin-top: 0.12rem;
+  color: var(--iw-shell-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.iw-sidebar-collapse {
+  display: inline-grid;
+  place-items: center;
+  align-self: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 1px solid var(--iw-shell-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--iw-shell-muted);
+  cursor: pointer;
+}
+
+.iw-sidebar-collapse:hover {
+  border-color: #c7d5c9;
+  background: #f4f7f3;
+  color: var(--iw-shell-primary);
+}
+
+.iw-sidebar-collapse svg {
+  width: 18px;
+  height: 18px;
+}
+
+.iw-client-nav {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  margin-top: 0.25rem;
+}
+
+.iw-client-nav a,
+.iw-client-logout {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #5e6c64;
+  font: inherit;
+  font-size: 0.87rem;
+  font-weight: 650;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.iw-client-nav a > svg,
+.iw-client-nav a > i,
+.iw-client-logout > svg,
+.iw-client-logout > i {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.iw-client-nav a:hover,
+.iw-client-logout:hover {
+  background: #f2f5ef;
+  color: var(--iw-shell-primary);
+}
+
+.iw-client-nav a.active {
+  border-color: #e0e9d7;
+  background: #edf4e7;
+  color: var(--iw-shell-primary);
+  font-weight: 750;
+}
+
+.iw-client-nav a.active::before {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: -1px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--iw-shell-primary);
+  content: "";
+}
+
+.iw-client-nav a span,
+.iw-client-logout span {
+  display: none;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iw-sidebar-bottom {
+  margin-top: auto;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--iw-shell-border);
+}
+
+.iw-sidebar-bottom form {
+  margin: 0;
+}
+
+.iw-client-logout {
+  color: #7e5555;
+}
+
+.iw-client-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-wrap: anywhere;
+}
+
+.iw-client-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 72px;
+  padding: 0.8rem clamp(1rem, 2.5vw, 2rem);
+  border-bottom: 1px solid var(--iw-shell-border);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+.iw-mobile-menu {
+  display: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 1px solid var(--iw-shell-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--iw-shell-ink);
+  cursor: pointer;
+}
+
+.iw-mobile-menu svg {
+  width: 20px;
+  height: 20px;
+}
+
+.iw-topbar-context {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.iw-topbar-eyebrow {
+  color: #758078;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.iw-topbar-page {
+  overflow: hidden;
+  color: var(--iw-shell-ink);
+  font-size: 0.98rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iw-topbar-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  margin-left: auto;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--iw-shell-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--iw-shell-ink);
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.iw-topbar-account:hover {
+  border-color: #c7d5c9;
+  color: var(--iw-shell-primary);
+}
+
+.iw-topbar-account svg {
+  width: 17px;
+  height: 17px;
+}
+
+.iw-client-main > .admin-toast {
+  z-index: 50;
+  margin: 1rem clamp(1rem, 2.5vw, 2rem) 0;
+}
+
+.iw-client-main > .iw-home,
+.iw-client-main > .iw-client-page {
+  flex: 1 0 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.iw-client-main > .client-app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-top: auto;
+  padding: 1rem clamp(1rem, 2.5vw, 2rem);
+  border-top: 1px solid var(--iw-shell-border);
+  background: #fff;
+  color: var(--iw-shell-muted);
+  font-size: 0.75rem;
+}
+
+.iw-client-main > .client-app-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+}
+
+.iw-client-main > .client-app-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.iw-client-main > .client-app-footer a:hover {
+  color: var(--iw-shell-primary);
+  text-decoration: underline;
+}
+
+.iw-sidebar-backdrop {
+  display: none;
+}
+
+.iw-client-shell a:focus-visible,
+.iw-client-shell button:focus-visible {
+  outline: 3px solid #527eab;
+  outline-offset: 3px;
+}
+
+@media (min-width: 900px) {
+  .iw-client-shell.is-expanded .iw-client-brand {
+    justify-content: flex-start;
+    padding-left: 0.2rem;
+  }
+
+  .iw-client-shell.is-expanded .iw-client-brand-copy,
+  .iw-client-shell.is-expanded .iw-client-nav a span,
+  .iw-client-shell.is-expanded .iw-client-logout span {
+    display: block;
+  }
+
+  .iw-client-shell.is-expanded .iw-client-nav a,
+  .iw-client-shell.is-expanded .iw-client-logout {
+    justify-content: flex-start;
+    padding-right: 0.8rem;
+    padding-left: 0.85rem;
+  }
+
+  .iw-client-shell.is-expanded .iw-sidebar-collapse {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 899px) {
+  .iw-client-shell,
+  .iw-client-shell.is-expanded {
+    display: block;
+  }
+
+  .iw-client-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1002;
+    width: min(280px, calc(100vw - 56px));
+    height: 100vh;
+    height: 100dvh;
+    padding: 1rem;
+    box-shadow: 18px 0 50px rgba(13, 32, 23, 0.16);
+    transform: translateX(-110%);
+    transition: transform 180ms ease;
+  }
+
+  .iw-client-shell.mobile-nav-open .iw-client-sidebar {
+    transform: translateX(0);
+  }
+
+  .iw-client-brand {
+    justify-content: flex-start;
+    padding-left: 0.2rem;
+  }
+
+  .iw-client-brand-copy,
+  .iw-client-nav a span,
+  .iw-client-logout span {
+    display: block;
+  }
+
+  .iw-sidebar-collapse {
+    display: none;
+  }
+
+  .iw-client-nav a,
+  .iw-client-logout {
+    justify-content: flex-start;
+    padding-right: 0.85rem;
+    padding-left: 0.85rem;
+  }
+
+  .iw-client-main {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .iw-mobile-menu {
+    display: inline-grid;
+  }
+
+  .iw-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1001;
+    display: block;
+    border: 0;
+    background: rgba(16, 29, 23, 0.44);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  .iw-client-shell.mobile-nav-open .iw-sidebar-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .iw-topbar-eyebrow {
+    display: none;
+  }
+
+  .iw-topbar-account span {
+    display: none;
+  }
+
+  .iw-topbar-account {
+    justify-content: center;
+    width: 42px;
+    padding: 0;
+  }
+
+  .iw-client-main > .client-app-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 420px) {
+  .iw-client-topbar {
+    min-height: 64px;
+    gap: 0.7rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .iw-topbar-page {
+    font-size: 0.9rem;
+  }
+
+  .iw-client-main > .client-app-footer nav {
+    gap: 0.5rem 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iw-client-sidebar,
+  .iw-sidebar-backdrop,
+  .iw-client-nav a,
+  .iw-client-logout {
+    transition: none;
+  }
+}
+
+/* Prevent the document behind the mobile navigation drawer from scrolling. */
+body.client-nav-locked {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
