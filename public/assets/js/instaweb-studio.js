@@ -38,7 +38,8 @@
   var saveAgain = false;
   var lastSaveError = '';
   var fallbackMode = true;
-  var previewVisible = true;
+  var previewVisible = !window.matchMedia('(max-width: 760px)').matches;
+  var previousMobileLayout = window.matchMedia('(max-width: 760px)').matches;
   var latestRequest = 0;
 
   function languageFor(extension) {
@@ -385,6 +386,7 @@
     });
   }
 
+  setPreviewVisible(previewVisible);
   renderTree('');
   if (document.readyState === 'complete') startMonaco();
   else window.addEventListener('load', startMonaco, { once: true });
@@ -394,5 +396,12 @@
       event.returnValue = '';
     }
   });
-  window.addEventListener('resize', function () { setPreviewVisible(previewVisible); });
+  window.addEventListener('resize', function () {
+    var isMobileLayout = window.matchMedia('(max-width: 760px)').matches;
+    if (isMobileLayout !== previousMobileLayout) {
+      previewVisible = !isMobileLayout;
+      previousMobileLayout = isMobileLayout;
+    }
+    setPreviewVisible(previewVisible);
+  });
 }());
