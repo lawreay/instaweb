@@ -274,10 +274,19 @@
 
       function setMobileOpen(open, restoreFocus) {
         if (open && desktopQuery.matches) return;
-        if (shell.classList.contains('mobile-nav-open') === open) return;
 
+        var wasOpen = shell.classList.contains('mobile-nav-open');
+        var isMobile = !desktopQuery.matches;
         shell.classList.toggle('mobile-nav-open', open);
         document.body.classList.toggle('client-nav-locked', open);
+        sidebar.inert = isMobile && !open;
+        if (isMobile) {
+          sidebar.setAttribute('aria-hidden', open ? 'false' : 'true');
+        } else {
+          sidebar.removeAttribute('aria-hidden');
+        }
+        if (wasOpen === open) return;
+
         openButton.setAttribute('aria-expanded', open ? 'true' : 'false');
         openButton.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
         openButton.innerHTML = '<i data-lucide="' + (open ? 'x' : 'menu') + '"></i>';
@@ -307,6 +316,8 @@
         // Storage may be disabled; use the default collapsed state.
       }
       setExpanded(expanded);
+      // Keep the off-canvas navigation out of keyboard and accessibility navigation until opened.
+      setMobileOpen(false, false);
 
       collapseButton.addEventListener('click', function () {
         setExpanded(!shell.classList.contains('is-expanded'));
