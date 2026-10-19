@@ -42,6 +42,7 @@ return [
         '/dashboard/websites/files/download' => [FileManagerController::class, 'download'],
         '/dashboard/websites/files/export' => [FileManagerController::class, 'exportZip'],
         '/dashboard/websites/editor' => [EditorController::class, 'edit'],
+        '/dashboard/websites/editor/file' => [EditorController::class, 'openFile'],
         '/dashboard/websites/preview' => [PreviewController::class, 'show'],
         '/dashboard/websites/preview/file' => [PreviewController::class, 'file'],
         '/profile' => [DashboardController::class, 'profile'],
