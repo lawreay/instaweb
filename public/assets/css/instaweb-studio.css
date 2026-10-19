@@ -81,3 +81,56 @@
 @media(max-width:1100px){.iw-studio-workspace{grid-template-columns:190px minmax(0,1fr)}.iw-studio-panes{grid-template-columns:minmax(0,1fr) minmax(240px,38%)}.iw-studio-actions{gap:5px}.iw-studio-button{padding:6px 8px}}
 @media(max-width:760px){.iw-studio{min-height:calc(100vh - 100px);border-radius:9px}.iw-studio-topbar{align-items:flex-start;flex-direction:column;padding:11px;gap:10px}.iw-studio-actions{justify-content:flex-start;width:100%}.iw-save-status{margin-right:auto}.iw-studio-workspace{grid-template-columns:145px minmax(0,1fr);min-height:520px}.iw-studio-brand small{max-width:70vw}.iw-studio-panes{grid-template-columns:minmax(0,1fr)}.iw-preview-pane{display:none}.iw-studio-panes.is-preview-visible .iw-preview-pane{display:flex;position:absolute;inset:0;z-index:4;border-left:0}.iw-studio-panes.is-preview-visible{position:relative;grid-template-columns:minmax(0,1fr)}.iw-studio-panes.is-preview-visible .iw-code-pane{visibility:hidden}.iw-editor-tools button span{display:none}.iw-studio-statusbar{gap:8px;padding:0 7px}.iw-studio-statusbar span:nth-child(2),.iw-studio-statusbar span:nth-child(3){display:none}}
 @media(max-width:480px){.iw-studio-workspace{grid-template-columns:115px minmax(0,1fr)}.iw-studio-actions .iw-studio-button span{display:none}.iw-studio-actions .iw-studio-button{width:34px;padding:6px}.iw-studio-actions .iw-studio-button svg{width:16px;height:16px}.iw-studio-brand strong{font-size:13px}.iw-studio-section-heading{padding:0 9px}.iw-file-search{margin:0 6px 8px;padding:6px}.iw-tree-folder,.iw-tree-file{gap:4px;padding:6px 5px;font-size:11px}.iw-tree-folder svg,.iw-tree-file svg{width:13px;height:13px}.iw-tree-children{padding-left:8px}.iw-studio-toolbar{padding:5px 7px}.iw-breadcrumb{font-size:10px}.iw-studio-statusbar{font-size:9px}}
+
+
+/* Full-screen editor workspace: the studio owns the entire viewport. */
+html:has(.iw-studio),
+body:has(.iw-studio) {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+.iw-studio {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+.iw-studio-workspace {
+  min-height: 0;
+  overflow: hidden;
+}
+.iw-studio-main,
+.iw-studio-panes,
+.iw-code-pane,
+.iw-preview-pane {
+  min-height: 0;
+}
+.iw-studio-panes {
+  overflow: hidden;
+}
+.iw-monaco-host,
+.iw-editor-fallback,
+.iw-preview-pane iframe {
+  min-height: 0;
+}
+.iw-studio-tabs,
+.iw-studio-toolbar,
+.iw-studio-statusbar,
+.iw-studio-topbar {
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  .iw-studio {
+    min-height: 0;
+  }
+  .iw-studio-workspace {
+    min-height: 0;
+  }
+}
