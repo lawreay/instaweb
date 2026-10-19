@@ -46,21 +46,60 @@
   <?php endif; ?>
 </head>
 <body class="dashboard-body">
-  <?php $clientHeaderPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/'; ?>
-  <header class="client-app-header">
-    <a class="client-app-brand" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>" aria-label="InstaWeb client workspace home">
-      <span class="client-app-brand-mark"><i data-lucide="layers"></i></span>
-      <span>InstaWeb<small>Client workspace</small></span>
-    </a>
-    <button class="client-header-menu" type="button" aria-controls="clientHeaderNav" aria-expanded="false" aria-label="Open navigation" data-client-menu-toggle>
-      <i data-lucide="menu"></i>
-    </button>
-    <nav id="clientHeaderNav" aria-label="Quick navigation">
-      <a class="<?= $clientHeaderPath === '/dashboard' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-      <a class="<?= str_starts_with($clientHeaderPath, '/dashboard/websites') ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="globe-2"></i> Manage my sites</a>
-      <a class="<?= str_starts_with($clientHeaderPath, '/profile') ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/profile', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="user-round"></i> Account</a>
-    </nav>
-  </header>
+  <?php
+  $clientHeaderPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+  $clientBasePath = rtrim((string) (parse_url($app['base_url'] ?? '', PHP_URL_PATH) ?: ''), '/');
+  if ($clientBasePath !== '' && str_starts_with($clientHeaderPath, $clientBasePath)) {
+      $clientHeaderPath = substr($clientHeaderPath, strlen($clientBasePath)) ?: '/';
+  }
+  $clientHeaderPath = '/' . ltrim($clientHeaderPath, '/');
+  $clientHeaderPath = rtrim($clientHeaderPath, '/') ?: '/';
+  $clientBaseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
+  ?>
+  <div class="iw-client-shell" data-client-shell>
+    <aside class="iw-client-sidebar" id="clientSidebar" aria-label="Client workspace navigation">
+      <a class="iw-client-brand" href="<?= htmlspecialchars($clientBaseUrl . '/dashboard', ENT_QUOTES, 'UTF-8') ?>" aria-label="InstaWeb overview">
+        <span class="iw-client-brand-mark"><i data-lucide="layers"></i></span>
+        <span class="iw-client-brand-copy">InstaWeb<small>Client workspace</small></span>
+      </a>
+      <button class="iw-sidebar-collapse" type="button" data-sidebar-collapse aria-label="Expand sidebar" aria-expanded="false" title="Expand sidebar">
+        <i data-lucide="panel-left-open"></i>
+      </button>
+      <nav class="iw-client-nav" id="clientSidebarNavigation" aria-label="Main navigation">
+        <a class="<?= $clientHeaderPath === '/dashboard' ? 'active' : '' ?>" href="<?= htmlspecialchars($clientBaseUrl . '/dashboard', ENT_QUOTES, 'UTF-8') ?>" <?= $clientHeaderPath === '/dashboard' ? 'aria-current="page"' : '' ?>>
+          <i data-lucide="layout-dashboard"></i><span>Overview</span>
+        </a>
+        <a class="<?= str_starts_with($clientHeaderPath, '/dashboard/websites') ? 'active' : '' ?>" href="<?= htmlspecialchars($clientBaseUrl . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>" <?= str_starts_with($clientHeaderPath, '/dashboard/websites') ? 'aria-current="page"' : '' ?>>
+          <i data-lucide="globe-2"></i><span>My Websites</span>
+        </a>
+        <a class="<?= $clientHeaderPath === '/dashboard/notifications' ? 'active' : '' ?>" href="<?= htmlspecialchars($clientBaseUrl . '/dashboard/notifications', ENT_QUOTES, 'UTF-8') ?>" <?= $clientHeaderPath === '/dashboard/notifications' ? 'aria-current="page"' : '' ?>>
+          <i data-lucide="bell"></i><span>Notifications</span>
+        </a>
+        <a class="<?= str_starts_with($clientHeaderPath, '/profile') ? 'active' : '' ?>" href="<?= htmlspecialchars($clientBaseUrl . '/profile', ENT_QUOTES, 'UTF-8') ?>" <?= str_starts_with($clientHeaderPath, '/profile') ? 'aria-current="page"' : '' ?>>
+          <i data-lucide="user-round"></i><span>Account Settings</span>
+        </a>
+      </nav>
+      <div class="iw-sidebar-bottom">
+        <form method="POST" action="<?= htmlspecialchars($clientBaseUrl . '/logout', ENT_QUOTES, 'UTF-8') ?>">
+          <?= \\App\\Core\\Csrf::field() ?>
+          <button type="submit" class="iw-client-logout"><i data-lucide="log-out"></i><span>Sign out</span></button>
+        </form>
+      </div>
+    </aside>
+    <button class="iw-sidebar-backdrop" type="button" data-sidebar-close aria-label="Close navigation" tabindex="-1"></button>
+    <div class="iw-client-main">
+      <header class="iw-client-topbar">
+        <button class="iw-mobile-menu" type="button" data-sidebar-open aria-controls="clientSidebar" aria-expanded="false" aria-label="Open navigation">
+          <i data-lucide="menu"></i>
+        </button>
+        <div class="iw-topbar-context">
+          <span class="iw-topbar-eyebrow">INSTAWEB WORKSPACE</span>
+          <span class="iw-topbar-page"><?= htmlspecialchars($clientHeaderPath === '/dashboard' ? 'Overview' : (str_starts_with($clientHeaderPath, '/dashboard/websites') ? 'My Websites' : ($clientHeaderPath === '/dashboard/notifications' ? 'Notifications' : (str_starts_with($clientHeaderPath, '/profile') ? 'Account Settings' : 'Workspace'))), ENT_QUOTES, 'UTF-8') ?></span>
+        </div>
+        <a class="iw-topbar-account" href="<?= htmlspecialchars($clientBaseUrl . '/profile', ENT_QUOTES, 'UTF-8') ?>" aria-label="Open account settings">
+          <i data-lucide="user-round"></i><span>Account</span>
+        </a>
+      </header>
   <?php foreach (['success' => 'success', 'warning' => 'warning', 'error' => 'danger'] as $key => $type): ?>
     <?php $message = \App\Core\Session::pullFlash($key); ?>
     <?php if ($message): ?>
@@ -152,12 +191,14 @@
   <footer class="client-app-footer">
     <span>© <?= date('Y') ?> InstaWeb. Your websites, in one place.</span>
     <nav aria-label="Footer navigation">
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>">Manage sites</a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/profile', ENT_QUOTES, 'UTF-8') ?>">Account settings</a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/terms', ENT_QUOTES, 'UTF-8') ?>">Terms</a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/privacy', ENT_QUOTES, 'UTF-8') ?>">Privacy</a>
+      <a href="<?= htmlspecialchars($clientBaseUrl . '/dashboard/websites', ENT_QUOTES, 'UTF-8') ?>">Manage sites</a>
+      <a href="<?= htmlspecialchars($clientBaseUrl . '/profile', ENT_QUOTES, 'UTF-8') ?>">Account settings</a>
+      <a href="<?= htmlspecialchars($clientBaseUrl . '/terms', ENT_QUOTES, 'UTF-8') ?>">Terms</a>
+      <a href="<?= htmlspecialchars($clientBaseUrl . '/privacy', ENT_QUOTES, 'UTF-8') ?>">Privacy</a>
     </nav>
   </footer>
+    </div>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script src="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/js/main.js?v=20260629-tabs', ENT_QUOTES, 'UTF-8') ?>"></script>
@@ -200,36 +241,61 @@
   </script>
   <script>
     (function () {
-      var toggle = document.querySelector('[data-client-menu-toggle]');
-      var navigation = document.getElementById('clientHeaderNav');
-      if (!toggle || !navigation) return;
+      var shell = document.querySelector('[data-client-shell]');
+      var sidebar = document.getElementById('clientSidebar');
+      var openButton = document.querySelector('[data-sidebar-open]');
+      var closeButton = document.querySelector('[data-sidebar-close]');
+      var collapseButton = document.querySelector('[data-sidebar-collapse]');
+      if (!shell || !sidebar || !openButton || !closeButton || !collapseButton) return;
 
-      function setMenuOpen(open) {
-        navigation.classList.toggle('is-open', open);
-        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
-        toggle.innerHTML = '<i data-lucide="' + (open ? 'x' : 'menu') + '"></i>';
-        if (window.lucide && typeof window.lucide.createIcons === 'function') {
-          window.lucide.createIcons();
+      var storageKey = 'instaweb-client-sidebar-expanded';
+      var desktopQuery = window.matchMedia('(min-width: 900px)');
+
+      function setExpanded(expanded) {
+        shell.classList.toggle('is-expanded', expanded);
+        collapseButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        collapseButton.setAttribute('aria-label', expanded ? 'Collapse sidebar' : 'Expand sidebar');
+        collapseButton.setAttribute('title', expanded ? 'Collapse sidebar' : 'Expand sidebar');
+        collapseButton.innerHTML = '<i data-lucide="' + (expanded ? 'panel-left-close' : 'panel-left-open') + '"></i>';
+        try { window.localStorage.setItem(storageKey, expanded ? 'true' : 'false'); } catch (error) { /* Storage may be disabled. */ }
+        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+      }
+
+      function setMobileOpen(open) {
+        shell.classList.toggle('mobile-nav-open', open);
+        openButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+        openButton.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+        openButton.innerHTML = '<i data-lucide="' + (open ? 'x' : 'menu') + '"></i>';
+        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+        if (open) {
+          var firstLink = sidebar.querySelector('.iw-client-nav a');
+          if (firstLink) firstLink.focus();
+        } else {
+          openButton.focus({ preventScroll: true });
         }
       }
 
-      toggle.addEventListener('click', function () {
-        setMenuOpen(toggle.getAttribute('aria-expanded') !== 'true');
-      });
+      var expanded = false;
+      try { expanded = window.localStorage.getItem(storageKey) === 'true'; } catch (error) { /* Storage may be disabled. */ }
+      setExpanded(expanded);
 
-      navigation.addEventListener('click', function (event) {
-        if (event.target.closest('a') && window.matchMedia('(max-width: 700px)').matches) {
-          setMenuOpen(false);
-        }
+      collapseButton.addEventListener('click', function () {
+        setExpanded(!shell.classList.contains('is-expanded'));
       });
-
+      openButton.addEventListener('click', function () {
+        setMobileOpen(!shell.classList.contains('mobile-nav-open'));
+      });
+      closeButton.addEventListener('click', function () { setMobileOpen(false); });
+      sidebar.querySelectorAll('.iw-client-nav a').forEach(function (link) {
+        link.addEventListener('click', function () {
+          if (!desktopQuery.matches) shell.classList.remove('mobile-nav-open');
+        });
+      });
       document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') setMenuOpen(false);
+        if (event.key === 'Escape' && shell.classList.contains('mobile-nav-open')) setMobileOpen(false);
       });
-
       window.addEventListener('resize', function () {
-        if (!window.matchMedia('(max-width: 700px)').matches) setMenuOpen(false);
+        if (desktopQuery.matches) shell.classList.remove('mobile-nav-open');
       });
     }());
   </script>
