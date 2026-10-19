@@ -1,5 +1,6 @@
 # Local environment and secrets
 .env
+.xml
 .env.*
 !.env.example
 !.env.sample
