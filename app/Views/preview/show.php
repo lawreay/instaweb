@@ -7,6 +7,14 @@
         <h1><?= htmlspecialchars($website['website_name'] ?: 'Website Preview', ENT_QUOTES, 'UTF-8') ?></h1>
         <p>This preview loads from private draft storage and is visible only to the project owner.</p>
       </div>
+      <div class="client-header-actions">
+        <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage site</a>
+        <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> File Manager</a>
+        <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/editor?id=' . (int) $website['id'] . '&path=index.html', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="code-2"></i> Edit index.html</a>
+        <?php if ($liveUrl !== ''): ?>
+          <a class="btn btn-primary" href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit live site</a>
+        <?php endif; ?>
+      </div>
     </header>
 
     <section class="client-card">
