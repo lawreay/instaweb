@@ -47,6 +47,12 @@
         <priority>0.8</priority>
     </url>
     <url>
+        <loc>http://localhost/instaweb1/sites/35/test-3/</loc>
+        <lastmod>2026-09-22</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
         <loc>http://localhost/instaweb1/sites/27/naz/</loc>
         <lastmod>2026-09-16</lastmod>
         <changefreq>weekly</changefreq>
