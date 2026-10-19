@@ -81,7 +81,7 @@
       </nav>
       <div class="iw-sidebar-bottom">
         <form method="POST" action="<?= htmlspecialchars($clientBaseUrl . '/logout', ENT_QUOTES, 'UTF-8') ?>">
-          <?= \\App\\Core\\Csrf::field() ?>
+          <?= \App\Core\Csrf::field() ?>
           <button type="submit" class="iw-client-logout"><i data-lucide="log-out"></i><span>Sign out</span></button>
         </form>
       </div>
@@ -274,6 +274,15 @@
           openButton.focus({ preventScroll: true });
         }
       }
+
+      sidebar.querySelectorAll('.iw-client-nav a').forEach(function (link) {
+        var label = link.querySelector('span');
+        if (label && label.textContent.trim()) {
+          var text = label.textContent.trim();
+          link.setAttribute('aria-label', text);
+          link.setAttribute('title', text);
+        }
+      });
 
       var expanded = false;
       try { expanded = window.localStorage.getItem(storageKey) === 'true'; } catch (error) { /* Storage may be disabled. */ }
