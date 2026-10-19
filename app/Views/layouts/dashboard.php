@@ -250,6 +250,13 @@
 
       var storageKey = 'instaweb-client-sidebar-expanded';
       var desktopQuery = window.matchMedia('(min-width: 900px)');
+      var focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+      function refreshIcons() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
 
       function setExpanded(expanded) {
         shell.classList.toggle('is-expanded', expanded);
@@ -257,20 +264,29 @@
         collapseButton.setAttribute('aria-label', expanded ? 'Collapse sidebar' : 'Expand sidebar');
         collapseButton.setAttribute('title', expanded ? 'Collapse sidebar' : 'Expand sidebar');
         collapseButton.innerHTML = '<i data-lucide="' + (expanded ? 'panel-left-close' : 'panel-left-open') + '"></i>';
-        try { window.localStorage.setItem(storageKey, expanded ? 'true' : 'false'); } catch (error) { /* Storage may be disabled. */ }
-        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+        try {
+          window.localStorage.setItem(storageKey, expanded ? 'true' : 'false');
+        } catch (error) {
+          // Storage may be disabled; the control still works for this page view.
+        }
+        refreshIcons();
       }
 
-      function setMobileOpen(open) {
+      function setMobileOpen(open, restoreFocus) {
+        if (open && desktopQuery.matches) return;
+        if (shell.classList.contains('mobile-nav-open') === open) return;
+
         shell.classList.toggle('mobile-nav-open', open);
+        document.body.classList.toggle('client-nav-locked', open);
         openButton.setAttribute('aria-expanded', open ? 'true' : 'false');
         openButton.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
         openButton.innerHTML = '<i data-lucide="' + (open ? 'x' : 'menu') + '"></i>';
-        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+        refreshIcons();
+
         if (open) {
           var firstLink = sidebar.querySelector('.iw-client-nav a');
-          if (firstLink) firstLink.focus();
-        } else {
+          if (firstLink) firstLink.focus({ preventScroll: true });
+        } else if (restoreFocus !== false) {
           openButton.focus({ preventScroll: true });
         }
       }
@@ -285,7 +301,11 @@
       });
 
       var expanded = false;
-      try { expanded = window.localStorage.getItem(storageKey) === 'true'; } catch (error) { /* Storage may be disabled. */ }
+      try {
+        expanded = window.localStorage.getItem(storageKey) === 'true';
+      } catch (error) {
+        // Storage may be disabled; use the default collapsed state.
+      }
       setExpanded(expanded);
 
       collapseButton.addEventListener('click', function () {
@@ -294,80 +314,51 @@
       openButton.addEventListener('click', function () {
         setMobileOpen(!shell.classList.contains('mobile-nav-open'));
       });
-      closeButton.addEventListener('click', function () { setMobileOpen(false); });
+      closeButton.addEventListener('click', function () {
+        setMobileOpen(false);
+      });
       sidebar.querySelectorAll('.iw-client-nav a').forEach(function (link) {
         link.addEventListener('click', function () {
-          if (!desktopQuery.matches) setMobileOpen(false);
+          if (!desktopQuery.matches) setMobileOpen(false, false);
         });
       });
+
       document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' && shell.classList.contains('mobile-nav-open')) setMobileOpen(false);
+        if (!shell.classList.contains('mobile-nav-open')) return;
+
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          setMobileOpen(false);
+          return;
+        }
+
+        if (event.key !== 'Tab') return;
+        var focusable = Array.prototype.slice.call(sidebar.querySelectorAll(focusableSelector))
+          .filter(function (element) {
+            return element.getClientRects().length > 0 && element.getAttribute('aria-hidden') !== 'true';
+          });
+        if (!focusable.length) {
+          event.preventDefault();
+          sidebar.focus();
+          return;
+        }
+
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (event.shiftKey && (document.activeElement === first || !sidebar.contains(document.activeElement))) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !sidebar.contains(document.activeElement))) {
+          event.preventDefault();
+          first.focus();
+        }
       });
+
       window.addEventListener('resize', function () {
-        if (desktopQuery.matches) shell.classList.remove('mobile-nav-open');
+        if (desktopQuery.matches) setMobileOpen(false, false);
       });
     }());
   </script>
-  <script>
-    (function () {
-      var workspaces = document.querySelectorAll('.client-dashboard');
-      if (!workspaces.length) return;
-
-      workspaces.forEach(function (workspace) {
-        var sidebar = workspace.querySelector('.client-sidebar');
-        if (!sidebar) return;
-
-        var navLinks = sidebar.querySelectorAll('.client-nav a');
-        navLinks.forEach(function (link) {
-          var label = (link.textContent || '').replace(/\\s+/g, ' ').trim();
-          if (label) {
-            link.setAttribute('data-sidebar-label', label);
-            link.setAttribute('title', label);
-            link.setAttribute('aria-label', label);
-          }
-        });
-
-        var logout = sidebar.querySelector('.client-logout');
-        if (logout) {
-          logout.setAttribute('data-sidebar-label', 'Logout');
-          logout.setAttribute('title', 'Logout');
-          logout.setAttribute('aria-label', 'Logout');
-        }
-
-        var toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = 'client-sidebar-toggle';
-        toggle.setAttribute('aria-controls', 'client-sidebar-navigation');
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.innerHTML = '<i data-lucide="chevrons-right"></i>';
-        toggle.setAttribute('aria-label', 'Expand sidebar');
-        toggle.setAttribute('title', 'Expand sidebar');
-        sidebar.insertBefore(toggle, sidebar.firstChild);
-
-        var nav = sidebar.querySelector('.client-nav');
-        if (nav && !nav.id) nav.id = 'client-sidebar-navigation';
-
-        var storageKey = 'instaweb-client-sidebar-expanded';
-        var expanded = false;
-        try { expanded = window.localStorage.getItem(storageKey) === 'true'; } catch (error) { /* Storage may be disabled. */ }
-
-        function applyState(isExpanded) {
-          workspace.classList.toggle('sidebar-expanded', isExpanded);
-          toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-          toggle.setAttribute('aria-label', isExpanded ? 'Collapse sidebar' : 'Expand sidebar');
-          toggle.setAttribute('title', isExpanded ? 'Collapse sidebar' : 'Expand sidebar');
-          toggle.innerHTML = '<i data-lucide="' + (isExpanded ? 'chevrons-left' : 'chevrons-right') + '"></i>';
-          if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
-        }
-
-        applyState(expanded);
-        toggle.addEventListener('click', function () {
-          expanded = !workspace.classList.contains('sidebar-expanded');
-          applyState(expanded);
-          try { window.localStorage.setItem(storageKey, expanded ? 'true' : 'false'); } catch (error) { /* Keep working without storage. */ }
-        });
-      });
-    }());
-  </script>
+  
 </body>
 </html>
