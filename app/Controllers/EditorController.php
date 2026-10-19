@@ -15,16 +15,14 @@ use App\Services\PublicSiteUrlService;
  */
 class EditorController extends Controller
 {
-    /**
-     * Show the editor for one project file.
-     */
     public function edit(): void
     {
         [$userId, $website] = $this->requireWebsite();
+        $storage = new ProjectStorageService();
 
         try {
             $path = (string) $this->input('path', 'index.html');
-            $file = (new ProjectStorageService())->readTextFile($userId, $website['slug'], $path);
+            $file = $storage->readTextFile($userId, $website['slug'], $path);
         } catch (\Throwable $exception) {
             Session::flash('error', $exception->getMessage());
             $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
@@ -39,33 +37,63 @@ class EditorController extends Controller
             : '';
 
         $this->view('editor/edit', [
-            'title' => 'Code Editor',
+            'title' => 'InstaWeb Studio',
             'website' => $website,
             'file' => $file,
+            'files' => $storage->listProjectFiles($userId, $website['slug']),
             'liveUrl' => $liveUrl,
             'active' => 'websites',
         ], 'layouts/dashboard');
     }
 
     /**
-     * Save text file changes.
+     * Fetch a project text file as JSON so the explorer can switch files
+     * without a full dashboard reload.
+     */
+    public function openFile(): void
+    {
+        [$userId, $website] = $this->requireWebsite();
+        try {
+            $path = (string) $this->input('path', 'index.html');
+            $file = (new ProjectStorageService())->readTextFile($userId, $website['slug'], $path);
+            $this->respondJson([
+                'ok' => true,
+                'path' => $file['relative_path'],
+                'content' => $file['content'],
+                'extension' => $file['extension'],
+            ]);
+        } catch (\Throwable $exception) {
+            $this->respondJson(['ok' => false, 'message' => $exception->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Save an editor buffer. AJAX requests receive JSON; regular form posts
+     * retain the existing redirect-based fallback.
      */
     public function save(): void
     {
+        $isAjax = str_contains(strtolower((string) ($_SERVER['HTTP_ACCEPT'] ?? '')), 'application/json')
+            || strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest';
         [$userId, $website] = $this->requireWebsiteFromPost();
         $fallback = '/dashboard/websites/files?id=' . (int) $website['id'];
 
         if (!Csrf::validate($this->input('_csrf'))) {
-            Session::flash('error', 'Your session expired. Please try again.');
-            $this->redirectTo($fallback);
+            $this->respondSaveError($isAjax, 'Your session expired. Refresh the page and try again.', 419, $fallback);
         }
 
         $path = (string) $this->input('path', '');
+        $content = (string) $this->input('content', '');
+
+        // Keep accidental giant uploads from turning autosave into a denial of service.
+        if (strlen($content) > 2 * 1024 * 1024) {
+            $this->respondSaveError($isAjax, 'This editor currently supports files up to 2 MB.', 413, $fallback);
+        }
 
         try {
             $storage = new ProjectStorageService();
             $safePath = $storage->normalizeRelativePath($path);
-            $size = $storage->writeTextFile($userId, $website['slug'], $safePath, (string) $this->input('content', ''));
+            $size = $storage->writeTextFile($userId, $website['slug'], $safePath, $content);
 
             $websiteModel = new Website();
             $websiteModel->replaceFileRecord(
@@ -75,18 +103,39 @@ class EditorController extends Controller
                 strtolower(pathinfo($safePath, PATHINFO_EXTENSION)),
                 $size
             );
-            $websiteModel->updateStorageUsed((int) $website['id'], $storage->directorySize($storage->projectPath($userId, $website['slug'])));
+            $usage = $storage->directorySize($storage->projectPath($userId, $website['slug']));
+            $websiteModel->updateStorageUsed((int) $website['id'], $usage);
+
+            if ($isAjax) {
+                $this->respondJson(['ok' => true, 'message' => 'Saved', 'path' => $safePath, 'size' => $size]);
+            }
+
             Session::flash('success', 'File saved.');
             $this->redirectTo('/dashboard/websites/editor?id=' . (int) $website['id'] . '&path=' . rawurlencode($safePath));
         } catch (\Throwable $exception) {
-            Session::flash('error', $exception->getMessage());
-            $this->redirectTo($fallback);
+            $this->respondSaveError($isAjax, $exception->getMessage(), 422, $fallback);
         }
     }
 
-    /**
-     * Require a project from a GET request.
-     */
+    private function respondSaveError(bool $isAjax, string $message, int $status, string $fallback): void
+    {
+        if ($isAjax) {
+            $this->respondJson(['ok' => false, 'message' => $message], $status);
+        }
+
+        Session::flash('error', $message);
+        $this->redirectTo($fallback);
+    }
+
+    private function respondJson(array $payload, int $status = 200): void
+    {
+        http_response_code($status);
+        header('Content-Type: application/json; charset=UTF-8');
+        header('Cache-Control: no-store');
+        echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     private function requireWebsite(): array
     {
         if (!AuthService::check()) {
@@ -104,9 +153,6 @@ class EditorController extends Controller
         return [$userId, $website];
     }
 
-    /**
-     * Require a project from a POST request.
-     */
     private function requireWebsiteFromPost(): array
     {
         if (!AuthService::check()) {
