@@ -25,7 +25,9 @@
   var breadcrumb = root.querySelector('[data-breadcrumb]');
   var languageStatus = root.querySelector('[data-language-status]');
   var cursorStatus = root.querySelector('[data-cursor-status]');
+  var tabsHost = root.querySelector('.iw-studio-tabs');
   var currentTab = root.querySelector('[data-current-tab]');
+  var openPaths = [currentPath];
   var editor = null;
   var models = {};
   var currentPath = String(config.currentPath || 'index.html');
@@ -67,9 +69,42 @@
 
   function isDirty() { return editVersion !== savedVersion; }
 
+  function renderTabs() {
+    if (!tabsHost) return;
+    tabsHost.replaceChildren();
+    openPaths.forEach(function (path) {
+      var tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'iw-studio-tab' + (path === currentPath ? ' is-active' : '');
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-selected', path === currentPath ? 'true' : 'false');
+      tab.setAttribute('aria-label', path);
+      tab.title = path;
+      var ext = path.split('.').pop().toLowerCase();
+      var lang = document.createElement('span');
+      lang.textContent = ext === 'html' || ext === 'htm' ? '◇' : ext === 'css' ? '#' : ext === 'js' ? 'JS' : '{}';
+      var label = document.createElement('span');
+      label.textContent = path.split('/').pop();
+      label.setAttribute('data-tab-label', '');
+      var dirty = document.createElement('span');
+      dirty.className = 'iw-tab-dirty' + (path === currentPath && isDirty() ? ' is-dirty' : '');
+      dirty.setAttribute('aria-label', 'Unsaved changes');
+      tab.appendChild(lang);
+      tab.appendChild(label);
+      tab.appendChild(dirty);
+      tab.addEventListener('click', function () { openFile(path); });
+      tabsHost.appendChild(tab);
+      if (path === currentPath) currentTab = tab;
+    });
+  }
+
   function updateDirtyUi() {
     if (dirtyIndicator) dirtyIndicator.classList.toggle('is-dirty', isDirty());
-    if (currentTab) currentTab.setAttribute('aria-label', currentPath + (isDirty() ? ', unsaved changes' : ''));
+    if (currentTab) {
+      currentTab.setAttribute('aria-label', currentPath + (isDirty() ? ', unsaved changes' : ''));
+      var tabDirty = currentTab.querySelector('.iw-tab-dirty');
+      if (tabDirty) tabDirty.classList.toggle('is-dirty', isDirty());
+    }
     if (isDirty()) setStatus('dirty', 'Changes will autosave');
     else if (!lastSaveError) setStatus('saved', 'Autosave enabled');
   }
@@ -272,6 +307,8 @@
       if (languageStatus) languageStatus.textContent = currentExtension.toUpperCase();
       var langIcon = root.querySelector('[data-language-icon]');
       if (langIcon) langIcon.textContent = currentExtension === 'html' || currentExtension === 'htm' ? '◇' : currentExtension === 'css' ? '#' : currentExtension === 'js' ? 'JS' : '{}';
+      if (openPaths.indexOf(currentPath) === -1) openPaths.push(currentPath);
+      renderTabs();
       renderTree(searchInput ? searchInput.value : '');
       updateDirtyUi();
       if (window.history && window.history.replaceState) {
@@ -387,6 +424,7 @@
   }
 
   setPreviewVisible(previewVisible);
+  renderTabs();
   renderTree('');
   if (document.readyState === 'complete') startMonaco();
   else window.addEventListener('load', startMonaco, { once: true });
