@@ -7,6 +7,7 @@ use App\Core\Session;
 use App\Models\Website;
 use App\Services\AuthService;
 use App\Services\ProjectStorageService;
+use App\Services\PublicSiteUrlService;
 
 /**
  * Serves owner-only draft previews without exposing storage paths.
@@ -19,10 +20,18 @@ class PreviewController extends Controller
     public function show(): void
     {
         [, $website] = $this->requireWebsite();
+        $liveUrl = ($website['status'] ?? '') === 'published'
+            ? (new PublicSiteUrlService())->absoluteUrl(
+                (string) ($this->config['base_url'] ?? ''),
+                (int) $website['id'],
+                (string) $website['slug']
+            )
+            : '';
 
         $this->view('preview/show', [
             'title' => 'Preview Website',
             'website' => $website,
+            'liveUrl' => $liveUrl,
             'active' => 'websites',
         ], 'layouts/dashboard');
     }

@@ -3,9 +3,17 @@
 
     <header class="client-header">
       <div>
-        <p class="auth-eyebrow">Draft Editor</p>
+        <p class="auth-eyebrow">Draft Editor · <?= htmlspecialchars($website['website_name'] ?: 'Website', ENT_QUOTES, 'UTF-8') ?></p>
         <h1><?= htmlspecialchars($file['relative_path'], ENT_QUOTES, 'UTF-8') ?></h1>
         <p>Save updates to private draft storage before previewing or publishing.</p>
+      </div>
+      <div class="client-header-actions">
+        <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage site</a>
+        <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> File Manager</a>
+        <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/preview?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="eye"></i> Preview</a>
+        <?php if ($liveUrl !== ''): ?>
+          <a class="btn btn-primary" href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit live site</a>
+        <?php endif; ?>
       </div>
     </header>
 
