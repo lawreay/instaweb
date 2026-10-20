@@ -262,8 +262,8 @@
         }
         cursor = cursor.children[segment];
         if (index === segments.length - 1) {
-          cursor.type = 'file';
-          cursor.extension = String(file.extension || '').toLowerCase();
+          cursor.type = file.type === 'folder' ? 'folder' : 'file';
+          cursor.extension = cursor.type === 'file' ? String(file.extension || '').toLowerCase() : '';
           cursor.path = path;
         }
       });
