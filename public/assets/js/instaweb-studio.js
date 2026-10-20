@@ -402,7 +402,7 @@
   root.querySelectorAll('[data-action]').forEach(function (button) {
     button.addEventListener('click', function () {
       var action = button.getAttribute('data-action');
-      if (action === 'save') saveBuffer();
+      if (action === 'save') saveBuffer().then(function (ok) { if (ok) refreshPreview(); });
       if (action === 'save-refresh-preview' || action === 'preview' || action === 'refresh-preview') {
         saveBuffer().then(function (ok) {
           if (!ok) return;
@@ -459,15 +459,16 @@
       saveBuffer().then(function (ok) { if (ok) refreshPreview(); });
       return;
     }
+    if (command && event.shiftKey && key === 'p') {
+      event.preventDefault();
+      showShortcuts();
+      return;
+    }
     if (command && key === 'p' && searchInput) {
       event.preventDefault();
       searchInput.focus();
       searchInput.select();
       return;
-    }
-    if (command && event.shiftKey && key === '/') {
-      event.preventDefault();
-      showShortcuts();
     }
   });
 
