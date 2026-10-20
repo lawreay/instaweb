@@ -27,10 +27,10 @@
   var cursorStatus = root.querySelector('[data-cursor-status]');
   var tabsHost = root.querySelector('.iw-studio-tabs');
   var currentTab = root.querySelector('[data-current-tab]');
+  var currentPath = String(config.currentPath || 'index.html');
   var openPaths = [currentPath];
   var editor = null;
   var models = {};
-  var currentPath = String(config.currentPath || 'index.html');
   var currentContent = String(config.currentContent || '');
   var currentExtension = String(config.extension || 'html').toLowerCase();
   var editVersion = 0;
@@ -403,13 +403,74 @@
     button.addEventListener('click', function () {
       var action = button.getAttribute('data-action');
       if (action === 'save') saveBuffer();
-      if (action === 'preview') { saveBuffer().then(function (ok) { if (ok) { setPreviewVisible(true); refreshPreview(); } }); }
-      if (action === 'refresh-preview') { saveBuffer().then(function (ok) { if (ok) refreshPreview(); }); }
+      if (action === 'save-refresh-preview' || action === 'preview' || action === 'refresh-preview') {
+        saveBuffer().then(function (ok) {
+          if (!ok) return;
+          if (action === 'preview') setPreviewVisible(true);
+          refreshPreview();
+        });
+      }
       if (action === 'toggle-preview') setPreviewVisible(!previewVisible);
+      if (action === 'shortcuts') showShortcuts();
     });
   });
 
   if (searchInput) searchInput.addEventListener('input', function () { renderTree(searchInput.value); });
+
+  var shortcutDialog = root.querySelector('[data-shortcuts-dialog]');
+  function showShortcuts() {
+    if (!shortcutDialog) return;
+    if (typeof shortcutDialog.showModal === 'function') shortcutDialog.showModal();
+    else shortcutDialog.hidden = false;
+  }
+  function hideShortcuts() {
+    if (!shortcutDialog) return;
+    if (typeof shortcutDialog.close === 'function' && shortcutDialog.open) shortcutDialog.close();
+    else shortcutDialog.hidden = true;
+  }
+  if (shortcutDialog) {
+    shortcutDialog.addEventListener('click', function (event) {
+      if (event.target === shortcutDialog) hideShortcuts();
+    });
+    shortcutDialog.querySelectorAll('[data-shortcuts-close]').forEach(function (button) {
+      button.addEventListener('click', hideShortcuts);
+    });
+  }
+
+  document.addEventListener('keydown', function (event) {
+    if (!root.isConnected) return;
+    if (event.key === 'Escape' && shortcutDialog && shortcutDialog.open) {
+      hideShortcuts();
+      return;
+    }
+    var command = event.ctrlKey || event.metaKey;
+    var key = String(event.key || '').toLowerCase();
+    if (command && key === 's') {
+      event.preventDefault();
+      if (event.shiftKey) {
+        saveBuffer().then(function (ok) { if (ok) refreshPreview(); });
+      } else {
+        saveBuffer();
+      }
+      return;
+    }
+    if (event.key === 'F5') {
+      event.preventDefault();
+      saveBuffer().then(function (ok) { if (ok) refreshPreview(); });
+      return;
+    }
+    if (command && key === 'p' && searchInput) {
+      event.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+      return;
+    }
+    if (command && event.shiftKey && key === '/') {
+      event.preventDefault();
+      showShortcuts();
+    }
+  });
+
   if (fallback) {
     fallback.addEventListener('keydown', function (event) {
       if (event.key === 'Tab') {
