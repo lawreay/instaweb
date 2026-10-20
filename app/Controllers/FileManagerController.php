@@ -433,15 +433,11 @@ class FileManagerController extends Controller
             && (int) ($queryValues['id'] ?? 0) === $websiteId
             && !str_contains($path, "\r")
             && !str_contains($path, "\n")) {
-            // redirectTo() prepends the configured base URL. Strip that prefix
-            // first because return_to already contains it (for example /instaweb1).
-            $baseUrl = rtrim((string) ($this->config['base_url'] ?? ''), '/');
-            $relativePath = $path;
-            if ($baseUrl !== '' && ($path === $baseUrl || str_starts_with($path, $baseUrl . '/'))) {
-                $relativePath = substr($path, strlen($baseUrl));
-            }
-            $safeReturnTo = ltrim($relativePath, '/') . ($query !== null ? '?' . $query : '');
-            $this->redirectTo($safeReturnTo);
+            // This path has already been validated and parsed from return_to.
+            // Redirect directly: redirectTo() prepends base_url and would corrupt
+            // paths that already include an installation subdirectory.
+            $safeReturnTo = $path . ($query !== null ? '?' . $query : '');
+            $this->redirect($safeReturnTo);
         }
 
         $this->redirectTo($fallback);
