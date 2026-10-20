@@ -197,3 +197,15 @@ body:has(.iw-studio) {
 .iw-tree-menu-item.is-danger { color:#f29a94; }
 .iw-tree-menu-item.is-danger svg { color:#f29a94; }
 .iw-tree-menu-item.is-danger:hover { background:#4a2e30; color:#ffd5d2; }
+
+
+/* Inline file naming and renaming controls. */
+.iw-inline-name-row { display:flex; align-items:center; gap:4px; margin:4px 6px 6px; padding:4px; border:1px solid #52677e; border-radius:6px; background:#22262c; }
+.iw-inline-name-input { display:block; flex:1; min-width:0; width:100%; height:28px; padding:4px 7px; border:1px solid #454a53; border-radius:4px; outline:none; background:#17191d; color:#f1f3f5; font:inherit; font-size:12px; }
+.iw-inline-name-input:focus { border-color:#6ba4e8; box-shadow:0 0 0 2px rgba(107,164,232,.16); }
+.iw-inline-name-row button { display:grid; flex:none; place-items:center; width:27px; height:27px; padding:4px; border:0; border-radius:4px; background:transparent; color:#c4cad3; cursor:pointer; }
+.iw-inline-name-row button:hover { background:#3b414a; color:#fff; }
+.iw-inline-name-row button[type="submit"] { color:#8bd5a2; }
+.iw-inline-name-row svg { width:14px; height:14px; }
+.iw-tree-node { min-width:0; }
+.iw-tree-node > .iw-tree-options { flex-shrink:0; }
