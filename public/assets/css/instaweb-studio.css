@@ -187,3 +187,13 @@ body:has(.iw-studio) {
   .iw-explorer-actions button, .iw-explorer-actions a { width:21px; height:24px; }
   .iw-tree-node > .iw-tree-options { width:18px; }
 }
+
+
+/* Accessible file and folder context menu. */
+.iw-tree-menu { position:absolute; z-index:30; top:24px; right:4px; width:150px; padding:4px; border:1px solid #494b52; border-radius:7px; background:#25262a; box-shadow:0 12px 30px rgba(0,0,0,.4); }
+.iw-tree-menu-item { display:flex; align-items:center; gap:9px; width:100%; padding:8px 9px; border:0; border-radius:4px; background:transparent; color:#dedfe3; text-align:left; font:inherit; font-size:12px; cursor:pointer; }
+.iw-tree-menu-item:hover { background:#3a3c42; color:#fff; }
+.iw-tree-menu-item svg { width:14px; height:14px; color:#aeb4bf; }
+.iw-tree-menu-item.is-danger { color:#f29a94; }
+.iw-tree-menu-item.is-danger svg { color:#f29a94; }
+.iw-tree-menu-item.is-danger:hover { background:#4a2e30; color:#ffd5d2; }
