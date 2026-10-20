@@ -362,7 +362,10 @@
         label.className = 'iw-tree-label';
         label.textContent = item.name;
         button.appendChild(label);
-        wrap.appendChild(button);
+        var row = document.createElement('div');
+        row.className = 'iw-tree-row';
+        row.appendChild(button);
+        wrap.appendChild(row);
 
         if (item.type === 'folder') {
           var childrenHost = document.createElement('div');
@@ -442,7 +445,7 @@
           menuButton.setAttribute('aria-expanded', 'true');
           refreshIcons();
         });
-        wrap.appendChild(menuButton);
+        row.appendChild(menuButton);
         parent.appendChild(wrap);
       });
     }
