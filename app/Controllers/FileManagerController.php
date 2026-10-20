@@ -178,6 +178,49 @@ class FileManagerController extends Controller
     }
 
     /**
+     * Copy a draft file or folder and update storage accounting.
+     */
+    public function copy(): void
+    {
+        [$userId, $website] = $this->requireWebsiteFromPost();
+        $this->requireCsrf('/dashboard/websites/files?id=' . (int) $website['id']);
+
+        try {
+            $storage = new ProjectStorageService();
+            $from = $storage->normalizeRelativePath((string) $this->input('from_path', ''));
+            $to = $storage->normalizeRelativePath((string) $this->input('to_path', ''));
+            $items = $storage->listProjectFiles($userId, $website['slug']);
+            $copyBytes = 0;
+            foreach ($items as $item) {
+                if (($item['type'] ?? '') !== 'file') {
+                    continue;
+                }
+                $itemPath = (string) $item['path'];
+                if ($itemPath === $from || str_starts_with($itemPath, rtrim($from, '/') . '/')) {
+                    $copyBytes += (int) ($item['size'] ?? 0);
+                }
+            }
+
+            $websiteModel = new Website();
+            $planService = new PlanService();
+            $limit = $websiteModel->userPlan($userId) === 'premium' ? $planService->premiumStorageBytes() : $planService->freeStorageBytes();
+            if ($limit > 0 && $websiteModel->totalStorageForUser($userId) + $copyBytes > $limit) {
+                throw new \InvalidArgumentException('Copying this item would exceed your plan storage limit.');
+            }
+
+            $storage->copyProjectItem($userId, $website['slug'], $from, $to);
+            $websiteModel->syncFileRecords((int) $website['id'], $storage->listProjectFiles($userId, $website['slug']));
+            $newUsage = $storage->directorySize($storage->projectPath($userId, $website['slug']));
+            $websiteModel->updateStorageUsed((int) $website['id'], $newUsage);
+            Session::flash('success', 'Item copied.');
+        } catch (\Throwable $exception) {
+            Session::flash('error', $exception->getMessage());
+        }
+
+        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+    }
+
+    /**
      * Delete one draft file or folder.
      */
     public function delete(): void
