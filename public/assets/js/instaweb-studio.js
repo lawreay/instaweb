@@ -123,6 +123,7 @@
     if (!previewFrame) return;
     var url = config.previewUrl || '';
     if (!url) return;
+    previewFrame.dataset.loaded = 'true';
     previewFrame.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_preview=' + Date.now();
   }
 
