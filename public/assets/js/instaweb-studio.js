@@ -361,6 +361,8 @@
     window.require(['vs/editor/editor.main'], function () {
       try {
         window.monaco.editor.setTheme('vs-dark');
+        // Preserve anything typed into the immediately available fallback while Monaco downloads.
+        if (fallback && fallback.classList.contains('is-visible')) currentContent = fallback.value;
         var initialUri = window.monaco.Uri.parse('inmemory://instaweb/' + encodeURIComponent(currentPath));
         models[currentPath] = window.monaco.editor.createModel(currentContent, languageFor(currentExtension), initialUri);
         editor = window.monaco.editor.create(host, {
@@ -426,8 +428,10 @@
   setPreviewVisible(previewVisible);
   renderTabs();
   renderTree('');
-  if (document.readyState === 'complete') startMonaco();
-  else window.addEventListener('load', startMonaco, { once: true });
+
+  // Show editable source immediately; do not wait for the preview iframe or window load.
+  startFallback();
+  startMonaco();
   window.addEventListener('beforeunload', function (event) {
     if (isDirty()) {
       event.preventDefault();
