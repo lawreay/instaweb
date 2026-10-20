@@ -43,6 +43,10 @@
   var previewVisible = !window.matchMedia('(max-width: 760px)').matches;
   var previousMobileLayout = window.matchMedia('(max-width: 760px)').matches;
   var latestRequest = 0;
+  var selectedFolder = '';
+  var clipboardPath = '';
+  var clipboardMode = 'copy';
+  var uploadInput = root.querySelector('[data-file-upload]');
 
   function languageFor(extension) {
     return ({ html: 'html', htm: 'html', css: 'css', js: 'javascript', json: 'json', md: 'markdown', txt: 'plaintext' })[extension] || 'plaintext';
@@ -187,12 +191,65 @@
     scheduleSave();
   }
 
+  function submitFileAction(action, fields, fileInput) {
+    var routes = config.fileActions || {};
+    var endpoint = routes[action];
+    if (!endpoint) { setStatus('error', 'This file action is not configured.'); return; }
+    var actionForm = document.createElement('form');
+    actionForm.method = 'post';
+    actionForm.action = endpoint;
+    actionForm.enctype = fileInput ? 'multipart/form-data' : 'application/x-www-form-urlencoded';
+    actionForm.hidden = true;
+    var csrf = form ? form.querySelector('[name="_csrf"]') : null;
+    var values = Object.assign({ website_id: String(config.websiteId || ''), _csrf: csrf ? csrf.value : '' }, fields || {});
+    Object.keys(values).forEach(function (name) {
+      var input = document.createElement('input');
+      input.type = 'hidden'; input.name = name; input.value = String(values[name] == null ? '' : values[name]);
+      actionForm.appendChild(input);
+    });
+    if (fileInput) {
+      fileInput.name = 'project_file';
+      actionForm.appendChild(fileInput);
+    }
+    document.body.appendChild(actionForm);
+    actionForm.submit();
+  }
+
+  function folderForPath(path) {
+    var normalized = String(path || '').replace(/\\\\/g, '/');
+    var index = normalized.lastIndexOf('/');
+    return index >= 0 ? normalized.slice(0, index) : '';
+  }
+
+  function runItemAction(action, item) {
+    if (action === 'rename') {
+      var newName = window.prompt('Enter the new name', item.name);
+      if (!newName || newName === item.name) return;
+      var destination = (folderForPath(item.path) ? folderForPath(item.path) + '/' : '') + newName.trim();
+      submitFileAction('move', { from_path: item.path, to_path: destination });
+    } else if (action === 'delete') {
+      if (!window.confirm('Delete "' + item.path + '"? This cannot be undone.')) return;
+      submitFileAction('delete', { path: item.path });
+    } else if (action === 'download') {
+      window.location.href = (config.fileActions.download || '') + '&path=' + encodeURIComponent(item.path);
+    } else if (action === 'copy') {
+      clipboardPath = item.path;
+      clipboardMode = 'copy';
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(item.path).catch(function () {});
+      setStatus('saved', 'Copied path: ' + item.path);
+    } else if (action === 'cut') {
+      clipboardPath = item.path;
+      clipboardMode = 'cut';
+      setStatus('saved', 'Ready to move: ' + item.path + ' · select a destination folder and press Paste');
+    }
+  }
+
   function renderTree(query) {
     if (!treeHost) return;
     treeHost.replaceChildren();
     var normalizedQuery = String(query || '').trim().toLowerCase();
     var files = Array.isArray(config.files) ? config.files : [];
-    var rootNode = { name: '', type: 'folder', children: {} };
+    var rootNode = { name: '', path: '', type: 'folder', children: {} };
 
     files.forEach(function (file) {
       var path = String(file.path || '').replace(/\\/g, '/');
@@ -223,7 +280,7 @@
         wrap.className = 'iw-tree-node';
         var button = document.createElement('button');
         button.type = 'button';
-        button.className = item.type === 'folder' ? 'iw-tree-folder' : 'iw-tree-file';
+        button.className = (item.type === 'folder' ? 'iw-tree-folder' : 'iw-tree-file') + (item.path === selectedFolder && item.type === 'folder' ? ' is-selected-folder' : '');
         button.style.paddingLeft = (8 + Math.min(depth, 8) * 9) + 'px';
         if (item.type === 'folder') {
           button.setAttribute('aria-expanded', 'true');
@@ -415,7 +472,36 @@
     });
   });
 
-  if (searchInput) searchInput.addEventListener('input', function () { renderTree(searchInput.value); });
+  root.querySelectorAll('[data-file-action]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var action = button.getAttribute('data-file-action');
+      if (action === 'new-file') {
+        var name = window.prompt('New file name (for example: about.html)', selectedFolder ? selectedFolder + '/' : '');
+        if (name && name.trim()) submitFileAction('createFile', { file_path: name.trim() });
+      } else if (action === 'new-folder') {
+        var folderName = window.prompt('New folder path', selectedFolder ? selectedFolder + '/assets' : 'assets');
+        if (folderName && folderName.trim()) submitFileAction('createFolder', { folder_path: folderName.trim() });
+      } else if (action === 'upload' && uploadInput) {
+        uploadInput.click();
+      } else if (action === 'paste') {
+        if (!clipboardPath) { setStatus('error', 'Copy or cut a file or folder first.'); return; }
+        var name = clipboardPath.split('/').pop();
+        var destination = (selectedFolder ? selectedFolder + '/' : '') + name;
+        if (clipboardMode === 'cut') submitFileAction('move', { from_path: clipboardPath, to_path: destination });
+        else setStatus('error', 'Copy is currently path-only; duplicate-file support is not available yet.');
+      }
+    });
+  });
+  if (uploadInput) uploadInput.addEventListener('change', function () {
+    if (!uploadInput.files || !uploadInput.files.length) return;
+    var chosen = uploadInput.files[0];
+    var transfer = uploadInput;
+    // Upload endpoint currently accepts one file per request.
+    var hiddenFolder = selectedFolder;
+    submitFileAction('upload', { folder: hiddenFolder }, transfer);
+    setStatus('saving', 'Uploading ' + chosen.name + '…');
+  });
+\n  if (searchInput) searchInput.addEventListener('input', function () { renderTree(searchInput.value); });
 
   var shortcutDialog = root.querySelector('[data-shortcuts-dialog]');
   function showShortcuts() {
