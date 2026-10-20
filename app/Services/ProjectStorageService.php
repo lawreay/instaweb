@@ -396,6 +396,68 @@ HTML;
     }
 
     /**
+     * Copy a file or directory within the same draft project.
+     */
+    public function copyProjectItem(int $userId, string $slug, string $fromRelativePath, string $toRelativePath): array
+    {
+        $from = $this->normalizeRelativePath($fromRelativePath);
+        $to = $this->normalizeRelativePath($toRelativePath);
+        if ($from === '' || $to === '' || $from === $to || str_starts_with($to, $from . '/')) {
+            throw new \InvalidArgumentException('Choose a valid destination outside the source folder.');
+        }
+
+        $projectPath = $this->projectPath($userId, $slug);
+        $sourcePath = $this->resolveProjectPath($userId, $slug, $from);
+        $targetPath = $this->resolveProjectPath($userId, $slug, $to);
+        if (!$this->isInsidePath($sourcePath, $projectPath) || (!is_file($sourcePath) && !is_dir($sourcePath))) {
+            throw new \RuntimeException('Source file or folder was not found.');
+        }
+        if (file_exists($targetPath)) {
+            throw new \RuntimeException('A file or folder already exists at the destination.');
+        }
+
+        $copyTree = function (string $source, string $target) use (&$copyTree): void {
+            if (is_link($source)) {
+                throw new \RuntimeException('Symbolic links cannot be copied.');
+            }
+            if (is_file($source)) {
+                $parent = dirname($target);
+                if (!is_dir($parent) && !mkdir($parent, 0755, true) && !is_dir($parent)) {
+                    throw new \RuntimeException('Unable to create destination folder.');
+                }
+                if (!copy($source, $target)) {
+                    throw new \RuntimeException('Unable to copy file.');
+                }
+                return;
+            }
+            if (!mkdir($target, 0755, true) && !is_dir($target)) {
+                throw new \RuntimeException('Unable to create destination folder.');
+            }
+            foreach (array_diff(scandir($source) ?: [], ['.', '..']) as $entry) {
+                $copyTree($source . DIRECTORY_SEPARATOR . $entry, $target . DIRECTORY_SEPARATOR . $entry);
+            }
+        };
+
+        try {
+            $copyTree($sourcePath, $targetPath);
+        } catch (\Throwable $exception) {
+            if (is_dir($targetPath)) {
+                $this->deleteDirectory($targetPath);
+            } elseif (is_file($targetPath)) {
+                unlink($targetPath);
+            }
+            throw $exception;
+        }
+
+        return [
+            'from' => $from,
+            'to' => $to,
+            'type' => is_dir($targetPath) ? 'folder' : 'file',
+            'size' => is_file($targetPath) ? (filesize($targetPath) ?: 0) : $this->directorySize($targetPath),
+        ];
+    }
+
+    /**
      * Delete a safe project-relative file or folder.
      */
     public function deleteProjectItem(int $userId, string $slug, string $relativePath): void
