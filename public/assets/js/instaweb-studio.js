@@ -317,6 +317,8 @@
           appendChildren(childrenHost, item, depth + 1);
           button.addEventListener('click', function () {
             selectedFolder = item.path;
+            treeHost.querySelectorAll('.is-selected-folder').forEach(function (selected) { selected.classList.remove('is-selected-folder'); });
+            button.classList.add('is-selected-folder');
             var expanded = button.getAttribute('aria-expanded') === 'true';
             button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
             childrenHost.hidden = expanded;
@@ -346,12 +348,41 @@
         var menuIcon = document.createElement('i');
         menuIcon.setAttribute('data-lucide', 'ellipsis');
         menuButton.appendChild(menuIcon);
+        menuButton.setAttribute('aria-haspopup', 'menu');
+        menuButton.setAttribute('aria-expanded', 'false');
         menuButton.addEventListener('click', function (event) {
           event.stopPropagation();
-          var choices = item.type === 'folder' ? ['rename', 'cut', 'copy', 'delete'] : ['rename', 'cut', 'copy', 'download', 'delete'];
-          var choice = window.prompt('Options for ' + item.name + ': ' + choices.join(', '), choices[0]);
-          if (choice && choices.indexOf(choice.trim().toLowerCase()) !== -1) runItemAction(choice.trim().toLowerCase(), item);
-          else if (choice) setStatus('error', 'Choose one of: ' + choices.join(', '));
+          var existing = wrap.querySelector('.iw-tree-menu');
+          if (existing) { existing.remove(); menuButton.setAttribute('aria-expanded', 'false'); return; }
+          treeHost.querySelectorAll('.iw-tree-menu').forEach(function (menu) { menu.remove(); });
+          treeHost.querySelectorAll('.iw-tree-options[aria-expanded="true"]').forEach(function (openButton) { openButton.setAttribute('aria-expanded', 'false'); });
+          var menu = document.createElement('div');
+          menu.className = 'iw-tree-menu';
+          menu.setAttribute('role', 'menu');
+          var choices = item.type === 'folder'
+            ? [{ id: 'rename', label: 'Rename', icon: 'pencil' }, { id: 'cut', label: 'Cut', icon: 'scissors' }, { id: 'copy', label: 'Copy', icon: 'copy' }, { id: 'delete', label: 'Delete', icon: 'trash-2' }]
+            : [{ id: 'rename', label: 'Rename', icon: 'pencil' }, { id: 'cut', label: 'Cut', icon: 'scissors' }, { id: 'copy', label: 'Copy', icon: 'copy' }, { id: 'download', label: 'Download', icon: 'download' }, { id: 'delete', label: 'Delete', icon: 'trash-2' }];
+          choices.forEach(function (choice) {
+            var option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'iw-tree-menu-item' + (choice.id === 'delete' ? ' is-danger' : '');
+            option.setAttribute('role', 'menuitem');
+            var optionIcon = document.createElement('i');
+            optionIcon.setAttribute('data-lucide', choice.icon);
+            var optionLabel = document.createElement('span');
+            optionLabel.textContent = choice.label;
+            option.appendChild(optionIcon);
+            option.appendChild(optionLabel);
+            option.addEventListener('click', function () {
+              menu.remove();
+              menuButton.setAttribute('aria-expanded', 'false');
+              runItemAction(choice.id, item);
+            });
+            menu.appendChild(option);
+          });
+          wrap.appendChild(menu);
+          menuButton.setAttribute('aria-expanded', 'true');
+          refreshIcons();
         });
         wrap.appendChild(menuButton);
         parent.appendChild(wrap);
