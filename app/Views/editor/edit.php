@@ -20,6 +20,7 @@ $editorConfig = [
         'createFolder' => $baseUrl . '/dashboard/websites/files/create-folder',
         'upload' => $baseUrl . '/dashboard/websites/files/upload',
         'move' => $baseUrl . '/dashboard/websites/files/move',
+        'copy' => $baseUrl . '/dashboard/websites/files/copy',
         'delete' => $baseUrl . '/dashboard/websites/files/delete',
         'download' => $baseUrl . '/dashboard/websites/files/download?id=' . $websiteId,
     ],
