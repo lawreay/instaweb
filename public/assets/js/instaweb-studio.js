@@ -317,6 +317,22 @@
           button.title = item.path;
           button.addEventListener('click', function () { openFile(item.path); });
         }
+        var menuButton = document.createElement('button');
+        menuButton.type = 'button';
+        menuButton.className = 'iw-tree-options';
+        menuButton.setAttribute('aria-label', 'Options for ' + item.name);
+        menuButton.title = 'File options';
+        var menuIcon = document.createElement('i');
+        menuIcon.setAttribute('data-lucide', 'ellipsis');
+        menuButton.appendChild(menuIcon);
+        menuButton.addEventListener('click', function (event) {
+          event.stopPropagation();
+          var choices = item.type === 'folder' ? ['rename', 'cut', 'copy', 'delete'] : ['rename', 'cut', 'copy', 'download', 'delete'];
+          var choice = window.prompt('Options for ' + item.name + ': ' + choices.join(', '), choices[0]);
+          if (choice && choices.indexOf(choice.trim().toLowerCase()) !== -1) runItemAction(choice.trim().toLowerCase(), item);
+          else if (choice) setStatus('error', 'Choose one of: ' + choices.join(', '));
+        });
+        wrap.appendChild(menuButton);
         parent.appendChild(wrap);
       });
     }
@@ -475,7 +491,7 @@
   root.querySelectorAll('[data-file-action]').forEach(function (button) {
     button.addEventListener('click', function () {
       var action = button.getAttribute('data-file-action');
-      if (action === 'new-file') {
+      if (action === 'paste') {\n        if (!clipboardPath) { setStatus('error', 'Copy or cut a file or folder first.'); return; }\n        var name = clipboardPath.split('/').pop();\n        var destination = (selectedFolder ? selectedFolder + '/' : '') + name;\n        if (clipboardMode === 'cut') submitFileAction('move', { from_path: clipboardPath, to_path: destination });\n        else setStatus('error', 'Copying whole files is not supported yet. Use Copy in the editor to copy selected text.');\n      } else if (action === 'new-file') {
         var name = window.prompt('New file name (for example: about.html)', selectedFolder ? selectedFolder + '/' : '');
         if (name && name.trim()) submitFileAction('createFile', { file_path: name.trim() });
       } else if (action === 'new-folder') {
