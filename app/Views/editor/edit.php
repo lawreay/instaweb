@@ -58,12 +58,12 @@ $editorConfig = [
       <div class="iw-studio-panes" data-panes>
         <section class="iw-code-pane" aria-label="Code editor">
           <div class="iw-monaco-host" data-monaco-host></div>
-          <textarea class="iw-editor-fallback" data-editor-fallback spellcheck="false" aria-label="Code editor fallback"><?= htmlspecialchars($file['content'], ENT_QUOTES, 'UTF-8') ?></textarea>
-          <div class="iw-editor-loading" data-editor-loading><span class="iw-loading-spinner"></span><span>Starting editor…</span></div>
+          <textarea class="iw-editor-fallback is-visible" data-editor-fallback spellcheck="false" aria-label="Code editor fallback"><?= htmlspecialchars($file['content'], ENT_QUOTES, 'UTF-8') ?></textarea>
+          <div class="iw-editor-loading is-hidden" data-editor-loading><span class="iw-loading-spinner"></span><span>Starting editor…</span></div>
         </section>
         <section class="iw-preview-pane" data-preview-pane aria-label="Live draft preview">
           <div class="iw-preview-heading"><span><i data-lucide="monitor"></i> Draft preview</span><span class="iw-preview-badge">PRIVATE</span></div>
-          <iframe data-preview-frame title="Private draft website preview" src="<?= htmlspecialchars($baseUrl . '/dashboard/websites/preview/file?id=' . $websiteId . '&path=index.html', ENT_QUOTES, 'UTF-8') ?>" sandbox="allow-scripts allow-forms allow-modals allow-popups" referrerpolicy="no-referrer"></iframe>
+          <iframe data-preview-frame title="Private draft website preview" data-preview-src="<?= htmlspecialchars($baseUrl . '/dashboard/websites/preview/file?id=' . $websiteId . '&path=index.html', ENT_QUOTES, 'UTF-8') ?>" sandbox="allow-scripts allow-forms allow-modals allow-popups" referrerpolicy="no-referrer"></iframe>
         </section>
       </div>
       <footer class="iw-studio-statusbar">
@@ -79,5 +79,4 @@ $editorConfig = [
     <textarea name="content" data-save-content aria-hidden="true" tabindex="-1"></textarea>
   </form>
 </section>
-<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js" defer></script>
 <script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-1', ENT_QUOTES, 'UTF-8') ?>" defer></script>
