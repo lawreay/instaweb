@@ -332,9 +332,11 @@
         var button = document.createElement('button');
         button.type = 'button';
         button.className = (item.type === 'folder' ? 'iw-tree-folder' : 'iw-tree-file') + (item.path === selectedFolder && item.type === 'folder' ? ' is-selected-folder' : '');
-        button.style.paddingLeft = (8 + Math.min(depth, 8) * 9) + 'px';
+        button.style.paddingLeft = '8px';
         if (item.type === 'folder') {
-          button.setAttribute('aria-expanded', 'true');
+          var containsCurrentFile = currentPath === item.path || currentPath.indexOf(item.path + '/') === 0;
+          var expandedByDefault = containsCurrentFile || normalizedQuery !== '';
+          button.setAttribute('aria-expanded', expandedByDefault ? 'true' : 'false');
           var caret = document.createElement('i');
           caret.setAttribute('data-lucide', 'chevron-down');
           caret.className = 'iw-tree-caret';
@@ -365,7 +367,12 @@
         if (item.type === 'folder') {
           var childrenHost = document.createElement('div');
           childrenHost.className = 'iw-tree-children';
+          childrenHost.hidden = !expandedByDefault;
           appendChildren(childrenHost, item, depth + 1);
+          if (!expandedByDefault) {
+            var initialCaret = button.querySelector('.iw-tree-caret');
+            if (initialCaret) initialCaret.setAttribute('data-lucide', 'chevron-right');
+          }
           button.addEventListener('click', function () {
             selectedFolder = item.path;
             treeHost.querySelectorAll('.is-selected-folder').forEach(function (selected) { selected.classList.remove('is-selected-folder'); });
