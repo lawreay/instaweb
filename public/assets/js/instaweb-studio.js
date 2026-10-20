@@ -539,7 +539,8 @@
     submitFileAction('upload', { folder: hiddenFolder }, transfer);
     setStatus('saving', 'Uploading ' + chosen.name + '…');
   });
-\n  if (searchInput) searchInput.addEventListener('input', function () { renderTree(searchInput.value); });
+
+  if (searchInput) searchInput.addEventListener('input', function () { renderTree(searchInput.value); });
 
   var shortcutDialog = root.querySelector('[data-shortcuts-dialog]');
   function showShortcuts() {
