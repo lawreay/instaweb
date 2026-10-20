@@ -19,7 +19,7 @@ $editorConfig = [
     'files' => $editorFiles,
 ];
 ?>
-<link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/css/instaweb-studio.css?v=20261019-1', ENT_QUOTES, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/css/instaweb-studio.css?v=20261020-2', ENT_QUOTES, 'UTF-8') ?>">
 <section class="iw-studio" data-iw-studio data-config="<?= htmlspecialchars(json_encode($editorConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>">
   <header class="iw-studio-topbar">
     <a class="iw-studio-brand" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . $websiteId, ENT_QUOTES, 'UTF-8') ?>" aria-label="Back to site management">
@@ -29,7 +29,8 @@ $editorConfig = [
     <div class="iw-studio-actions">
       <span class="iw-save-status" data-save-status role="status" aria-live="polite"><span class="iw-status-dot"></span> Loading editor…</span>
       <button class="iw-studio-button" type="button" data-action="save"><i data-lucide="save"></i><span>Save</span></button>
-      <button class="iw-studio-button" type="button" data-action="preview"><i data-lucide="eye"></i><span>Preview</span></button>
+      <button class="iw-studio-button" type="button" data-action="save-refresh-preview" title="Save changes and refresh preview"><i data-lucide="refresh-cw"></i><span>Save &amp; Refresh</span></button>
+      <button class="iw-studio-button" type="button" data-action="shortcuts" title="Keyboard shortcuts (Ctrl/Cmd+Shift+/)"><i data-lucide="keyboard"></i><span>Shortcuts</span></button>
       <a class="iw-studio-button" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . $websiteId, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i><span>Manage</span></a>
       <?php if (($liveUrl ?? '') !== ''): ?>
         <a class="iw-studio-button iw-studio-button-primary" href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>Live site</span></a>
@@ -53,7 +54,7 @@ $editorConfig = [
       </div>
       <div class="iw-studio-toolbar">
         <div class="iw-breadcrumb"><span><?= htmlspecialchars($website['website_name'] ?: 'Website', ENT_QUOTES, 'UTF-8') ?></span><i data-lucide="chevron-right"></i><strong data-breadcrumb><?= htmlspecialchars($file['relative_path'], ENT_QUOTES, 'UTF-8') ?></strong></div>
-        <div class="iw-editor-tools"><button type="button" data-action="toggle-preview" aria-pressed="true"><i data-lucide="panel-right"></i><span>Toggle preview</span></button><button type="button" data-action="refresh-preview"><i data-lucide="refresh-cw"></i><span>Refresh</span></button></div>
+        <div class="iw-editor-tools"><button type="button" data-action="toggle-preview" aria-pressed="true"><i data-lucide="panel-right"></i><span>Toggle preview</span></button><button type="button" data-action="refresh-preview" title="Save changes and refresh preview (F5)"><i data-lucide="refresh-cw"></i><span>Refresh</span></button></div>
       </div>
       <div class="iw-studio-panes" data-panes>
         <section class="iw-code-pane" aria-label="Code editor">
@@ -79,4 +80,4 @@ $editorConfig = [
     <textarea name="content" data-save-content aria-hidden="true" tabindex="-1"></textarea>
   </form>
 </section>
-<script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-2', ENT_QUOTES, 'UTF-8') ?>" defer></script>
+<script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-3', ENT_QUOTES, 'UTF-8') ?>" defer></script>
