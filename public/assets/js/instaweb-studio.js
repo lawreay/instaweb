@@ -236,10 +236,10 @@
         if (destination === item.path) { row.remove(); return; }
         submitFileAction('move', { from_path: item.path, to_path: destination });
       } else if (action === 'new-folder') {
-        var folderPath = (selectedFolder ? selectedFolder + '/' : '') + value.replace(/^\\/+|\\/+$/g, '');
+        var folderPath = (selectedFolder ? selectedFolder + '/' : '') + value.split('/').filter(Boolean).join('/');
         submitFileAction('createFolder', { folder_path: folderPath });
       } else if (action === 'new-file') {
-        var filePath = (selectedFolder ? selectedFolder + '/' : '') + value.replace(/^\\/+|\\/+$/g, '');
+        var filePath = (selectedFolder ? selectedFolder + '/' : '') + value.split('/').filter(Boolean).join('/');
         submitFileAction('createFile', { file_path: filePath });
       }
     });
