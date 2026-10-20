@@ -418,14 +418,23 @@ class FileManagerController extends Controller
     {
         $websiteId = (int) $website['id'];
         $fallback = '/dashboard/websites/files?id=' . $websiteId;
-        $returnTo = (string) $this->input('return_to', $fallback);
-        $editorPrefix = '/dashboard/websites/editor?id=' . $websiteId;
+        $returnTo = trim((string) $this->input('return_to', $fallback));
+        $path = parse_url($returnTo, PHP_URL_PATH);
+        $query = parse_url($returnTo, PHP_URL_QUERY);
+        $queryValues = [];
+        if (is_string($query)) {
+            parse_str($query, $queryValues);
+        }
 
-        if (str_starts_with($returnTo, $editorPrefix)
-            && !str_starts_with($returnTo, '//')
-            && !str_contains($returnTo, "\r")
-            && !str_contains($returnTo, "\n")) {
-            $this->redirectTo($returnTo);
+        // The editor may run under a subdirectory locally. Validate the path and
+        // project ID, then rebuild a relative URL so external hosts are never trusted.
+        if (is_string($path)
+            && str_ends_with(rtrim($path, '/'), '/dashboard/websites/editor')
+            && (int) ($queryValues['id'] ?? 0) === $websiteId
+            && !str_contains($path, "\r")
+            && !str_contains($path, "\n")) {
+            $safeReturnTo = $path . ($query !== null ? '?' . $query : '');
+            $this->redirectTo($safeReturnTo);
         }
 
         $this->redirectTo($fallback);
