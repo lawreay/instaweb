@@ -221,12 +221,63 @@
     return index >= 0 ? normalized.slice(0, index) : '';
   }
 
+  function showInlineNameInput(action, item, wrap) {
+    if (!treeHost) return;
+    treeHost.querySelectorAll('.iw-inline-name-row').forEach(function (row) { row.remove(); });
+    var row = document.createElement('form');
+    row.className = 'iw-inline-name-row';
+    row.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var value = input.value.trim();
+      if (!value) { input.focus(); return; }
+      if (action === 'rename') {
+        var parentPath = folderForPath(item.path);
+        var destination = (parentPath ? parentPath + '/' : '') + value;
+        if (destination === item.path) { row.remove(); return; }
+        submitFileAction('move', { from_path: item.path, to_path: destination });
+      } else if (action === 'new-folder') {
+        var folderPath = (selectedFolder ? selectedFolder + '/' : '') + value.replace(/^\\/+|\\/+$/g, '');
+        submitFileAction('createFolder', { folder_path: folderPath });
+      } else if (action === 'new-file') {
+        var filePath = (selectedFolder ? selectedFolder + '/' : '') + value.replace(/^\\/+|\\/+$/g, '');
+        submitFileAction('createFile', { file_path: filePath });
+      }
+    });
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'iw-inline-name-input';
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    input.setAttribute('aria-label', action === 'rename' ? 'Rename ' + item.name : action === 'new-folder' ? 'New folder name' : 'New file name');
+    input.placeholder = action === 'rename' ? 'New name' : action === 'new-folder' ? 'Folder name' : 'File name';
+    input.value = action === 'rename' && item ? item.name : '';
+    var submit = document.createElement('button');
+    submit.type = 'submit';
+    submit.title = 'Confirm';
+    submit.setAttribute('aria-label', 'Confirm name');
+    submit.innerHTML = '<i data-lucide="check"></i>';
+    var cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.title = 'Cancel';
+    cancel.setAttribute('aria-label', 'Cancel');
+    cancel.innerHTML = '<i data-lucide="x"></i>';
+    cancel.addEventListener('click', function () { row.remove(); });
+    row.appendChild(input);
+    row.appendChild(submit);
+    row.appendChild(cancel);
+    if (wrap && wrap.parentNode) wrap.parentNode.insertBefore(row, wrap.nextSibling);
+    else treeHost.insertBefore(row, treeHost.firstChild);
+    refreshIcons();
+    input.focus();
+    input.select();
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') { event.preventDefault(); row.remove(); }
+    });
+  }
+
   function runItemAction(action, item) {
     if (action === 'rename') {
-      var newName = window.prompt('Enter the new name', item.name);
-      if (!newName || newName === item.name) return;
-      var destination = (folderForPath(item.path) ? folderForPath(item.path) + '/' : '') + newName.trim();
-      submitFileAction('move', { from_path: item.path, to_path: destination });
+      showInlineNameInput('rename', item, treeHost.querySelectorAll('.iw-tree-node').length ? Array.from(treeHost.querySelectorAll('.iw-tree-node')).find(function (node) { return node.querySelector('.iw-tree-options[aria-label="Options for ' + item.name.replace(/"/g, '\\"') + '"]'); }) : null);
     } else if (action === 'delete') {
       if (!window.confirm('Delete "' + item.path + '"? This cannot be undone.')) return;
       submitFileAction('delete', { path: item.path });
@@ -551,11 +602,9 @@
         if (clipboardMode === 'cut') submitFileAction('move', { from_path: clipboardPath, to_path: destination });
         else submitFileAction('copy', { from_path: clipboardPath, to_path: destination });
       } else if (action === 'new-file') {
-        var fileName = window.prompt('New file name (for example: about.html)', selectedFolder ? selectedFolder + '/' : '');
-        if (fileName && fileName.trim()) submitFileAction('createFile', { file_path: fileName.trim() });
+        showInlineNameInput('new-file');
       } else if (action === 'new-folder') {
-        var folderName = window.prompt('New folder path', selectedFolder ? selectedFolder + '/assets' : 'assets');
-        if (folderName && folderName.trim()) submitFileAction('createFolder', { folder_path: folderName.trim() });
+        showInlineNameInput('new-folder');
       } else if (action === 'upload' && uploadInput) {
         uploadInput.click();
       }
