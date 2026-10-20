@@ -108,7 +108,7 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -156,7 +156,7 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -174,7 +174,7 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -217,7 +217,7 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -261,7 +261,7 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -315,7 +315,7 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -329,7 +329,7 @@ class FileManagerController extends Controller
             $file = (new ProjectStorageService())->downloadableFile($userId, $website['slug'], (string) $this->input('path', ''));
         } catch (\Throwable) {
             Session::flash('error', 'File was not found.');
-            $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+            $this->redirectAfterFileAction($website);
         }
 
         header('Content-Type: ' . $file['mime']);
@@ -351,7 +351,7 @@ class FileManagerController extends Controller
             $archive = (new ProjectArchiveService())->exportDraft($userId, $website['slug']);
         } catch (\Throwable $exception) {
             Session::flash('error', $exception->getMessage());
-            $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+            $this->redirectAfterFileAction($website);
         }
 
         header('Content-Type: application/zip');
@@ -408,7 +408,27 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
+    }
+
+    /**
+     * Return file operations to the editor without allowing external redirects.
+     */
+    private function redirectAfterFileAction(array $website): void
+    {
+        $websiteId = (int) $website['id'];
+        $fallback = '/dashboard/websites/files?id=' . $websiteId;
+        $returnTo = (string) $this->input('return_to', $fallback);
+        $editorPrefix = '/dashboard/websites/editor?id=' . $websiteId;
+
+        if (str_starts_with($returnTo, $editorPrefix)
+            && !str_starts_with($returnTo, '//')
+            && !str_contains($returnTo, "\r")
+            && !str_contains($returnTo, "\n")) {
+            $this->redirectTo($returnTo);
+        }
+
+        $this->redirectTo($fallback);
     }
 
     /**
