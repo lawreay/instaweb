@@ -236,7 +236,7 @@
       clipboardPath = item.path;
       clipboardMode = 'copy';
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(item.path).catch(function () {});
-      setStatus('saved', 'Copied path: ' + item.path);
+      setStatus('saved', 'Ready to copy: ' + item.path + ' · select a destination folder and press Paste');
     } else if (action === 'cut') {
       clipboardPath = item.path;
       clipboardMode = 'cut';
@@ -512,20 +512,21 @@
   root.querySelectorAll('[data-file-action]').forEach(function (button) {
     button.addEventListener('click', function () {
       var action = button.getAttribute('data-file-action');
-      if (action === 'paste') {\n        if (!clipboardPath) { setStatus('error', 'Copy or cut a file or folder first.'); return; }\n        var name = clipboardPath.split('/').pop();\n        var destination = (selectedFolder ? selectedFolder + '/' : '') + name;\n        if (clipboardMode === 'cut') submitFileAction('move', { from_path: clipboardPath, to_path: destination });\n        else setStatus('error', 'Copying whole files is not supported yet. Use Copy in the editor to copy selected text.');\n      } else if (action === 'new-file') {
-        var name = window.prompt('New file name (for example: about.html)', selectedFolder ? selectedFolder + '/' : '');
-        if (name && name.trim()) submitFileAction('createFile', { file_path: name.trim() });
+      if (action === 'paste') {
+        if (!clipboardPath) { setStatus('error', 'Copy or cut a file or folder first.'); return; }
+        var name = clipboardPath.split('/').pop();
+        var destination = (selectedFolder ? selectedFolder + '/' : '') + name;
+        if (destination === clipboardPath) { setStatus('error', 'Choose a different destination folder first.'); return; }
+        if (clipboardMode === 'cut') submitFileAction('move', { from_path: clipboardPath, to_path: destination });
+        else submitFileAction('copy', { from_path: clipboardPath, to_path: destination });
+      } else if (action === 'new-file') {
+        var fileName = window.prompt('New file name (for example: about.html)', selectedFolder ? selectedFolder + '/' : '');
+        if (fileName && fileName.trim()) submitFileAction('createFile', { file_path: fileName.trim() });
       } else if (action === 'new-folder') {
         var folderName = window.prompt('New folder path', selectedFolder ? selectedFolder + '/assets' : 'assets');
         if (folderName && folderName.trim()) submitFileAction('createFolder', { folder_path: folderName.trim() });
       } else if (action === 'upload' && uploadInput) {
         uploadInput.click();
-      } else if (action === 'paste') {
-        if (!clipboardPath) { setStatus('error', 'Copy or cut a file or folder first.'); return; }
-        var name = clipboardPath.split('/').pop();
-        var destination = (selectedFolder ? selectedFolder + '/' : '') + name;
-        if (clipboardMode === 'cut') submitFileAction('move', { from_path: clipboardPath, to_path: destination });
-        else setStatus('error', 'Copy is currently path-only; duplicate-file support is not available yet.');
       }
     });
   });
