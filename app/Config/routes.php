@@ -85,6 +85,7 @@ return [
         '/dashboard/websites/files/create-file' => [FileManagerController::class, 'createFile'],
         '/dashboard/websites/files/create-folder' => [FileManagerController::class, 'createFolder'],
         '/dashboard/websites/files/move' => [FileManagerController::class, 'move'],
+        '/dashboard/websites/files/copy' => [FileManagerController::class, 'copy'],
         '/dashboard/websites/files/delete' => [FileManagerController::class, 'delete'],
         '/dashboard/websites/editor/save' => [EditorController::class, 'save'],
         '/dashboard/websites/publish' => [PublishController::class, 'publish'],
