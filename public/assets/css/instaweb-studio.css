@@ -209,3 +209,12 @@ body:has(.iw-studio) {
 .iw-inline-name-row svg { width:14px; height:14px; }
 .iw-tree-node { min-width:0; }
 .iw-tree-node > .iw-tree-options { flex-shrink:0; }
+
+
+/* Cleaner project tree: one indentation system, compact rows, and visible nesting guides. */
+.iw-tree-children { margin-left: 13px; padding-left: 8px; border-left: 1px solid #3a3c42; }
+.iw-tree-node { margin: 1px 0; }
+.iw-tree-folder, .iw-tree-file { min-height: 29px; }
+.iw-tree-folder[aria-expanded="false"] .iw-tree-caret { transform: none; }
+.iw-tree-folder.is-selected-folder { box-shadow: inset 2px 0 #6ba4e8; }
+.iw-tree-label { line-height: 1.35; }
