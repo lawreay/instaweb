@@ -275,9 +275,9 @@
     });
   }
 
-  function runItemAction(action, item) {
+  function runItemAction(action, item, wrap) {
     if (action === 'rename') {
-      showInlineNameInput('rename', item, treeHost.querySelectorAll('.iw-tree-node').length ? Array.from(treeHost.querySelectorAll('.iw-tree-node')).find(function (node) { return node.querySelector('.iw-tree-options[aria-label="Options for ' + item.name.replace(/"/g, '\\"') + '"]'); }) : null);
+      showInlineNameInput('rename', item, wrap);
     } else if (action === 'delete') {
       if (!window.confirm('Delete "' + item.path + '"? This cannot be undone.')) return;
       submitFileAction('delete', { path: item.path });
@@ -427,7 +427,7 @@
             option.addEventListener('click', function () {
               menu.remove();
               menuButton.setAttribute('aria-expanded', 'false');
-              runItemAction(choice.id, item);
+              runItemAction(choice.id, item, wrap);
             });
             menu.appendChild(option);
           });
