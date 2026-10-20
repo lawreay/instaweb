@@ -201,7 +201,7 @@
     actionForm.enctype = fileInput ? 'multipart/form-data' : 'application/x-www-form-urlencoded';
     actionForm.hidden = true;
     var csrf = form ? form.querySelector('[name="_csrf"]') : null;
-    var values = Object.assign({ website_id: String(config.websiteId || ''), _csrf: csrf ? csrf.value : '' }, fields || {});
+    var values = Object.assign({ website_id: String(config.websiteId || ''), _csrf: csrf ? csrf.value : '', return_to: config.editorUrl + '?id=' + encodeURIComponent(config.websiteId) + '&path=' + encodeURIComponent(currentPath) }, fields || {});
     Object.keys(values).forEach(function (name) {
       var input = document.createElement('input');
       input.type = 'hidden'; input.name = name; input.value = String(values[name] == null ? '' : values[name]);
