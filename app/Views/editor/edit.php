@@ -15,11 +15,19 @@ $editorConfig = [
     'previewPageUrl' => $baseUrl . '/dashboard/websites/preview?id=' . $websiteId,
     'manageUrl' => $baseUrl . '/dashboard/websites/show?id=' . $websiteId,
     'filesUrl' => $baseUrl . '/dashboard/websites/files?id=' . $websiteId,
+    'fileActions' => [
+        'createFile' => $baseUrl . '/dashboard/websites/files/create-file',
+        'createFolder' => $baseUrl . '/dashboard/websites/files/create-folder',
+        'upload' => $baseUrl . '/dashboard/websites/files/upload',
+        'move' => $baseUrl . '/dashboard/websites/files/move',
+        'delete' => $baseUrl . '/dashboard/websites/files/delete',
+        'download' => $baseUrl . '/dashboard/websites/files/download?id=' . $websiteId,
+    ],
     'liveUrl' => $liveUrl ?? '',
     'files' => $editorFiles,
 ];
 ?>
-<link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/css/instaweb-studio.css?v=20261020-2', ENT_QUOTES, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/css/instaweb-studio.css?v=20261020-3', ENT_QUOTES, 'UTF-8') ?>">
 <section class="iw-studio" data-iw-studio data-config="<?= htmlspecialchars(json_encode($editorConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>">
   <header class="iw-studio-topbar">
     <a class="iw-studio-brand" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . $websiteId, ENT_QUOTES, 'UTF-8') ?>" aria-label="Back to site management">
@@ -40,9 +48,9 @@ $editorConfig = [
 
   <div class="iw-studio-workspace">
     <aside class="iw-studio-explorer" aria-label="Project file explorer">
-      <div class="iw-studio-section-heading"><span>EXPLORER</span><a href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . $websiteId, ENT_QUOTES, 'UTF-8') ?>" title="Open full file manager" aria-label="Open full file manager"><i data-lucide="folder-cog"></i></a></div>
+      <div class="iw-studio-section-heading"><span>EXPLORER</span><div class="iw-explorer-actions"><button type="button" data-file-action="new-file" title="New file" aria-label="New file"><i data-lucide="file-plus-2"></i></button><button type="button" data-file-action="new-folder" title="New folder" aria-label="New folder"><i data-lucide="folder-plus"></i></button><button type="button" data-file-action="upload" title="Upload files" aria-label="Upload files"><i data-lucide="upload"></i></button><a href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . $websiteId, ENT_QUOTES, 'UTF-8') ?>" title="Open full file manager" aria-label="Open full file manager"><i data-lucide="folder-cog"></i></a></div></div>
       <label class="iw-file-search"><i data-lucide="search"></i><input type="search" placeholder="Find a file…" data-file-search aria-label="Search project files"></label>
-      <div class="iw-file-tree" data-file-tree></div>
+      <input type="file" data-file-upload hidden multiple accept=".html,.htm,.css,.js,.json,.txt,.md,.png,.jpg,.jpeg,.gif,.webp,.svg,.pdf,.mp4,.zip"><div class="iw-file-tree" data-file-tree></div>
       <div class="iw-explorer-footer"><i data-lucide="folder"></i><span><?= count($editorFiles) ?> editable files</span></div>
     </aside>
 
@@ -97,4 +105,4 @@ $editorConfig = [
     <textarea name="content" data-save-content aria-hidden="true" tabindex="-1"></textarea>
   </form>
 </section>
-<script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-4', ENT_QUOTES, 'UTF-8') ?>" defer></script>
+<script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-5', ENT_QUOTES, 'UTF-8') ?>" defer></script>
