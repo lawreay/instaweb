@@ -290,9 +290,20 @@
           button.appendChild(caret);
         } else {
           if (item.path === currentPath) button.classList.add('is-active');
-          var icon = document.createElement('i');
-          icon.setAttribute('data-lucide', iconFor(item));
-          button.appendChild(icon);
+          var imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
+          if (imageExtensions.indexOf(item.extension) !== -1) {
+            var thumbnail = document.createElement('img');
+            thumbnail.className = 'iw-tree-thumbnail';
+            thumbnail.alt = '';
+            thumbnail.loading = 'lazy';
+            thumbnail.src = config.baseUrl + '/dashboard/websites/preview/file?id=' + encodeURIComponent(config.websiteId) + '&path=' + encodeURIComponent(item.path);
+            thumbnail.onerror = function () { thumbnail.hidden = true; };
+            button.appendChild(thumbnail);
+          } else {
+            var icon = document.createElement('i');
+            icon.setAttribute('data-lucide', iconFor(item));
+            button.appendChild(icon);
+          }
         }
         var label = document.createElement('span');
         label.className = 'iw-tree-label';
@@ -305,6 +316,7 @@
           childrenHost.className = 'iw-tree-children';
           appendChildren(childrenHost, item, depth + 1);
           button.addEventListener('click', function () {
+            selectedFolder = item.path;
             var expanded = button.getAttribute('aria-expanded') === 'true';
             button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
             childrenHost.hidden = expanded;
@@ -315,7 +327,16 @@
           wrap.appendChild(childrenHost);
         } else {
           button.title = item.path;
-          button.addEventListener('click', function () { openFile(item.path); });
+          button.addEventListener('click', function () {
+            if (['html', 'htm', 'css', 'js', 'json', 'txt', 'md'].indexOf(item.extension) !== -1) {
+              openFile(item.path);
+            } else if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].indexOf(item.extension) !== -1) {
+              if (previewFrame) previewFrame.src = config.baseUrl + '/dashboard/websites/preview/file?id=' + encodeURIComponent(config.websiteId) + '&path=' + encodeURIComponent(item.path);
+              setPreviewVisible(true);
+            } else {
+              window.location.href = (config.fileActions.download || '') + '&path=' + encodeURIComponent(item.path);
+            }
+          });
         }
         var menuButton = document.createElement('button');
         menuButton.type = 'button';
