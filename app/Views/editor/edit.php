@@ -106,4 +106,4 @@ $editorConfig = [
     <textarea name="content" data-save-content aria-hidden="true" tabindex="-1"></textarea>
   </form>
 </section>
-<script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-8', ENT_QUOTES, 'UTF-8') ?>" defer></script>
+<script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-9', ENT_QUOTES, 'UTF-8') ?>" defer></script>
