@@ -218,3 +218,8 @@ body:has(.iw-studio) {
 .iw-tree-folder[aria-expanded="false"] .iw-tree-caret { transform: none; }
 .iw-tree-folder.is-selected-folder { box-shadow: inset 2px 0 #6ba4e8; }
 .iw-tree-label { line-height: 1.35; }
+
+.iw-tree-node { position: relative; display: block; min-width: 0; }
+.iw-tree-row { display: flex; align-items: center; min-width: 0; }
+.iw-tree-row > .iw-tree-folder, .iw-tree-row > .iw-tree-file { min-width: 0; }
+.iw-tree-row > .iw-tree-options { flex-shrink: 0; }
