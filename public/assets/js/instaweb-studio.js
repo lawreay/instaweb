@@ -429,9 +429,48 @@
   renderTabs();
   renderTree('');
 
-  // Show editable source immediately; do not wait for the preview iframe or window load.
+  // The server-rendered textarea is the first editor. Load heavyweight Monaco only
+  // after the browser has had a chance to paint the source and interactive controls.
   startFallback();
-  startMonaco();
+
+  function scheduleMonacoStartup() {
+    var loadMonaco = function () {
+      // Do not download Monaco twice if this function is ever called again.
+      if (window.require && window.require.config) {
+        startMonaco();
+        return;
+      }
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js';
+      script.async = true;
+      script.onload = startMonaco;
+      script.onerror = startFallback;
+      document.head.appendChild(script);
+    };
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(loadMonaco, { timeout: 1800 });
+    } else {
+      window.setTimeout(loadMonaco, 1000);
+    }
+  }
+
+  function schedulePreviewStartup() {
+    if (!previewFrame || !previewFrame.dataset.previewSrc) return;
+    var loadPreview = function () {
+      if (previewFrame.dataset.loaded === 'true') return;
+      previewFrame.dataset.loaded = 'true';
+      previewFrame.src = previewFrame.dataset.previewSrc;
+    };
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(loadPreview, { timeout: 1200 });
+    } else {
+      window.setTimeout(loadPreview, 700);
+    }
+  }
+
+  scheduleMonacoStartup();
+  schedulePreviewStartup();
   window.addEventListener('beforeunload', function (event) {
     if (isDirty()) {
       event.preventDefault();
