@@ -28,7 +28,7 @@ $editorConfig = [
     'files' => $editorFiles,
 ];
 ?>
-<link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/css/instaweb-studio.css?v=20261020-4', ENT_QUOTES, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/css/instaweb-studio.css?v=20261020-5', ENT_QUOTES, 'UTF-8') ?>">
 <section class="iw-studio" data-iw-studio data-config="<?= htmlspecialchars(json_encode($editorConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>">
   <header class="iw-studio-topbar">
     <a class="iw-studio-brand" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . $websiteId, ENT_QUOTES, 'UTF-8') ?>" aria-label="Back to site management">
@@ -106,4 +106,4 @@ $editorConfig = [
     <textarea name="content" data-save-content aria-hidden="true" tabindex="-1"></textarea>
   </form>
 </section>
-<script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-6', ENT_QUOTES, 'UTF-8') ?>" defer></script>
+<script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-7', ENT_QUOTES, 'UTF-8') ?>" defer></script>
