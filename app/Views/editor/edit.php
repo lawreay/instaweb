@@ -73,6 +73,23 @@ $editorConfig = [
     </main>
   </div>
 
+  <dialog class="iw-shortcuts-dialog" data-shortcuts-dialog aria-labelledby="iw-shortcuts-title">
+    <div class="iw-shortcuts-header">
+      <h2 id="iw-shortcuts-title">Keyboard shortcuts</h2>
+      <button type="button" class="iw-shortcuts-close" data-shortcuts-close aria-label="Close shortcuts">×</button>
+    </div>
+    <div class="iw-shortcuts-list">
+      <div><span>Save file</span><kbd>Ctrl / ⌘ + S</kbd></div>
+      <div><span>Save and refresh preview</span><kbd>Ctrl / ⌘ + Shift + S</kbd></div>
+      <div><span>Refresh preview</span><kbd>F5</kbd></div>
+      <div><span>Find a file</span><kbd>Ctrl / ⌘ + P</kbd></div>
+      <div><span>Show shortcuts</span><kbd>Ctrl / ⌘ + Shift + P</kbd></div>
+      <div><span>Insert indentation</span><kbd>Tab</kbd></div>
+    </div>
+    <p>Changes autosave after you stop typing. Preview refreshes after a successful save.</p>
+    <div class="iw-shortcuts-footer"><button type="button" class="iw-studio-button iw-studio-button-primary" data-shortcuts-close>Done</button></div>
+  </dialog>
+
   <form class="iw-studio-save-form" data-save-form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/editor/save', ENT_QUOTES, 'UTF-8') ?>">
     <?= \App\Core\Csrf::field() ?>
     <input type="hidden" name="website_id" value="<?= $websiteId ?>">
