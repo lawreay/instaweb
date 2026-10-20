@@ -1,7 +1,7 @@
 <?php
 $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
 $websiteId = (int) $website['id'];
-$editorFiles = array_values(array_filter($files ?? [], static fn (array $item): bool => ($item['type'] ?? '') === 'file' && in_array(strtolower((string) ($item['extension'] ?? '')), ['html', 'htm', 'css', 'js', 'json', 'txt', 'md'], true)));
+$editorFiles = array_values(array_filter($files ?? [], static fn (array $item): bool => in_array(($item['type'] ?? ''), ['file', 'folder'], true)));
 $editorConfig = [
     'baseUrl' => $baseUrl,
     'websiteId' => $websiteId,
@@ -48,10 +48,10 @@ $editorConfig = [
 
   <div class="iw-studio-workspace">
     <aside class="iw-studio-explorer" aria-label="Project file explorer">
-      <div class="iw-studio-section-heading"><span>EXPLORER</span><div class="iw-explorer-actions"><button type="button" data-file-action="new-file" title="New file" aria-label="New file"><i data-lucide="file-plus-2"></i></button><button type="button" data-file-action="new-folder" title="New folder" aria-label="New folder"><i data-lucide="folder-plus"></i></button><button type="button" data-file-action="upload" title="Upload files" aria-label="Upload files"><i data-lucide="upload"></i></button><a href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . $websiteId, ENT_QUOTES, 'UTF-8') ?>" title="Open full file manager" aria-label="Open full file manager"><i data-lucide="folder-cog"></i></a></div></div>
+      <div class="iw-studio-section-heading"><span>EXPLORER</span><div class="iw-explorer-actions"><button type="button" data-file-action="new-file" title="New file" aria-label="New file"><i data-lucide="file-plus-2"></i></button><button type="button" data-file-action="new-folder" title="New folder" aria-label="New folder"><i data-lucide="folder-plus"></i></button><button type="button" data-file-action="upload" title="Upload file" aria-label="Upload file"><i data-lucide="upload"></i></button><button type="button" data-file-action="paste" title="Paste cut item into selected folder" aria-label="Paste"><i data-lucide="clipboard-paste"></i></button><a href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . $websiteId, ENT_QUOTES, 'UTF-8') ?>" title="Open full file manager" aria-label="Open full file manager"><i data-lucide="folder-cog"></i></a></div></div>
       <label class="iw-file-search"><i data-lucide="search"></i><input type="search" placeholder="Find a file…" data-file-search aria-label="Search project files"></label>
-      <input type="file" data-file-upload hidden multiple accept=".html,.htm,.css,.js,.json,.txt,.md,.png,.jpg,.jpeg,.gif,.webp,.svg,.pdf,.mp4,.zip"><div class="iw-file-tree" data-file-tree></div>
-      <div class="iw-explorer-footer"><i data-lucide="folder"></i><span><?= count($editorFiles) ?> editable files</span></div>
+      <input type="file" data-file-upload hidden accept=".html,.htm,.css,.js,.json,.txt,.md,.png,.jpg,.jpeg,.gif,.webp,.svg,.pdf,.mp4,.zip"><div class="iw-file-tree" data-file-tree></div>
+      <div class="iw-explorer-footer"><i data-lucide="folder"></i><span><?= count($editorFiles) ?> project items</span></div>
     </aside>
 
     <main class="iw-studio-main">
