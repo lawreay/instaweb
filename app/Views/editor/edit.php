@@ -30,7 +30,7 @@ $editorConfig = [
       <span class="iw-save-status" data-save-status role="status" aria-live="polite"><span class="iw-status-dot"></span> Loading editor…</span>
       <button class="iw-studio-button" type="button" data-action="save"><i data-lucide="save"></i><span>Save</span></button>
       <button class="iw-studio-button" type="button" data-action="save-refresh-preview" title="Save changes and refresh preview"><i data-lucide="refresh-cw"></i><span>Save &amp; Refresh</span></button>
-      <button class="iw-studio-button" type="button" data-action="shortcuts" title="Keyboard shortcuts (Ctrl/Cmd+Shift+/)"><i data-lucide="keyboard"></i><span>Shortcuts</span></button>
+      <button class="iw-studio-button" type="button" data-action="shortcuts" title="Keyboard shortcuts (Ctrl/Cmd+Shift+P)"><i data-lucide="keyboard"></i><span>Shortcuts</span></button>
       <a class="iw-studio-button" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . $websiteId, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i><span>Manage</span></a>
       <?php if (($liveUrl ?? '') !== ''): ?>
         <a class="iw-studio-button iw-studio-button-primary" href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>Live site</span></a>
@@ -80,4 +80,4 @@ $editorConfig = [
     <textarea name="content" data-save-content aria-hidden="true" tabindex="-1"></textarea>
   </form>
 </section>
-<script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-3', ENT_QUOTES, 'UTF-8') ?>" defer></script>
+<script src="<?= htmlspecialchars($baseUrl . '/assets/js/instaweb-studio.js?v=20261020-4', ENT_QUOTES, 'UTF-8') ?>" defer></script>
