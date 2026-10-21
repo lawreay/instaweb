@@ -49,10 +49,9 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
 .nx-float,.nx-spin{transform-style:preserve-3d;position:absolute;inset:0}
 @keyframes nxfloat{50%{transform:translateY(-18px)}}
 @keyframes nxspin{from{transform:rotateY(-26deg) rotateX(6deg)}to{transform:rotateY(26deg) rotateX(3deg)}}
-.nx-screen{position:absolute;left:0;top:40px;width:380px;height:238px;border:10px solid #263655;border-radius:16px;background:#07101e;box-shadow:0 0 0 1px rgba(255,255,255,.16),0 40px 90px -20px rgba(94,234,212,.48);padding:16px;font:12px/1.9 'IBM Plex Mono',monospace;color:#b6f4e9;overflow:hidden}
-.nx-screen b{color:#f0abfc;font-weight:500}.nx-screen i{color:#93c5fd;font-style:normal}
-.nx-deck{position:absolute;left:-14px;top:276px;width:408px;height:150px;border-radius:6px 6px 16px 16px;transform-origin:top;transform:rotateX(74deg);background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.1) 22px 24px),repeating-linear-gradient(0deg,transparent 0 19px,rgba(255,255,255,.06) 19px 21px),linear-gradient(#344766,#182238);box-shadow:0 30px 40px rgba(0,0,0,.5)}
-.nx-deck:after{content:'';position:absolute;left:145px;top:74px;width:118px;height:50px;border:1px solid rgba(255,255,255,.18);border-radius:4px;background:rgba(7,16,30,.25)}
+.nx-laptop-photo{position:absolute;inset:18px -22px auto;width:424px;margin:0;overflow:hidden;border:1px solid rgba(255,255,255,.22);border-radius:20px;box-shadow:0 32px 90px -18px rgba(0,0,0,.7),0 0 0 1px rgba(94,234,212,.14)}
+.nx-laptop-photo img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
+.nx-laptop-photo:after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(94,234,212,.12),transparent 48%,rgba(8,17,31,.22));pointer-events:none}
 .nx-cloud{position:absolute;left:50%;top:-70px;width:200px;height:96px;margin-left:-100px;transform:translate3d(var(--cloud-x,0px),var(--cloud-y,0px),70px) scale(var(--cloud-scale,1));will-change:transform}
 .nx-cloud:before,.nx-cloud:after,.nx-cloud span{content:'';position:absolute;background:linear-gradient(#f4fffe,#a7f3ec);border-radius:50%}
 .nx-cloud span{left:0;bottom:0;width:200px;height:58px;border-radius:40px}
@@ -145,8 +144,7 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
       <div class="nx-rig" id="nxRig"><div class="nx-float"><div class="nx-spin">
         <div class="nx-cloud" id="nxCloud"><span></span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
         <div class="nx-beam"></div>
-        <div class="nx-screen"><b>&lt;h1&gt;</b>Hello, Malawi<b>&lt;/h1&gt;</b><br><i>body</i> { color: #fff; }<br><b>&lt;a</b> <i>href</i>="/shop"<b>&gt;</b>Visit<b>&lt;/a&gt;</b><br>// publish<br><i>&#10003;</i> live on the web</div>
-        <div class="nx-deck"></div>
+        <figure class="nx-laptop-photo"><img src="https://images.unsplash.com/photo-1641736494173-e7d5775121b2?auto=format&amp;fit=crop&amp;w=960&amp;q=85" alt=""></figure>
       </div></div></div>
       <span class="nx-chip" style="left:2%;top:26%;--t:5.5s">Static sites</span>
       <span class="nx-chip" style="right:0;top:40%;--t:6.5s">WordPress</span>
