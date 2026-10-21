@@ -12,6 +12,7 @@
   <?php $basePath = parse_url($siteUrl, PHP_URL_PATH) ?: ''; ?>
   <?php $relativePath = preg_replace('#^' . preg_quote($basePath, '#') . '#', '', $requestPath); ?>
   <?php $relativePath = $relativePath === '' ? '/' : $relativePath; ?>
+  <?php $relativePath = rtrim($relativePath, '/') ?: '/'; ?>
   <?php $pageUrl = htmlspecialchars($siteUrl . '/' . ltrim($relativePath, '/'), ENT_QUOTES, 'UTF-8'); ?>
   <?php $ogImage = htmlspecialchars(trim((string) ($themeSettings['open_graph_image'] ?? $themeSettings['homepage_hero_image'] ?? 'https://images.pexels.com/photos/30530403/pexels-photo-30530403.jpeg?auto=compress&cs=tinysrgb&w=1280')), ENT_QUOTES, 'UTF-8'); ?>
   <title><?= $pageTitle ?></title>
@@ -68,6 +69,15 @@
   </style>
 </head>
 <body>
+  <?php
+    $publicNav = [
+        ['label' => 'Home', 'path' => '/'],
+        ['label' => 'Features', 'path' => '/features'],
+        ['label' => 'Pricing', 'path' => '/pricing'],
+        ['label' => 'About', 'path' => '/about'],
+        ['label' => 'Contact', 'path' => '/contact'],
+    ];
+  ?>
   <!-- Modern Public Header -->
   <header class="public-header" id="publicHeader">
     <div class="header-container">
@@ -87,12 +97,9 @@
 
       <!-- Desktop Navigation -->
       <nav class="header-nav">
-        <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/', ENT_QUOTES, 'UTF-8') ?>" class="nav-link">Home</a>
-        <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/features', ENT_QUOTES, 'UTF-8') ?>" class="nav-link">Features</a>
-        <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/pricing', ENT_QUOTES, 'UTF-8') ?>" class="nav-link">Pricing</a>
-        <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/templates', ENT_QUOTES, 'UTF-8') ?>" class="nav-link">Templates</a>
-        <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/about', ENT_QUOTES, 'UTF-8') ?>" class="nav-link">About</a>
-        <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/contact', ENT_QUOTES, 'UTF-8') ?>" class="nav-link">Contact</a>
+        <?php foreach ($publicNav as $navItem): ?>
+          <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . $navItem['path'], ENT_QUOTES, 'UTF-8') ?>" class="nav-link<?= $relativePath === $navItem['path'] ? ' active' : '' ?>"<?= $relativePath === $navItem['path'] ? ' aria-current="page"' : '' ?>><?= htmlspecialchars($navItem['label'], ENT_QUOTES, 'UTF-8') ?></a>
+        <?php endforeach; ?>
       </nav>
 
       <!-- Right Section -->
@@ -268,6 +275,7 @@
       ['label' => 'WhatsApp', 'url' => trim((string) ($themeSettings['footer_social_whatsapp_url'] ?? ''))],
   ];
   $footerBrandName = trim((string) ($themeSettings['footer_brand_name'] ?? $app['name'] ?? 'Instaweb')) ?: 'Instaweb';
+  $footerLogo = trim((string) ($themeSettings['footer_logo_url'] ?? $themeSettings['app_icon_url'] ?? ''));
   $footerTagline = trim((string) ($themeSettings['footer_tagline'] ?? 'Build • Host • Grow')) ?: 'Build • Host • Grow';
   $footerDescription = trim((string) ($themeSettings['footer_description'] ?? 'Affordable hosting for students, churches, portfolios and businesses.')) ?: 'Affordable hosting for students, churches, portfolios and businesses.';
   $footerCompany = trim((string) ($themeSettings['footer_company_name'] ?? 'Lawreay Technologies')) ?: 'Lawreay Technologies';
@@ -288,7 +296,10 @@
       <div class="site-footer-grid site-footer-grid-<?= htmlspecialchars($footerLayout, ENT_QUOTES, 'UTF-8') ?>">
         <?php if (($themeSettings['footer_component_brand_card'] ?? '1') === '1'): ?>
         <div class="site-footer-card">
-          <h4><?= htmlspecialchars($footerBrandName, ENT_QUOTES, 'UTF-8') ?></h4>
+          <a class="site-footer-brand" href="<?= htmlspecialchars($siteUrl . '/', ENT_QUOTES, 'UTF-8') ?>">
+            <?php if ($footerLogo !== ''): ?><img src="<?= htmlspecialchars($footerLogo, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($footerBrandName, ENT_QUOTES, 'UTF-8') ?> logo"><?php endif; ?>
+            <span><?= htmlspecialchars($footerBrandName, ENT_QUOTES, 'UTF-8') ?></span>
+          </a>
           <p class="site-footer-tagline"><?= htmlspecialchars($footerTagline, ENT_QUOTES, 'UTF-8') ?></p>
           <p><?= htmlspecialchars($footerDescription, ENT_QUOTES, 'UTF-8') ?></p>
           <ul class="site-footer-contact">
