@@ -39,6 +39,7 @@
     }
   </style>
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/styles.css', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/admin-dashboard-refresh.css', ENT_QUOTES, 'UTF-8') ?>">
   <?php $appIcon = trim((string) ($themeSettings['app_icon_url'] ?? '')); ?>
   <?php if ($appIcon !== ''): ?>
     <link rel="icon" href="<?= htmlspecialchars($appIcon, ENT_QUOTES, 'UTF-8') ?>">
