@@ -16,11 +16,12 @@ $templatesUrl = '#templates';
 @property --c{syntax:'<color>';inherits:true;initial-value:#38bdf8}
 body:has(.nx) .public-header{background:rgba(7,11,20,.55)!important;backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.08)!important;box-shadow:none!important}
 body:has(.nx) .public-header .nav-link,body:has(.nx) .public-header .header-logo-text,body:has(.nx) .public-header .btn-text{color:#e8edf7!important}
-.nx{--bg:#070b14;--bg2:#0d1424;--tx:#e8edf7;--mu:#93a0b8;--ac:#2dd4bf;--c:#38bdf8;background:var(--bg);color:var(--tx);font-family:'DM Sans',system-ui,sans-serif;overflow-x:clip;line-height:1.6}
+.nx{--bg:#08111f;--bg2:#101d33;--tx:#f5f8ff;--mu:#becae0;--ac:#5eead4;--c:#60a5fa;background:var(--bg);color:var(--tx);font-family:'DM Sans',system-ui,sans-serif;overflow-x:clip;line-height:1.6}
 .nx h1,.nx h2,.nx h3{font-family:'Space Grotesk','DM Sans',sans-serif;letter-spacing:-.035em;margin:0;line-height:1.05;color:var(--tx)}
 .nx p{margin:0}.nx a{text-decoration:none}
 .nx-wrap{max-width:1160px;margin:0 auto;padding:0 24px}
-.nx-sec{padding:120px 0;position:relative}
+.nx-sec{padding:120px 0;position:relative;border-top:1px solid rgba(190,202,224,.1)}
+#audiences{background:#0b1729}.nx #how{background:#081321}.nx #pricing{background:#0d192c}.nx #templates{background:#081321}
 .nx-h2{font-size:clamp(2rem,4.5vw,3.4rem);font-weight:700}
 .nx-lede{color:var(--mu);font-size:1.1rem;max-width:56ch;margin-top:18px}
 .nx em{font-style:normal;color:var(--ac)}
@@ -35,7 +36,7 @@ body:has(.nx) .public-header .nav-link,body:has(.nx) .public-header .header-logo
 .nx.js [data-r=left]{transform:translateX(-70px)}.nx.js [data-r=right]{transform:translateX(70px)}.nx.js [data-r=zoom]{transform:scale(.9)}
 .nx.js [data-r].in{opacity:1;transform:none}
 /* hero */
-.nx-hero{min-height:100svh;display:flex;align-items:center;padding:110px 0 80px;position:relative;background:radial-gradient(900px 600px at 78% 40%,rgba(45,212,191,.16),transparent 70%),radial-gradient(700px 500px at 10% 90%,rgba(56,189,248,.1),transparent 70%)}
+.nx-hero{min-height:100svh;display:flex;align-items:center;padding:110px 0 80px;position:relative;background:radial-gradient(900px 600px at 78% 40%,rgba(94,234,212,.22),transparent 70%),radial-gradient(700px 500px at 10% 90%,rgba(96,165,250,.16),transparent 70%),linear-gradient(135deg,#08111f,#0b1930)}
 .nx-hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center}
 .nx-hero h1{font-size:clamp(2.7rem,6.4vw,5.2rem);font-weight:700}
 .nx-hero .nx-lede{font-size:1.18rem}
@@ -44,15 +45,15 @@ body:has(.nx) .public-header .nav-link,body:has(.nx) .public-header .header-logo
 .nx-who{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
 .nx-who span{border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 14px;font-size:.9rem;color:var(--mu)}
 .nx-scene{position:relative;height:540px;perspective:1300px;display:grid;place-items:center}
-.nx-rig{transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .25s ease-out;position:relative;width:380px;height:300px}
-.nx-float{animation:nxfloat 6s ease-in-out infinite;transform-style:preserve-3d;position:absolute;inset:0}
-.nx-spin{animation:nxspin 16s ease-in-out infinite alternate;transform-style:preserve-3d;position:absolute;inset:0}
+.nx-rig{transform-style:preserve-3d;transform:translate3d(var(--scroll-x,0px),var(--scroll-y,0px),0) rotateX(calc(var(--rx,0deg) + var(--scroll-rx,0deg))) rotateY(calc(var(--ry,0deg) + var(--scroll-ry,0deg)));transition:transform .18s ease-out;position:relative;width:380px;height:300px;will-change:transform}
+.nx-float,.nx-spin{transform-style:preserve-3d;position:absolute;inset:0}
 @keyframes nxfloat{50%{transform:translateY(-18px)}}
 @keyframes nxspin{from{transform:rotateY(-26deg) rotateX(6deg)}to{transform:rotateY(26deg) rotateX(3deg)}}
-.nx-screen{position:absolute;left:0;top:40px;width:380px;height:238px;border:9px solid #1d2742;border-radius:16px;background:#0a1120;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 40px 90px -20px rgba(45,212,191,.35);padding:16px;font:12px/1.9 'IBM Plex Mono',monospace;color:#7dd3c8;overflow:hidden}
+.nx-screen{position:absolute;left:0;top:40px;width:380px;height:238px;border:10px solid #263655;border-radius:16px;background:#07101e;box-shadow:0 0 0 1px rgba(255,255,255,.16),0 40px 90px -20px rgba(94,234,212,.48);padding:16px;font:12px/1.9 'IBM Plex Mono',monospace;color:#b6f4e9;overflow:hidden}
 .nx-screen b{color:#f0abfc;font-weight:500}.nx-screen i{color:#93c5fd;font-style:normal}
-.nx-deck{position:absolute;left:-14px;top:276px;width:408px;height:150px;border-radius:6px 6px 16px 16px;transform-origin:top;transform:rotateX(74deg);background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.07) 22px 24px),linear-gradient(#2b3654,#161d31);box-shadow:0 30px 40px rgba(0,0,0,.5)}
-.nx-cloud{position:absolute;left:50%;top:-70px;width:200px;height:96px;margin-left:-100px;transform:translateZ(70px);animation:nxfloat 5s ease-in-out infinite reverse}
+.nx-deck{position:absolute;left:-14px;top:276px;width:408px;height:150px;border-radius:6px 6px 16px 16px;transform-origin:top;transform:rotateX(74deg);background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.1) 22px 24px),repeating-linear-gradient(0deg,transparent 0 19px,rgba(255,255,255,.06) 19px 21px),linear-gradient(#344766,#182238);box-shadow:0 30px 40px rgba(0,0,0,.5)}
+.nx-deck:after{content:'';position:absolute;left:145px;top:74px;width:118px;height:50px;border:1px solid rgba(255,255,255,.18);border-radius:4px;background:rgba(7,16,30,.25)}
+.nx-cloud{position:absolute;left:50%;top:-70px;width:200px;height:96px;margin-left:-100px;transform:translate3d(var(--cloud-x,0px),var(--cloud-y,0px),70px) scale(var(--cloud-scale,1));will-change:transform}
 .nx-cloud:before,.nx-cloud:after,.nx-cloud span{content:'';position:absolute;background:linear-gradient(#f4fffe,#a7f3ec);border-radius:50%}
 .nx-cloud span{left:0;bottom:0;width:200px;height:58px;border-radius:40px}
 .nx-cloud:before{width:86px;height:86px;left:30px;top:0}.nx-cloud:after{width:104px;height:104px;left:78px;top:-12px}
@@ -66,7 +67,7 @@ body:has(.nx) .public-header .nav-link,body:has(.nx) .public-header .header-logo
 @keyframes nxdot{60%{transform:translateY(14px);opacity:0}}
 /* audience */
 .nx-aud{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:56px}
-.nx-card{background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;transition:transform .3s,border-color .3s}
+.nx-card{background:linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.035));border:1px solid rgba(190,202,224,.18);border-radius:20px;padding:28px;transition:transform .3s,border-color .3s}
 .nx-card:hover{transform:translateY(-8px);border-color:var(--k)}
 .nx-card svg{width:30px;height:30px;stroke:var(--k);margin-bottom:18px}
 .nx-card h3{font-size:1.35rem;margin-bottom:10px}.nx-card p{color:var(--mu);font-size:.98rem}
@@ -85,7 +86,7 @@ body:has(.nx) .public-header .nav-link,body:has(.nx) .public-header .header-logo
 .nx-steps{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}.nx-steps span{padding:10px 16px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
 .nx-bars{display:flex;align-items:flex-end;gap:10px;height:110px;margin:6px 0 14px}.nx-bars i{flex:1;border-radius:8px 8px 0 0;background:linear-gradient(var(--ac),rgba(45,212,191,.2));height:var(--h)}
 /* pinned personas */
-.nx-pin{height:400vh;position:relative;background:radial-gradient(900px 560px at 72% 45%,color-mix(in srgb,var(--c) 30%,transparent),transparent 70%),var(--bg);transition:--c .9s}
+.nx-pin{height:400vh;position:relative;background:radial-gradient(900px 560px at 72% 45%,color-mix(in srgb,var(--c) 30%,transparent),transparent 70%),#0b1729;transition:--c .9s}
 .nx-pin-in{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
 .nx-pin-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;width:100%}
 .nx-tag{display:inline-block;padding:7px 16px;border-radius:999px;border:1px solid var(--c);color:var(--c);font-weight:700;transition:color .6s,border-color .6s}
@@ -101,8 +102,8 @@ body:has(.nx) .public-header .nav-link,body:has(.nx) .public-header .header-logo
 .nx-lap .ln{height:9px;border-radius:5px;background:rgba(255,255,255,.12);margin-top:12px}
 .nx-lap .base{height:14px;margin:0 -28px;border-radius:0 0 22px 22px;background:linear-gradient(#2b3654,#161d31)}
 /* story */
-.nx-story{padding:140px 0}
-.nx-line{font:700 clamp(2rem,5.6vw,4.4rem)/1.08 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin-bottom:.35em;color:#44506a;transition:color .8s}
+.nx-story{padding:140px 0;background:#0d192c}
+.nx-line{font:700 clamp(2rem,5.6vw,4.4rem)/1.08 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin-bottom:.35em;color:#8c9ab2;transition:color .8s}
 .nx-line.in{color:var(--tx)}
 .nx-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:80px}
 .nx-stat{border-top:2px solid var(--ac);padding-top:18px}
@@ -140,7 +141,7 @@ body:has(.nx) .public-header .nav-link,body:has(.nx) .public-header .header-logo
     </div>
     <div class="nx-scene" aria-hidden="true">
       <div class="nx-rig" id="nxRig"><div class="nx-float"><div class="nx-spin">
-        <div class="nx-cloud"><span></span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+        <div class="nx-cloud" id="nxCloud"><span></span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
         <div class="nx-beam"></div>
         <div class="nx-screen"><b>&lt;h1&gt;</b>Hello, Malawi<b>&lt;/h1&gt;</b><br><i>body</i> { color: #fff; }<br><b>&lt;a</b> <i>href</i>="/shop"<b>&gt;</b>Visit<b>&lt;/a&gt;</b><br>// publish<br><i>&#10003;</i> live on the web</div>
         <div class="nx-deck"></div>
@@ -271,7 +272,7 @@ var io=new IntersectionObserver(function(es){es.forEach(function(x){if(!x.isInte
 root.querySelectorAll('[data-r]').forEach(function(el){if(el.dataset.d)el.style.setProperty('--d',el.dataset.d+(el.dataset.d.indexOf('.')>-1?'s':'s'));io.observe(el)});
 function count(el){var to=+el.dataset.n,s=null;function f(t){s=s||t;var p=Math.min(1,(t-s)/1200);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)}rm?el.textContent=to:requestAnimationFrame(f)}
 // scroll-linked: parallax + pinned personas
-var par=[].slice.call(root.querySelectorAll('[data-p]')),pin=$('#nxPin'),cur=-1,busy=false;
+var par=[].slice.call(root.querySelectorAll('[data-p]')),pin=$('#nxPin'),hero=$('#nxHero'),rig=$('#nxRig'),cloud=$('#nxCloud'),cur=-1,busy=false;
 var P=[['#38bdf8','Developers','Ship fast, edit in the browser.','Use the built-in editor with live preview, manage files and publish static or WordPress projects without a server panel.','yourname.dev','Portfolio'],
 ['#a78bfa','Students','Your projects, live for everyone.','Put coursework, portfolios and capstone projects online and share a single link with lecturers and employers.','my-project.site','Capstone Project'],
 ['#fbbf24','Institutions','A proper home for your school or college.','Publish a clean, professional website that staff can keep updated without hiring a developer.','your-school.edu','Our School'],
@@ -282,11 +283,13 @@ setTimeout(function(){$('#pTag').textContent=d[1];$('#pH').textContent=d[2];$('#
 dots.forEach(function(x,k){x.classList.toggle('on',k===i)})}
 function update(){busy=false;var vh=innerHeight;
 if(!rm)par.forEach(function(el){var r=el.parentNode.getBoundingClientRect();el.style.transform='translate3d(0,'+((r.top+r.height/2-vh/2)*el.dataset.p).toFixed(1)+'px,0)'});
+if(!rm&&hero&&rig&&cloud){var heroBox=hero.getBoundingClientRect(),heroScroll=Math.min(1,Math.max(0,-heroBox.top/Math.max(1,hero.offsetHeight-vh*.32)));
+rig.style.setProperty('--scroll-y',(heroScroll*74).toFixed(1)+'px');rig.style.setProperty('--scroll-x',(heroScroll*-24).toFixed(1)+'px');rig.style.setProperty('--scroll-rx',(heroScroll*16).toFixed(1)+'deg');rig.style.setProperty('--scroll-ry',(heroScroll*-42).toFixed(1)+'deg');
+cloud.style.setProperty('--cloud-x',(heroScroll*-72).toFixed(1)+'px');cloud.style.setProperty('--cloud-y',(heroScroll*112).toFixed(1)+'px');cloud.style.setProperty('--cloud-scale',(1-heroScroll*.2).toFixed(3))}
 var r=pin.getBoundingClientRect(),p=Math.min(1,Math.max(0,-r.top/(r.height-vh)));$('#pBar').style.width=(p*100)+'%';setP(Math.min(3,Math.floor(p*4)))}
 function tick(){if(!busy){busy=true;requestAnimationFrame(update)}}
 addEventListener('scroll',tick,{passive:true});addEventListener('resize',tick);update();
 // hero tilt + CTA glow
-var hero=$('#nxHero'),rig=$('#nxRig');
 if(!rm){hero.addEventListener('mousemove',function(e){var b=hero.getBoundingClientRect();rig.style.setProperty('--ry',((e.clientX-b.left)/b.width-.5)*18+'deg');rig.style.setProperty('--rx',(-((e.clientY-b.top)/b.height-.5))*12+'deg')});
 var cta=$('#nxCta');cta.addEventListener('mousemove',function(e){var b=cta.getBoundingClientRect();cta.style.setProperty('--mx',(e.clientX-b.left)+'px');cta.style.setProperty('--my',(e.clientY-b.top)+'px')})}
 // desktop cursor trail
