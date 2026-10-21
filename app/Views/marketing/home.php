@@ -17,7 +17,7 @@ $templatesUrl = '#templates';
 body:has(.nx) .public-header{background:rgba(7,11,20,.55)!important;backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.08)!important;box-shadow:none!important}
 body:has(.nx) .public-header .nav-link,body:has(.nx) .public-header .header-logo-text,body:has(.nx) .public-header .btn-text{color:#ffffff!important}
 .nx{--bg:#08111f;--bg2:#101d33;--tx:#ffffff;--mu:#becae0;--ac:#5eead4;--c:#60a5fa;background:var(--bg);color:var(--tx);font-family:'DM Sans',system-ui,sans-serif;overflow-x:clip;line-height:1.6}
-.nx h1,.nx h2,.nx h3{font-family:'Space Grotesk','DM Sans',sans-serif;letter-spacing:-.035em;margin:0;line-height:1.05;color:var(--tx)}
+body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-serif;letter-spacing:-.035em;margin:0;line-height:1.05;color:#ffe200 !important;}
 .nx p{margin:0}.nx a{text-decoration:none}
 .nx-wrap{max-width:1160px;margin:0 auto;padding:0 24px}
 .nx-sec{padding:120px 0;position:relative;border-top:1px solid rgba(190,202,224,.1)}
