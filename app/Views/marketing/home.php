@@ -110,7 +110,9 @@ body:has(.nx) .public-header .nav-link,body:has(.nx) .public-header .header-logo
 .nx-stat strong{display:block;font:700 clamp(2.6rem,5vw,4rem)/1 'Space Grotesk',sans-serif}
 .nx-stat span{color:var(--mu)}
 /* light panels */
-.nx-light{background:#fff;color:#111827;border-radius:28px;padding:36px;color-scheme:light}
+.nx-light{background:#101d33;color:var(--tx);border:1px solid rgba(190,202,224,.16);border-radius:28px;padding:36px;color-scheme:dark}
+.nx-light .pricing-card{background:linear-gradient(160deg,#172842,#0e1b30)!important;border-color:rgba(190,202,224,.2)!important;color:var(--tx)!important}
+.nx-light .pricing-card h3{color:var(--tx)!important}.nx-light .pricing-card p,.nx-light .pricing-card li{color:var(--mu)!important}.nx-light .pricing-card .price{color:#a7f3d0!important}.nx-light .plan-badge{color:var(--tx)!important}
 .nx-tpl{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:50px}
 .nx-tpl a{display:block;border-radius:20px;overflow:hidden;background:var(--bg2);border:1px solid rgba(255,255,255,.1);color:var(--tx);transition:transform .35s}
 .nx-tpl a:hover{transform:translateY(-8px) rotateX(3deg)}
