@@ -1,208 +1,296 @@
 <?php
-$value = static fn (string $key, string $default = ''): string => htmlspecialchars($settings[$key] ?? $default, ENT_QUOTES, 'UTF-8');
+// Instaweb landing page (redesign). Replaces app/Views/marketing/home.php
 $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
 $url = static function (string $target) use ($baseUrl): string {
     $target = trim($target);
-
-    if ($target === '') {
-        return '';
-    }
-
-    if (preg_match('#^(https?:)?//#i', $target) || str_starts_with($target, 'mailto:') || str_starts_with($target, 'tel:')) {
-        return $target;
-    }
-
+    if ($target === '') { return ''; }
+    if (preg_match('#^(https?:)?//#i', $target) || str_starts_with($target, 'mailto:') || str_starts_with($target, 'tel:') || str_starts_with($target, '#')) { return $target; }
     return $baseUrl . '/' . ltrim($target, '/');
 };
-
-$heroKicker = $value('homepage_hero_kicker', 'Build · Host · Grow');
-$heroTitle = $value('homepage_hero_title', 'Build and host websites in minutes.');
-$heroSubtitle = $value('homepage_hero_subtitle', 'Create, host, and manage websites in one place. Publish static websites or start a WordPress project for a dynamic, database-driven website, with straightforward tools built for individuals and growing organisations across Malawi.');
-$heroNote = trim((string) ($settings['homepage_hero_note'] ?? 'Create your account and publish your first site with Instaweb in minutes.'));
-$primaryUrl = $url((string) ($settings['homepage_cta_url'] ?? '/register'));
-$secondaryUrl = $url((string) ($settings['homepage_secondary_cta_url'] ?? '/login'));
-$heroImage = $value('homepage_hero_image', 'https://images.pexels.com/photos/30530403/pexels-photo-30530403.jpeg?auto=compress&cs=tinysrgb&w=1280');
-$heroAlt = $value('homepage_hero_media_alt', 'Instaweb dashboard showcase');
+$e = static fn (string $s): string => htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+$primaryUrl = $e($url((string) ($settings['homepage_cta_url'] ?? '/register')));
+$loginUrl = $e($url((string) ($settings['homepage_secondary_cta_url'] ?? '/login')));
+$templatesUrl = '#templates';
 ?>
+<style>
+@property --c{syntax:'<color>';inherits:true;initial-value:#38bdf8}
+body:has(.nx) .public-header{background:rgba(7,11,20,.55)!important;backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border-bottom:1px solid rgba(255,255,255,.08)!important;box-shadow:none!important}
+body:has(.nx) .public-header .nav-link,body:has(.nx) .public-header .header-logo-text,body:has(.nx) .public-header .btn-text{color:#e8edf7!important}
+.nx{--bg:#070b14;--bg2:#0d1424;--tx:#e8edf7;--mu:#93a0b8;--ac:#2dd4bf;--c:#38bdf8;background:var(--bg);color:var(--tx);font-family:'DM Sans',system-ui,sans-serif;overflow-x:clip;line-height:1.6}
+.nx h1,.nx h2,.nx h3{font-family:'Space Grotesk','DM Sans',sans-serif;letter-spacing:-.035em;margin:0;line-height:1.05;color:var(--tx)}
+.nx p{margin:0}.nx a{text-decoration:none}
+.nx-wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+.nx-sec{padding:120px 0;position:relative}
+.nx-h2{font-size:clamp(2rem,4.5vw,3.4rem);font-weight:700}
+.nx-lede{color:var(--mu);font-size:1.1rem;max-width:56ch;margin-top:18px}
+.nx em{font-style:normal;color:var(--ac)}
+.nx-btn{display:inline-flex;align-items:center;gap:8px;padding:15px 28px;border-radius:999px;font-weight:700;transition:transform .25s,box-shadow .25s,background .25s}
+.nx-btn.p{background:var(--ac);color:#04201c;box-shadow:0 10px 40px -10px var(--ac)}
+.nx-btn.p:hover{transform:translateY(-3px);box-shadow:0 18px 50px -8px var(--ac)}
+.nx-btn.g{border:1px solid rgba(255,255,255,.2);color:var(--tx)}
+.nx-btn.g:hover{background:rgba(255,255,255,.08);transform:translateY(-3px)}
+.nx-btn:focus-visible,.nx a:focus-visible{outline:3px solid #fff;outline-offset:3px}
+/* reveal */
+.nx.js [data-r]{opacity:0;transform:translateY(44px);transition:opacity .9s,transform .9s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+.nx.js [data-r=left]{transform:translateX(-70px)}.nx.js [data-r=right]{transform:translateX(70px)}.nx.js [data-r=zoom]{transform:scale(.9)}
+.nx.js [data-r].in{opacity:1;transform:none}
+/* hero */
+.nx-hero{min-height:100svh;display:flex;align-items:center;padding:110px 0 80px;position:relative;background:radial-gradient(900px 600px at 78% 40%,rgba(45,212,191,.16),transparent 70%),radial-gradient(700px 500px at 10% 90%,rgba(56,189,248,.1),transparent 70%)}
+.nx-hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center}
+.nx-hero h1{font-size:clamp(2.7rem,6.4vw,5.2rem);font-weight:700}
+.nx-hero .nx-lede{font-size:1.18rem}
+.nx-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:34px}
+.nx-note{margin-top:18px;color:var(--mu);font-size:.95rem}
+.nx-who{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.nx-who span{border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 14px;font-size:.9rem;color:var(--mu)}
+.nx-scene{position:relative;height:540px;perspective:1300px;display:grid;place-items:center}
+.nx-rig{transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .25s ease-out;position:relative;width:380px;height:300px}
+.nx-float{animation:nxfloat 6s ease-in-out infinite;transform-style:preserve-3d;position:absolute;inset:0}
+.nx-spin{animation:nxspin 16s ease-in-out infinite alternate;transform-style:preserve-3d;position:absolute;inset:0}
+@keyframes nxfloat{50%{transform:translateY(-18px)}}
+@keyframes nxspin{from{transform:rotateY(-26deg) rotateX(6deg)}to{transform:rotateY(26deg) rotateX(3deg)}}
+.nx-screen{position:absolute;left:0;top:40px;width:380px;height:238px;border:9px solid #1d2742;border-radius:16px;background:#0a1120;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 40px 90px -20px rgba(45,212,191,.35);padding:16px;font:12px/1.9 'IBM Plex Mono',monospace;color:#7dd3c8;overflow:hidden}
+.nx-screen b{color:#f0abfc;font-weight:500}.nx-screen i{color:#93c5fd;font-style:normal}
+.nx-deck{position:absolute;left:-14px;top:276px;width:408px;height:150px;border-radius:6px 6px 16px 16px;transform-origin:top;transform:rotateX(74deg);background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.07) 22px 24px),linear-gradient(#2b3654,#161d31);box-shadow:0 30px 40px rgba(0,0,0,.5)}
+.nx-cloud{position:absolute;left:50%;top:-70px;width:200px;height:96px;margin-left:-100px;transform:translateZ(70px);animation:nxfloat 5s ease-in-out infinite reverse}
+.nx-cloud:before,.nx-cloud:after,.nx-cloud span{content:'';position:absolute;background:linear-gradient(#f4fffe,#a7f3ec);border-radius:50%}
+.nx-cloud span{left:0;bottom:0;width:200px;height:58px;border-radius:40px}
+.nx-cloud:before{width:86px;height:86px;left:30px;top:0}.nx-cloud:after{width:104px;height:104px;left:78px;top:-12px}
+.nx-cloud{filter:drop-shadow(0 0 34px rgba(45,212,191,.55))}
+.nx-cloud svg{position:absolute;left:50%;top:34px;margin-left:-14px;z-index:2;width:28px;height:28px;stroke:#0f766e}
+.nx-beam{position:absolute;left:50%;top:44px;width:2px;height:86px;margin-left:-1px;background:repeating-linear-gradient(to top,var(--ac) 0 6px,transparent 6px 14px);background-size:2px 14px;animation:nxbeam .9s linear infinite;transform:translateZ(40px)}
+@keyframes nxbeam{to{background-position:0 -14px}}
+.nx-chip{position:absolute;padding:8px 14px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px);font-size:.85rem;animation:nxfloat var(--t,5s) ease-in-out infinite}
+.nx-scroll{position:absolute;left:50%;bottom:26px;width:24px;height:40px;margin-left:-12px;border:2px solid rgba(255,255,255,.35);border-radius:14px}
+.nx-scroll:after{content:'';position:absolute;left:9px;top:7px;width:4px;height:8px;border-radius:2px;background:var(--ac);animation:nxdot 1.6s infinite}
+@keyframes nxdot{60%{transform:translateY(14px);opacity:0}}
+/* audience */
+.nx-aud{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:56px}
+.nx-card{background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:28px;transition:transform .3s,border-color .3s}
+.nx-card:hover{transform:translateY(-8px);border-color:var(--k)}
+.nx-card svg{width:30px;height:30px;stroke:var(--k);margin-bottom:18px}
+.nx-card h3{font-size:1.35rem;margin-bottom:10px}.nx-card p{color:var(--mu);font-size:.98rem}
+/* features */
+.nx-feat{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center;min-height:80vh}
+.nx-feat.rev>.nx-vis{order:-1}
+.nx-feat ul{list-style:none;padding:0;margin:26px 0 0;display:grid;gap:12px;color:var(--mu)}
+.nx-feat li:before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ac);margin-right:12px}
+.nx-vis{position:relative;height:380px}
+.nx-vis .bk{position:absolute;inset:8% 4%;border-radius:32px;background:radial-gradient(circle at 30% 30%,var(--k),transparent 70%);opacity:.28;filter:blur(30px)}
+.nx-win{position:absolute;left:6%;right:6%;top:50%;margin-top:-130px;border-radius:18px;background:#0d1526;border:1px solid rgba(255,255,255,.14);box-shadow:0 40px 80px -30px #000;padding:18px;font-size:.9rem}
+.nx-win .bar{display:flex;gap:6px;margin-bottom:14px}.nx-win .bar i{width:10px;height:10px;border-radius:50%;background:#334155}
+.nx-row{display:flex;justify-content:space-between;padding:9px 12px;border-radius:10px;color:var(--mu)}
+.nx-row:nth-child(odd){background:rgba(255,255,255,.04)}
+.nx-pill{display:inline-block;margin-top:14px;padding:6px 14px;border-radius:999px;background:rgba(45,212,191,.15);color:var(--ac);font-weight:700;font-size:.85rem}
+.nx-steps{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}.nx-steps span{padding:10px 16px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.nx-bars{display:flex;align-items:flex-end;gap:10px;height:110px;margin:6px 0 14px}.nx-bars i{flex:1;border-radius:8px 8px 0 0;background:linear-gradient(var(--ac),rgba(45,212,191,.2));height:var(--h)}
+/* pinned personas */
+.nx-pin{height:400vh;position:relative;background:radial-gradient(900px 560px at 72% 45%,color-mix(in srgb,var(--c) 30%,transparent),transparent 70%),var(--bg);transition:--c .9s}
+.nx-pin-in{position:sticky;top:0;height:100svh;display:flex;align-items:center;overflow:hidden}
+.nx-pin-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;width:100%}
+.nx-tag{display:inline-block;padding:7px 16px;border-radius:999px;border:1px solid var(--c);color:var(--c);font-weight:700;transition:color .6s,border-color .6s}
+.nx-pin h2{font-size:clamp(2rem,4.4vw,3.4rem);margin:20px 0 16px}
+.nx-sw{transition:opacity .25s,transform .25s}.nx-sw.o{opacity:0;transform:translateY(10px)}
+.nx-prog{height:4px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:34px;max-width:360px;overflow:hidden}
+.nx-prog i{display:block;height:100%;width:0;background:var(--c);transition:background .6s}
+.nx-dots{display:flex;gap:18px;margin-top:16px;color:var(--mu);font-size:.9rem}.nx-dots span.on{color:var(--tx);font-weight:700}
+.nx-lap{max-width:460px;margin:0 auto;perspective:1000px}
+.nx-lap .scr{border:10px solid #1d2742;border-radius:18px;background:#0a1120;aspect-ratio:16/10;overflow:hidden;box-shadow:0 40px 100px -30px var(--c);transition:box-shadow .8s}
+.nx-lap .url{padding:8px 14px;background:#121b30;color:var(--mu);font-size:.8rem}
+.nx-lap .pg{padding:26px 22px}.nx-lap .pg b{display:block;font:700 1.5rem 'Space Grotesk',sans-serif;color:var(--c);transition:color .6s}
+.nx-lap .ln{height:9px;border-radius:5px;background:rgba(255,255,255,.12);margin-top:12px}
+.nx-lap .base{height:14px;margin:0 -28px;border-radius:0 0 22px 22px;background:linear-gradient(#2b3654,#161d31)}
+/* story */
+.nx-story{padding:140px 0}
+.nx-line{font:700 clamp(2rem,5.6vw,4.4rem)/1.08 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin-bottom:.35em;color:#44506a;transition:color .8s}
+.nx-line.in{color:var(--tx)}
+.nx-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:80px}
+.nx-stat{border-top:2px solid var(--ac);padding-top:18px}
+.nx-stat strong{display:block;font:700 clamp(2.6rem,5vw,4rem)/1 'Space Grotesk',sans-serif}
+.nx-stat span{color:var(--mu)}
+/* light panels */
+.nx-light{background:#fff;color:#111827;border-radius:28px;padding:36px;color-scheme:light}
+.nx-tpl{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:50px}
+.nx-tpl a{display:block;border-radius:20px;overflow:hidden;background:var(--bg2);border:1px solid rgba(255,255,255,.1);color:var(--tx);transition:transform .35s}
+.nx-tpl a:hover{transform:translateY(-8px) rotateX(3deg)}
+.nx-tpl img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;transition:transform .6s}
+.nx-tpl a:hover img{transform:scale(1.06)}.nx-tpl div{overflow:hidden}.nx-tpl p{padding:16px 20px;font-weight:700}
+/* cta */
+.nx-cta{position:relative;text-align:center;padding:160px 0;overflow:hidden;background:radial-gradient(500px 360px at var(--mx,50%) var(--my,50%),rgba(45,212,191,.3),transparent 70%),#050810}
+.nx-cta h2{font-size:clamp(2.4rem,6vw,4.8rem);max-width:15ch;margin:0 auto 20px}
+.nx-cta .nx-actions{justify-content:center}
+.nx-tr{position:fixed;left:0;top:0;width:9px;height:9px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--ac);pointer-events:none;opacity:0;z-index:9999}
+@media(max-width:991px){.nx-hero-grid,.nx-feat,.nx-pin-grid{grid-template-columns:1fr}.nx-aud,.nx-stats{grid-template-columns:1fr 1fr}.nx-tpl{grid-template-columns:1fr 1fr}.nx-feat.rev>.nx-vis{order:0}.nx-scene{height:430px;transform:scale(.8)}.nx-sec{padding:80px 0}.nx-feat{min-height:0;gap:30px}.nx-pin-grid{gap:20px}.nx-lap{max-width:300px}}
+@media(max-width:575px){.nx-aud,.nx-tpl,.nx-stats{grid-template-columns:1fr}.nx-scene{transform:scale(.62);height:340px;margin:-30px 0}.nx-light{padding:16px}}
+@media(prefers-reduced-motion:reduce){.nx *{animation:none!important;transition:none!important}.nx.js [data-r]{opacity:1;transform:none}}
+</style>
 
-<section class="homepage-hero">
-  <div class="wrap hero-grid">
+<div class="nx">
+<section class="nx-hero" id="nxHero">
+  <div class="nx-wrap nx-hero-grid">
+    <div data-r>
+      <h1>Launch your website<br>in <em>minutes</em>, not weeks.</h1>
+      <p class="nx-lede">Instaweb is Malawi-built hosting with a code editor in your browser, a file manager and one-click publishing. Start with a static site or a WordPress project.</p>
+      <div class="nx-actions">
+        <a href="<?= $primaryUrl ?>" class="nx-btn p">Start Building Free</a>
+        <a href="#how" class="nx-btn g">See how it works</a>
+      </div>
+      <p class="nx-note">Create your account and publish your first site in minutes.</p>
+      <div class="nx-who"><span>Developers</span><span>Students</span><span>Institutions</span><span>Organisations</span></div>
+    </div>
+    <div class="nx-scene" aria-hidden="true">
+      <div class="nx-rig" id="nxRig"><div class="nx-float"><div class="nx-spin">
+        <div class="nx-cloud"><span></span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+        <div class="nx-beam"></div>
+        <div class="nx-screen"><b>&lt;h1&gt;</b>Hello, Malawi<b>&lt;/h1&gt;</b><br><i>body</i> { color: #fff; }<br><b>&lt;a</b> <i>href</i>="/shop"<b>&gt;</b>Visit<b>&lt;/a&gt;</b><br>// publish<br><i>&#10003;</i> live on the web</div>
+        <div class="nx-deck"></div>
+      </div></div></div>
+      <span class="nx-chip" style="left:2%;top:26%;--t:5.5s">Static sites</span>
+      <span class="nx-chip" style="right:0;top:40%;--t:6.5s">WordPress</span>
+      <span class="nx-chip" style="left:10%;bottom:12%;--t:7s">Analytics</span>
+    </div>
+  </div>
+  <div class="nx-scroll" aria-hidden="true"></div>
+</section>
+
+<section class="nx-sec" id="audiences">
+  <div class="nx-wrap">
+    <div data-r><h2 class="nx-h2">One platform for everyone <em>building online</em>.</h2>
+    <p class="nx-lede">From a first portfolio to a school or organisation website, Instaweb keeps hosting simple.</p></div>
+    <div class="nx-aud">
+      <?php foreach ([
+        ['#38bdf8','Developers','Edit code in the browser with live preview, then publish static or WordPress projects.','<path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/>'],
+        ['#a78bfa','Students','Put coursework, portfolios and capstone projects online and share one link.','<path d="M22 10L12 5 2 10l10 5 10-5zM6 12v5c3 2 9 2 12 0v-5"/>'],
+        ['#fbbf24','Institutions','Give schools and colleges a professional site that staff can keep up to date.','<path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/>'],
+        ['#34d399','Organisations','Churches, NGOs and businesses can publish news, events and contact details.','<path d="M3 21V7l9-4 9 4v14M9 21v-5h6v5M8 10h.01M12 10h.01M16 10h.01"/>'],
+      ] as $i => $a): ?>
+      <div class="nx-card" style="--k:<?= $a[0] ?>" data-r data-d="<?= $i ?>">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><?= $a[3] ?></svg>
+        <h3><?= $e($a[1]) ?></h3><p><?= $e($a[2]) ?></p>
+      </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
+<section class="nx-sec" id="how" style="padding-top:40px">
+  <div class="nx-wrap">
+    <div class="nx-feat" style="--k:#2dd4bf">
+      <div data-r="left"><h2 class="nx-h2">Create, upload, <em>publish</em>.</h2>
+        <p class="nx-lede">Start a project, add your files and publish to your Instaweb address. Static hosting covers HTML, CSS, JavaScript, images and other assets.</p>
+        <ul><li>Beginner-friendly controls</li><li>Drag in files and go live</li><li>Custom domains on Premium</li></ul></div>
+      <div class="nx-vis" data-r="right"><div class="bk" data-p=".08"></div>
+        <div class="nx-win" data-p="-.05"><div class="bar"><i></i><i></i><i></i></div>
+          <div class="nx-row"><span>index.html</span><span>2 KB</span></div><div class="nx-row"><span>style.css</span><span>4 KB</span></div>
+          <div class="nx-row"><span>app.js</span><span>3 KB</span></div><div class="nx-row"><span>images/</span><span>12 files</span></div>
+          <span class="nx-pill">Published</span></div></div>
+    </div>
+    <div class="nx-feat rev" style="--k:#8b5cf6">
+      <div data-r="right"><h2 class="nx-h2">Need a CMS? Start a <em>WordPress</em> project.</h2>
+        <p class="nx-lede">Prepare a WordPress site for dynamic pages and database-backed content. Setup needs a host with PHP and database access.</p>
+        <ul><li>WordPress files ready to set up</li><li>Manage them from your dashboard</li><li>Switch between site types per project</li></ul></div>
+      <div class="nx-vis" data-r="left"><div class="bk" data-p=".08"></div>
+        <div class="nx-win" data-p="-.05"><div class="bar"><i></i><i></i><i></i></div><p style="color:var(--mu);margin-bottom:12px">WordPress project</p>
+          <div class="nx-steps"><span>Create</span><span>Upload</span><span>Finish setup</span></div><span class="nx-pill">Ready for setup</span></div></div>
+    </div>
+    <div class="nx-feat" style="--k:#38bdf8">
+      <div data-r="left"><h2 class="nx-h2">Code, files and traffic in <em>one place</em>.</h2>
+        <p class="nx-lede">A built-in editor with syntax highlighting and live preview, a file manager, analytics, billing controls and project settings.</p>
+        <ul><li>Code editor with live preview</li><li>File uploads and storage insights</li><li>Traffic analytics and reports</li></ul></div>
+      <div class="nx-vis" data-r="right"><div class="bk" data-p=".08"></div>
+        <div class="nx-win" data-p="-.05"><div class="bar"><i></i><i></i><i></i></div><p style="color:var(--mu)">Visitors</p>
+          <div class="nx-bars"><i style="--h:35%"></i><i style="--h:55%"></i><i style="--h:42%"></i><i style="--h:72%"></i><i style="--h:60%"></i><i style="--h:90%"></i></div>
+          <span class="nx-pill">Analytics</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="nx-pin" id="nxPin" aria-label="Who Instaweb is for">
+  <div class="nx-pin-in"><div class="nx-wrap nx-pin-grid">
     <div>
-      <div class="eyebrow-row"><span class="rule"></span><span class="eyebrow"><?= $heroKicker ?></span></div>
-      <h1 class="homepage-hero-title"><?= htmlspecialchars($heroTitle, ENT_QUOTES, 'UTF-8') ?></h1>
-      <p class="lede"><?= $heroSubtitle ?></p>
-      <div class="hero-actions">
-        <?php if ($primaryUrl !== ''): ?><a href="<?= htmlspecialchars($primaryUrl, ENT_QUOTES, 'UTF-8') ?>" class="btn-primary">Start Building Free</a><?php endif; ?>
-        <?php if ($secondaryUrl !== ''): ?><a href="#templates" class="btn-ghost">See Templates</a><?php endif; ?>
-      </div>
-      <?php if ($heroNote !== ''): ?><p class="hero-note"><?= $heroNote ?></p><?php endif; ?>
-      <div class="hero-capabilities" aria-label="Supported website types">
-        <span>Static websites</span>
-        <span>WordPress projects</span>
-        <span>File management</span>
-      </div>
+      <span class="nx-tag" id="pTag">Developers</span>
+      <h2 class="nx-sw" id="pH">Ship fast, edit in the browser.</h2>
+      <p class="nx-lede nx-sw" id="pP">Use the built-in editor with live preview, manage files and publish without a server panel.</p>
+      <div class="nx-prog"><i id="pBar"></i></div>
+      <div class="nx-dots" id="pDots"><span class="on">Developers</span><span>Students</span><span>Institutions</span><span>Organisations</span></div>
     </div>
-    <div class="editor-shell">
-      <div class="editor-bar">
-        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-        <span class="editor-tab">index.html — lawreeay.lovestoblog.com</span>
-      </div>
-      <div class="editor-body"><span id="typed-code"></span><span class="cursor"></span></div>
-      <div class="publish-badge" id="publishBadge"><span class="dotpulse"></span> Published to https://instaweb.free.dev/</div>
+    <div class="nx-lap" aria-hidden="true"><div class="scr"><div class="url" id="pUrl">yourname.dev</div>
+      <div class="pg"><b id="pT">Portfolio</b><div class="ln" style="width:80%"></div><div class="ln" style="width:60%"></div><div class="ln" style="width:70%"></div></div></div><div class="base"></div></div>
+  </div></div>
+</section>
+
+<section class="nx-story">
+  <div class="nx-wrap">
+    <p class="nx-line" data-r>Websites shouldn't need a big budget.</p>
+    <p class="nx-line" data-r data-d=".15">Or a server you have to understand.</p>
+    <p class="nx-line" data-r data-d=".3">Just your files, one dashboard and a link to share.</p>
+    <div class="nx-stats">
+      <div class="nx-stat" data-r><strong data-n="3">0</strong><span>steps to go live</span></div>
+      <div class="nx-stat" data-r data-d=".1"><strong data-n="7">0</strong><span>built-in tools</span></div>
+      <div class="nx-stat" data-r data-d=".2"><strong data-n="2">0</strong><span>site types</span></div>
+      <div class="nx-stat" data-r data-d=".3"><strong data-n="1">0</strong><span>dashboard for everything</span></div>
     </div>
   </div>
 </section>
 
-<section id="malawi" class="page-section section-muted">
-  <div class="container">
-    <div class="row g-5 align-items-start">
-      <div class="col-lg-6 reveal">
-        <span class="section-kicker">Built for Malawi</span>
-        <h2>Simple website tools for schools, shops, churches, and growing brands.</h2>
-        <div class="audience-tags mt-4">
-          <span>Schools</span><span>Shops</span><span>Churches</span><span>Portfolios</span><span>Small Business</span>
-        </div>
-      </div>
-      <div class="col-lg-6 reveal">
-        <p>Whether you need a lightweight static website or a WordPress-powered site with dynamic pages and database-backed content, Instaweb brings core website creation and management tools into one workspace.</p>
-        <p class="text-secondary">Start with a static project for simple pages, or choose WordPress when you need its content management features. WordPress setup still depends on the hosting server's PHP and database configuration.</p>
-        <ul class="feature-list mt-4">
-          <li><i data-lucide="arrow-right"></i> Quick setup with beginner-friendly controls</li>
-          <li><i data-lucide="arrow-right"></i> Upload files and publish your site in minutes</li>
-          <li><i data-lucide="arrow-right"></i> Keep your online presence professional and easy to maintain</li>
-        </ul>
-      </div>
-    </div>
+<section class="nx-sec" id="pricing">
+  <div class="nx-wrap">
+    <div data-r><h2 class="nx-h2">Simple <em>pricing</em>.</h2></div>
+    <div class="nx-light" style="margin-top:40px" data-r="zoom"><?php include APP_PATH . '/Views/marketing/partials/pricing-cards.php'; ?></div>
   </div>
 </section>
 
-<section id="how" class="page-section">
-  <div class="container">
-    <div class="section-heading section-heading-left reveal">
-      <p class="section-kicker">How It Works</p>
-      <h2>Launch your website in 3 steps.</h2>
-    </div>
-    <div class="row g-4 reveal-stagger">
-      <div class="col-md-4">
-        <div class="feature-card h-100">
-          <i data-lucide="plus-circle"></i>
-          <h3>Create Project</h3>
-          <p>Start a static website or create a WordPress project from the available options.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-card h-100">
-          <i data-lucide="upload"></i>
-          <h3>Upload Files</h3>
-          <p>Manage project files from your dashboard. WordPress projects include the files needed to complete WordPress setup.</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="feature-card h-100">
-          <i data-lucide="globe-2"></i>
-          <h3>Publish</h3>
-          <p>Publish your project to its Instaweb address. WordPress sites require a working PHP and database environment to complete setup.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="features" class="page-section section-muted">
-  <div class="container">
-    <div class="section-heading section-heading-left reveal">
-      <p class="section-kicker">Features</p>
-      <h2>Everything you need.</h2>
-    </div>
-    <div class="row g-4 reveal-stagger">
+<section class="nx-sec" id="templates" style="padding-top:20px">
+  <div class="nx-wrap">
+    <div data-r><h2 class="nx-h2">Start from a <em>template</em>.</h2></div>
+    <div class="nx-tpl">
       <?php foreach ([
-        ['code-2', 'Built-in Code Editor', 'Syntax highlighting, project files, and live preview.'],
-        ['folder-open', 'File Manager', 'Upload and organize files easily.'],
-        ['server', 'Static Website Hosting', 'Publish HTML, CSS, JavaScript, images, and other static assets.'],
-        ['layers', 'WordPress Projects', 'Prepare a WordPress website for setup on a PHP-enabled host with database access.'],
-        ['bar-chart-3', 'Analytics', 'Track visitors and traffic as your project grows.'],
-        ['link', 'Custom Domains', 'Connect a custom domain on Premium.'],
-        ['shield-check', 'Secure Platform', 'Protected with modern security and validation.'],
-      ] as $item): ?>
-        <div class="col-md-6 col-lg-4">
-          <div class="feature-card h-100">
-            <i data-lucide="<?= htmlspecialchars($item[0], ENT_QUOTES, 'UTF-8') ?>"></i>
-            <h3><?= htmlspecialchars($item[1], ENT_QUOTES, 'UTF-8') ?></h3>
-            <p><?= htmlspecialchars($item[2], ENT_QUOTES, 'UTF-8') ?></p>
-          </div>
-        </div>
+        ['Business Website','461073'],['Portfolio','326514'],['Church Website','69432'],['School Website','5621952'],['Blog','7394719'],['Landing Page','3584973'],
+      ] as $i => $t): ?>
+      <a href="<?= $templatesUrl ?>" data-r data-d="<?= ($i % 3) * .1 ?>"><div><img loading="lazy" src="https://images.pexels.com/photos/<?= $t[1] ?>/pexels-photo-<?= $t[1] ?>.jpeg?auto=compress&cs=tinysrgb&w=800" alt="<?= $e($t[0]) ?> template"></div><p><?= $e($t[0]) ?></p></a>
       <?php endforeach; ?>
     </div>
   </div>
 </section>
 
-<section class="page-section">
-  <div class="container">
-    <div class="row g-5 align-items-center">
-      <div class="col-lg-6">
-        <div class="dashboard-preview">
-          <img src="<?= htmlspecialchars($heroImage, ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($heroAlt, ENT_QUOTES, 'UTF-8') ?>" class="img-fluid rounded-3">
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <span class="section-kicker">Powerful Dashboard</span>
-        <h2>Manage websites, files, and billing in one place.</h2>
-        <ul class="feature-list mt-4">
-          <li><i data-lucide="check-circle"></i> Website management</li>
-          <li><i data-lucide="check-circle"></i> File uploads and storage insights</li>
-          <li><i data-lucide="check-circle"></i> Traffic analytics and reports</li>
-          <li><i data-lucide="check-circle"></i> Billing controls and plan upgrades</li>
-          <li><i data-lucide="check-circle"></i> Project settings and publishing tools</li>
-        </ul>
-      </div>
-    </div>
+<section class="nx-cta" id="nxCta">
+  <div class="nx-wrap">
+    <h2 data-r>Your website is one account away.</h2>
+    <p class="nx-lede" style="margin:0 auto 34px" data-r>Create your account and publish today.</p>
+    <div class="nx-actions" data-r><a href="<?= $primaryUrl ?>" class="nx-btn p">Create Account</a><a href="<?= $loginUrl ?>" class="nx-btn g">Log In</a></div>
   </div>
 </section>
+</div>
 
-<section id="pricing" class="page-section section-muted">
-  <div class="container">
-    <div class="section-heading reveal">
-      <p class="section-kicker">Pricing</p>
-      <h2>Simple pricing.</h2>
-    </div>
-    <?php include APP_PATH . '/Views/marketing/partials/pricing-cards.php'; ?>
-  </div>
-</section>
-
-<section id="templates" class="page-section">
-  <div class="container">
-    <div class="text-center section-heading reveal">
-      <p class="section-kicker">Templates</p>
-      <h2>Start with a template.</h2>
-    </div>
-    <div class="row g-4 reveal-stagger">
-      <?php foreach ([
-        ['Business Website', 'https://images.pexels.com/photos/461073/pexels-photo-461073.jpeg?auto=compress&cs=tinysrgb&w=800'],
-        ['Portfolio', 'https://images.pexels.com/photos/326514/pexels-photo-326514.jpeg?auto=compress&cs=tinysrgb&w=800'],
-        ['Church Website', 'https://images.pexels.com/photos/69432/pexels-photo-69432.jpeg?auto=compress&cs=tinysrgb&w=800'],
-        ['School Website', 'https://images.pexels.com/photos/5621952/pexels-photo-5621952.jpeg?auto=compress&cs=tinysrgb&w=800'],
-        ['Blog', 'https://images.pexels.com/photos/7394719/pexels-photo-7394719.jpeg?auto=compress&cs=tinysrgb&w=800'],
-        ['Landing Page', 'https://images.pexels.com/photos/3584973/pexels-photo-3584973.jpeg?auto=compress&cs=tinysrgb&w=800'],
-      ] as $template): ?>
-        <div class="col-sm-6 col-lg-4">
-          <div class="template-card h-100">
-            <img src="<?= htmlspecialchars($template[1], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($template[0], ENT_QUOTES, 'UTF-8') ?>" class="img-fluid rounded-3">
-            <p class="mt-3 fw-semibold mb-0"><?= htmlspecialchars($template[0], ENT_QUOTES, 'UTF-8') ?></p>
-          </div>
-        </div>
-      <?php endforeach; ?>
-    </div>
-  </div>
-</section>
-
-<section class="cta-section">
-  <div class="container text-center">
-    <span class="section-kicker">Get started</span>
-    <h2>Ready to launch your website?</h2>
-    <p>Create your account and start building today.</p>
-    <div class="d-flex justify-content-center flex-wrap gap-3 mt-4">
-      <a class="btn btn-light btn-lg" href="<?= htmlspecialchars($primaryUrl, ENT_QUOTES, 'UTF-8') ?>">Create Account</a>
-      <a class="btn btn-outline-light btn-lg" href="<?= htmlspecialchars($secondaryUrl, ENT_QUOTES, 'UTF-8') ?>">Log In</a>
-    </div>
-  </div>
-</section>
+<script>
+(function(){
+var root=document.querySelector('.nx');if(!root)return;root.classList.add('js');
+var rm=matchMedia('(prefers-reduced-motion:reduce)').matches,$=function(s){return root.querySelector(s)};
+// scroll reveal + counters
+var io=new IntersectionObserver(function(es){es.forEach(function(x){if(!x.isIntersecting)return;var t=x.target;t.classList.add('in');io.unobserve(t);var n=t.querySelector('[data-n]');if(n)count(n)})},{threshold:.18});
+root.querySelectorAll('[data-r]').forEach(function(el){if(el.dataset.d)el.style.setProperty('--d',el.dataset.d+(el.dataset.d.indexOf('.')>-1?'s':'s'));io.observe(el)});
+function count(el){var to=+el.dataset.n,s=null;function f(t){s=s||t;var p=Math.min(1,(t-s)/1200);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)}rm?el.textContent=to:requestAnimationFrame(f)}
+// scroll-linked: parallax + pinned personas
+var par=[].slice.call(root.querySelectorAll('[data-p]')),pin=$('#nxPin'),cur=-1,busy=false;
+var P=[['#38bdf8','Developers','Ship fast, edit in the browser.','Use the built-in editor with live preview, manage files and publish static or WordPress projects without a server panel.','yourname.dev','Portfolio'],
+['#a78bfa','Students','Your projects, live for everyone.','Put coursework, portfolios and capstone projects online and share a single link with lecturers and employers.','my-project.site','Capstone Project'],
+['#fbbf24','Institutions','A proper home for your school or college.','Publish a clean, professional website that staff can keep updated without hiring a developer.','your-school.edu','Our School'],
+['#34d399','Organisations','Churches, NGOs and businesses online.','Share your story, events and contact details, and manage hosting, analytics and billing from one dashboard.','your-group.org','Our Community']];
+var dots=[].slice.call(document.querySelectorAll('#pDots span'));
+function setP(i){if(i===cur)return;cur=i;var d=P[i];pin.style.setProperty('--c',d[0]);var sw=[$('#pH'),$('#pP')];sw.forEach(function(e){e.classList.add('o')});
+setTimeout(function(){$('#pTag').textContent=d[1];$('#pH').textContent=d[2];$('#pP').textContent=d[3];$('#pUrl').textContent=d[4];$('#pT').textContent=d[5];sw.forEach(function(e){e.classList.remove('o')})},rm?0:220);
+dots.forEach(function(x,k){x.classList.toggle('on',k===i)})}
+function update(){busy=false;var vh=innerHeight;
+if(!rm)par.forEach(function(el){var r=el.parentNode.getBoundingClientRect();el.style.transform='translate3d(0,'+((r.top+r.height/2-vh/2)*el.dataset.p).toFixed(1)+'px,0)'});
+var r=pin.getBoundingClientRect(),p=Math.min(1,Math.max(0,-r.top/(r.height-vh)));$('#pBar').style.width=(p*100)+'%';setP(Math.min(3,Math.floor(p*4)))}
+function tick(){if(!busy){busy=true;requestAnimationFrame(update)}}
+addEventListener('scroll',tick,{passive:true});addEventListener('resize',tick);update();
+// hero tilt + CTA glow
+var hero=$('#nxHero'),rig=$('#nxRig');
+if(!rm){hero.addEventListener('mousemove',function(e){var b=hero.getBoundingClientRect();rig.style.setProperty('--ry',((e.clientX-b.left)/b.width-.5)*18+'deg');rig.style.setProperty('--rx',(-((e.clientY-b.top)/b.height-.5))*12+'deg')});
+var cta=$('#nxCta');cta.addEventListener('mousemove',function(e){var b=cta.getBoundingClientRect();cta.style.setProperty('--mx',(e.clientX-b.left)+'px');cta.style.setProperty('--my',(e.clientY-b.top)+'px')})}
+// desktop cursor trail
+if(!rm&&matchMedia('(hover:hover) and (pointer:fine)').matches){var dots2=[],k=0;for(var i=0;i<8;i++){var d=document.createElement('i');d.className='nx-tr';document.body.appendChild(d);dots2.push(d)}
+addEventListener('mousemove',function(e){var d=dots2[k++%8],t='translate('+e.clientX+'px,'+e.clientY+'px)';d.animate([{opacity:.7,transform:t+' scale(1)'},{opacity:0,transform:t+' scale(.2)'}],{duration:650})})}
+})();
+</script>
