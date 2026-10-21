@@ -8,10 +8,16 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
   <button class="iw-sidebar-backdrop" type="button" data-sidebar-close aria-label="Close navigation" tabindex="-1"></button>
 
   <section class="admin-pro-main iw-client-main">
-    <header class="iw-client-topbar">
-      <button class="iw-mobile-menu" type="button" data-sidebar-open aria-controls="adminSidebar" aria-expanded="false" aria-label="Open navigation"><i data-lucide="menu"></i></button>
-      <div class="iw-topbar-context"><span class="iw-topbar-eyebrow">INSTAWEB WORKSPACE</span><span class="iw-topbar-page">Admin overview</span></div>
-      <div class="iw-topbar-actions"><a class="iw-topbar-account" href="<?= $e($baseUrl . '/profile') ?>"><i data-lucide="user-round"></i><span>Account</span></a></div>
+    <header class="ad-topbar">
+      <button class="ad-topbar-menu" type="button" data-sidebar-open aria-controls="adminSidebar" aria-expanded="false" aria-label="Open navigation"><i data-lucide="menu"></i></button>
+      <div class="ad-topbar-context">
+        <span class="ad-topbar-eyebrow">INSTAWEB WORKSPACE</span>
+        <span class="ad-topbar-page">Admin overview</span>
+      </div>
+      <nav class="ad-topbar-actions" aria-label="Account actions">
+        <a class="ad-topbar-link" href="<?= $e($baseUrl . '/admin/notifications') ?>"><i data-lucide="bell"></i><span>Notifications</span></a>
+        <a class="ad-topbar-link" href="<?= $e($baseUrl . '/profile') ?>"><i data-lucide="user-round"></i><span>Account</span></a>
+      </nav>
     </header>
     <div class="admin-dashboard-page">
     <header class="ad-page-heading">
@@ -124,7 +130,15 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
       </aside>
     </div>
 
-    <footer class="ad-footer"><span>InstaWeb Admin Console · <?= $e(date('d M Y')) ?></span><a href="<?= $e($baseUrl . '/admin/settings') ?>">System settings</a></footer>
+    <footer class="ad-footer">
+      <span>© <?= $e(date('Y')) ?> InstaWeb · Administration</span>
+      <nav aria-label="Administrative and legal links">
+        <a href="<?= $e($baseUrl . '/admin/settings') ?>">System settings</a>
+        <a href="<?= $e($baseUrl . '/admin/legal') ?>">Policies</a>
+        <a href="<?= $e($baseUrl . '/terms') ?>">Terms</a>
+        <a href="<?= $e($baseUrl . '/privacy') ?>">Privacy</a>
+      </nav>
+    </footer>
     </div>
   </section>
 </div>
