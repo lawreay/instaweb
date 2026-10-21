@@ -157,9 +157,6 @@
         <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/pricing', ENT_QUOTES, 'UTF-8') ?>" class="mobile-nav-link">
           <i data-lucide="dollar-sign"></i> Pricing
         </a>
-        <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/templates', ENT_QUOTES, 'UTF-8') ?>" class="mobile-nav-link">
-          <i data-lucide="palette"></i> Templates
-        </a>
         <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/about', ENT_QUOTES, 'UTF-8') ?>" class="mobile-nav-link">
           <i data-lucide="info"></i> About
         </a>
@@ -236,6 +233,9 @@
           'faq' => '/faq',
           'privacy', 'privacy policy' => '/privacy',
           'terms', 'terms of service' => '/terms',
+          'cookie policy', 'cookies' => '/cookie-policy',
+          'acceptable use', 'acceptable use policy' => '/acceptable-use',
+          'dmca', 'copyright', 'copyright and takedown' => '/copyright',
           'login', 'sign in' => '/login',
           'register', 'get started' => '/register',
           'dashboard' => '/dashboard',

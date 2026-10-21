@@ -21,33 +21,41 @@ class LegalController extends Controller
 {
     public function privacy(): void
     {
-        $policy = $this->loadPolicy('privacy');
-
-        if (!$policy) {
-            http_response_code(404);
-            echo 'Privacy Policy not found.';
-            return;
-        }
-
-        $this->view('legal/privacy', [
-            'title' => $policy['title'] ?: 'Privacy Policy',
-            'policy' => $policy,
-            'settings' => (new Setting())->all(),
-        ]);
+        $this->showPublicPolicy('privacy', 'Privacy Policy');
     }
 
     public function terms(): void
     {
-        $policy = $this->loadPolicy('terms');
+        $this->showPublicPolicy('terms', 'Terms and Conditions');
+    }
+
+    public function cookie(): void
+    {
+        $this->showPublicPolicy('cookie', 'Cookie Policy');
+    }
+
+    public function acceptableUse(): void
+    {
+        $this->showPublicPolicy('acceptable_use', 'Acceptable Use Policy');
+    }
+
+    public function copyright(): void
+    {
+        $this->showPublicPolicy('copyright', 'Copyright and Takedown Policy');
+    }
+
+    private function showPublicPolicy(string $policyType, string $fallbackTitle): void
+    {
+        $policy = $this->loadPolicy($policyType);
 
         if (!$policy) {
             http_response_code(404);
-            echo 'Terms and Conditions not found.';
+            echo htmlspecialchars($fallbackTitle, ENT_QUOTES, 'UTF-8') . ' not found.';
             return;
         }
 
-        $this->view('legal/terms', [
-            'title' => $policy['title'] ?: 'Terms and Conditions',
+        $this->view('legal/privacy', [
+            'title' => $policy['title'] ?: $fallbackTitle,
             'policy' => $policy,
             'settings' => (new Setting())->all(),
         ]);
