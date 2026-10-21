@@ -22,4 +22,18 @@ INSERT INTO platform_settings (setting_key, setting_value, setting_group)
 VALUES ('footer_legal_links', 'Privacy Policy | /privacy\nTerms | /terms\nCookie Policy | /cookie-policy\nAcceptable Use | /acceptable-use\nCopyright & Takedown | /copyright', 'footer')
 ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), setting_group = VALUES(setting_group), updated_at = CURRENT_TIMESTAMP;
 
+-- Publish a versioned privacy supplement naming the current processors and
+-- limiting product-improvement use of data. Existing content remains intact.
+INSERT INTO legal_policy_versions (policy_id, version_label, content, published)
+SELECT p.id, 'v1.1', CONCAT(v.content, '<h2>Service providers and platform improvement</h2><p>We use PayChangu to process payments. Payment-card, mobile-money, and similar payment credentials are handled by PayChangu, not stored by InstaWebMW. We use Google SMTP only to send service emails such as account verification, password resets, receipts, and operational notices.</p><p>We may use account, device, security, and service-usage information to operate, secure, troubleshoot, and improve the platform. Where feasible, product-improvement analysis uses aggregated or de-identified information. We do not sell personal information or use identifiable uploaded website content to train public models or for unrelated advertising.</p><p>We will process personal data only for purposes permitted by applicable law and subject to appropriate safeguards. Contact us using the details in this policy to make a privacy request or ask about this processing.</p>'), 1
+FROM legal_policies p
+JOIN legal_policy_versions v ON v.policy_id = p.id AND v.published = 1
+WHERE p.policy_type = 'privacy'
+  AND NOT EXISTS (SELECT 1 FROM legal_policy_versions existing WHERE existing.policy_id = p.id AND existing.version_label = 'v1.1');
+
+UPDATE legal_policy_versions v
+JOIN legal_policies p ON p.id = v.policy_id
+SET v.published = CASE WHEN v.version_label = 'v1.1' THEN 1 ELSE 0 END
+WHERE p.policy_type = 'privacy' AND v.version_label IN ('v1.0', 'v1.1');
+
 COMMIT;
