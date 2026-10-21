@@ -6,7 +6,18 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
 <div class="admin-pro-shell admin-dashboard-refresh">
   <?php include APP_PATH . '/Views/admin/partials/sidebar.php'; ?>
 
-  <section class="admin-pro-main admin-dashboard-page">
+  <section class="admin-pro-main">
+    <header class="ad-topbar">
+      <div class="ad-topbar-context">
+        <span class="ad-topbar-eyebrow">INSTAWEB CONTROL CENTRE</span>
+        <span class="ad-topbar-page">Administrator workspace</span>
+      </div>
+      <div class="ad-topbar-actions">
+        <a class="ad-topbar-link" href="<?= $e($baseUrl . '/admin/notifications') ?>"><i data-lucide="bell"></i><span>Notifications</span></a>
+        <a class="ad-topbar-link" href="<?= $e($baseUrl . '/profile') ?>"><i data-lucide="user-round"></i><span>Account</span></a>
+      </div>
+    </header>
+    <main class="admin-dashboard-page">
     <header class="ad-page-heading">
       <div>
         <p class="ad-eyebrow">InstaWeb / Control centre</p>
@@ -117,6 +128,15 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
       </aside>
     </div>
 
-    <footer class="ad-footer"><span>InstaWeb Admin Console · <?= $e(date('d M Y')) ?></span><a href="<?= $e($baseUrl . '/admin/settings') ?>">System settings</a></footer>
+    </main>
+    <footer class="ad-footer">
+      <span>© <?= date('Y') ?> InstaWeb. Administrator workspace.</span>
+      <nav aria-label="Footer navigation">
+        <a href="<?= $e($baseUrl . '/admin/settings') ?>">System settings</a>
+        <a href="<?= $e($baseUrl . '/admin/legal') ?>">Policies</a>
+        <a href="<?= $e($baseUrl . '/terms') ?>">Terms</a>
+        <a href="<?= $e($baseUrl . '/privacy') ?>">Privacy</a>
+      </nav>
+    </footer>
   </section>
 </div>
