@@ -97,11 +97,11 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
 .nx-prog i{display:block;height:100%;width:0;background:var(--c);transition:background .6s}
 .nx-dots{display:flex;gap:18px;margin-top:16px;color:var(--mu);font-size:.9rem}.nx-dots span.on{color:var(--tx);font-weight:700}
 .nx-lap{max-width:460px;margin:0 auto;perspective:1000px;transform:rotateY(-8deg) rotateX(3deg)}
-.nx-lap .scr{position:relative;border:10px solid #34445f;border-radius:18px;background:#0a1120;aspect-ratio:16/10;overflow:hidden;box-shadow:0 40px 100px -30px var(--c);transition:box-shadow .8s}
+.nx-lap .scr{position:relative;border:10px solid #34445f;border-radius:18px;background:#0a1120;aspect-ratio:16/10;overflow:hidden;box-shadow:0 40px 100px -30px var(--c);transition:box-shadow .8s}.nx-lap .lap-image{display:block;width:100%;height:100%;object-fit:cover}
 .nx-lap .scr:before{content:'';position:absolute;top:4px;left:50%;width:36px;height:5px;transform:translateX(-50%);border-radius:999px;background:#111827;z-index:2}
-.nx-lap .url{padding:9px 16px 9px 42px;background:#142138;color:#bfd0e8;font-size:.78rem}.nx-lap .url:before{content:'● ● ●';position:absolute;left:15px;color:#5eead4;font-size:.55rem;letter-spacing:2px}
-.nx-lap .pg{padding:28px 24px;background:linear-gradient(135deg,#0d1a2d,#111f35);min-height:calc(100% - 36px)}.nx-lap .pg b{display:block;font:700 1.55rem 'Space Grotesk',sans-serif;color:var(--c);transition:color .6s}.nx-lap .pg:after{content:'LIVE';display:inline-block;margin-top:20px;padding:5px 10px;border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:999px;color:var(--c);font:700 .68rem 'DM Sans',sans-serif;letter-spacing:.08em}
-.nx-lap .ln{height:9px;border-radius:5px;background:rgba(231,241,255,.16);margin-top:12px}.nx-lap .base{position:relative;height:20px;margin:0 -34px;border-radius:0 0 24px 24px;background:linear-gradient(#63748e,#26344b);box-shadow:0 13px 20px rgba(0,0,0,.38)}.nx-lap .base:before{content:'';position:absolute;left:50%;top:2px;width:92px;height:7px;transform:translateX(-50%);border-radius:0 0 8px 8px;background:#0e1828}
+.nx-lap .url{position:absolute;z-index:2;top:12px;left:14px;right:14px;padding:9px 16px 9px 42px;border:1px solid rgba(255,255,255,.16);border-radius:9px;background:rgba(10,17,32,.76);backdrop-filter:blur(9px);color:#e7f0ff;font-size:.78rem}.nx-lap .url:before{content:'● ● ●';position:absolute;left:15px;color:#5eead4;font-size:.55rem;letter-spacing:2px}
+.nx-lap .pg{position:absolute;z-index:2;left:22px;bottom:18px;padding:12px 14px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(10,17,32,.8);backdrop-filter:blur(9px);min-width:55%}.nx-lap .pg b{display:block;font:700 1.15rem 'Space Grotesk',sans-serif;color:#fff;transition:color .6s}.nx-lap .pg:after{content:'LIVE';display:inline-block;margin-top:9px;padding:4px 8px;border:1px solid color-mix(in srgb,var(--c) 55%,transparent);border-radius:999px;color:var(--c);font:700 .62rem 'DM Sans',sans-serif;letter-spacing:.08em}
+.nx-lap .ln{height:6px;border-radius:5px;background:rgba(231,241,255,.45);margin-top:8px}.nx-lap .base{position:relative;height:20px;margin:0 -34px;border-radius:0 0 24px 24px;background:linear-gradient(#63748e,#26344b);box-shadow:0 13px 20px rgba(0,0,0,.38)}.nx-lap .base:before{content:'';position:absolute;left:50%;top:2px;width:92px;height:7px;transform:translateX(-50%);border-radius:0 0 8px 8px;background:#0e1828}
 /* story */
 .nx-story{padding:140px 0;background:#0d192c}
 .nx-line{font:700 clamp(2rem,5.6vw,4.4rem)/1.08 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin-bottom:.35em;color:#8c9ab2;transition:color .8s}
@@ -221,7 +221,7 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
       <div class="nx-prog"><i id="pBar"></i></div>
       <div class="nx-dots" id="pDots"><span class="on">Developers</span><span>Students</span><span>Institutions</span><span>Organisations</span></div>
     </div>
-    <div class="nx-lap" aria-hidden="true"><div class="scr"><div class="url" id="pUrl">yourname.dev</div>
+    <div class="nx-lap" aria-hidden="true"><div class="scr"><img class="lap-image" src="<?= htmlspecialchars($baseUrl . '/assets/images/coding-laptop.jpg', ENT_QUOTES, 'UTF-8') ?>" alt=""><div class="url" id="pUrl">yourname.dev</div>
       <div class="pg"><b id="pT">Portfolio</b><div class="ln" style="width:80%"></div><div class="ln" style="width:60%"></div><div class="ln" style="width:70%"></div></div></div><div class="base"></div></div>
   </div></div>
 </section>
