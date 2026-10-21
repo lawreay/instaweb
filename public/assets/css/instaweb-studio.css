@@ -134,3 +134,92 @@ body:has(.iw-studio) {
     min-height: 0;
   }
 }
+
+
+/* Keyboard shortcuts help dialog. */
+.iw-shortcuts-dialog {
+  width: min(460px, calc(100vw - 28px));
+  max-width: none;
+  padding: 0;
+  border: 1px solid #45464b;
+  border-radius: 12px;
+  background: #252526;
+  color: #e6e6e6;
+  box-shadow: 0 24px 80px rgba(0,0,0,.5);
+}
+.iw-shortcuts-dialog::backdrop { background: rgba(0,0,0,.62); backdrop-filter: blur(2px); }
+.iw-shortcuts-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:17px 20px; border-bottom:1px solid #3a3b40; }
+.iw-shortcuts-header h2 { margin:0; font-size:16px; font-weight:650; }
+.iw-shortcuts-close { width:30px; height:30px; border:0; border-radius:6px; background:transparent; color:#c8c8c8; font-size:24px; cursor:pointer; }
+.iw-shortcuts-close:hover { background:#3b3d42; color:#fff; }
+.iw-shortcuts-list { display:grid; gap:0; padding:8px 20px; }
+.iw-shortcuts-list>div { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:11px 0; border-bottom:1px solid #36373b; font-size:12px; }
+.iw-shortcuts-list>div:last-child { border-bottom:0; }
+.iw-shortcuts-list kbd { flex:none; padding:4px 7px; border:1px solid #55565c; border-radius:5px; background:#1c1c1f; color:#f0f0f0; font:11px/1.3 Consolas,monospace; }
+.iw-shortcuts-dialog p { margin:0; padding:0 20px 15px; color:#aeb4bf; font-size:11px; line-height:1.6; }
+.iw-shortcuts-footer { display:flex; justify-content:flex-end; padding:12px 20px; border-top:1px solid #3a3b40; }
+.iw-shortcuts-dialog[hidden] { display:none; }
+@media(max-width:480px) { .iw-studio-actions [data-action="shortcuts"] span { display:none; } }
+
+
+/* Explorer file operations and extension-aware thumbnails. */
+.iw-studio-section-heading { gap: 8px; }
+.iw-explorer-actions { display:flex; align-items:center; gap:2px; }
+.iw-explorer-actions button,
+.iw-explorer-actions a { display:grid; place-items:center; width:25px; height:25px; padding:0; border:0; border-radius:4px; background:transparent; color:#b8bdc5; cursor:pointer; }
+.iw-explorer-actions button:hover,
+.iw-explorer-actions a:hover { background:#3a3b40; color:#fff; }
+.iw-explorer-actions svg { width:14px; height:14px; }
+.iw-tree-node { position:relative; display:flex; align-items:center; min-width:0; }
+.iw-tree-node > .iw-tree-folder,
+.iw-tree-node > .iw-tree-file { flex:1; width:auto; }
+.iw-tree-node > .iw-tree-options { display:none; flex:none; width:23px; height:25px; margin-right:1px; padding:4px; border:0; border-radius:4px; background:transparent; color:#aeb4bf; cursor:pointer; }
+.iw-tree-node:hover > .iw-tree-options,
+.iw-tree-node:focus-within > .iw-tree-options { display:grid; place-items:center; }
+.iw-tree-options svg { width:14px; height:14px; }
+.iw-tree-node > .iw-tree-options:hover { background:#45464c; color:#fff; }
+.iw-tree-folder.is-selected-folder { background:#33383d; color:#fff; }
+.iw-tree-thumbnail { display:block; width:17px; height:17px; flex:none; border-radius:3px; object-fit:cover; background:#3a3b40; }
+.iw-tree-thumbnail[hidden] { display:none; }
+@media (hover:none) { .iw-tree-node > .iw-tree-options { display:grid; place-items:center; } }
+@media(max-width:480px) {
+  .iw-explorer-actions { gap:0; }
+  .iw-explorer-actions button, .iw-explorer-actions a { width:21px; height:24px; }
+  .iw-tree-node > .iw-tree-options { width:18px; }
+}
+
+
+/* Accessible file and folder context menu. */
+.iw-tree-menu { position:absolute; z-index:30; top:24px; right:4px; width:150px; padding:4px; border:1px solid #494b52; border-radius:7px; background:#25262a; box-shadow:0 12px 30px rgba(0,0,0,.4); }
+.iw-tree-menu-item { display:flex; align-items:center; gap:9px; width:100%; padding:8px 9px; border:0; border-radius:4px; background:transparent; color:#dedfe3; text-align:left; font:inherit; font-size:12px; cursor:pointer; }
+.iw-tree-menu-item:hover { background:#3a3c42; color:#fff; }
+.iw-tree-menu-item svg { width:14px; height:14px; color:#aeb4bf; }
+.iw-tree-menu-item.is-danger { color:#f29a94; }
+.iw-tree-menu-item.is-danger svg { color:#f29a94; }
+.iw-tree-menu-item.is-danger:hover { background:#4a2e30; color:#ffd5d2; }
+
+
+/* Inline file naming and renaming controls. */
+.iw-inline-name-row { display:flex; align-items:center; gap:4px; margin:4px 6px 6px; padding:4px; border:1px solid #52677e; border-radius:6px; background:#22262c; }
+.iw-inline-name-input { display:block; flex:1; min-width:0; width:100%; height:28px; padding:4px 7px; border:1px solid #454a53; border-radius:4px; outline:none; background:#17191d; color:#f1f3f5; font:inherit; font-size:12px; }
+.iw-inline-name-input:focus { border-color:#6ba4e8; box-shadow:0 0 0 2px rgba(107,164,232,.16); }
+.iw-inline-name-row button { display:grid; flex:none; place-items:center; width:27px; height:27px; padding:4px; border:0; border-radius:4px; background:transparent; color:#c4cad3; cursor:pointer; }
+.iw-inline-name-row button:hover { background:#3b414a; color:#fff; }
+.iw-inline-name-row button[type="submit"] { color:#8bd5a2; }
+.iw-inline-name-row svg { width:14px; height:14px; }
+.iw-tree-node { min-width:0; }
+.iw-tree-node > .iw-tree-options { flex-shrink:0; }
+
+
+/* Cleaner project tree: one indentation system, compact rows, and visible nesting guides. */
+.iw-tree-children { margin-left: 13px; padding-left: 8px; border-left: 1px solid #3a3c42; }
+.iw-tree-node { margin: 1px 0; }
+.iw-tree-folder, .iw-tree-file { min-height: 29px; }
+.iw-tree-folder[aria-expanded="false"] .iw-tree-caret { transform: none; }
+.iw-tree-folder.is-selected-folder { box-shadow: inset 2px 0 #6ba4e8; }
+.iw-tree-label { line-height: 1.35; }
+
+.iw-tree-node { position: relative; display: block; min-width: 0; }
+.iw-tree-row { display: flex; align-items: center; min-width: 0; }
+.iw-tree-row > .iw-tree-folder, .iw-tree-row > .iw-tree-file { min-width: 0; }
+.iw-tree-row > .iw-tree-options { flex-shrink: 0; }

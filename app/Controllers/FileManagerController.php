@@ -108,7 +108,7 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -156,7 +156,7 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -174,7 +174,50 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
+    }
+
+    /**
+     * Copy a draft file or folder and update storage accounting.
+     */
+    public function copy(): void
+    {
+        [$userId, $website] = $this->requireWebsiteFromPost();
+        $this->requireCsrf('/dashboard/websites/files?id=' . (int) $website['id']);
+
+        try {
+            $storage = new ProjectStorageService();
+            $from = $storage->normalizeRelativePath((string) $this->input('from_path', ''));
+            $to = $storage->normalizeRelativePath((string) $this->input('to_path', ''));
+            $items = $storage->listProjectFiles($userId, $website['slug']);
+            $copyBytes = 0;
+            foreach ($items as $item) {
+                if (($item['type'] ?? '') !== 'file') {
+                    continue;
+                }
+                $itemPath = (string) $item['path'];
+                if ($itemPath === $from || str_starts_with($itemPath, rtrim($from, '/') . '/')) {
+                    $copyBytes += (int) ($item['size'] ?? 0);
+                }
+            }
+
+            $websiteModel = new Website();
+            $planService = new PlanService();
+            $limit = $websiteModel->userPlan($userId) === 'premium' ? $planService->premiumStorageBytes() : $planService->freeStorageBytes();
+            if ($limit > 0 && $websiteModel->totalStorageForUser($userId) + $copyBytes > $limit) {
+                throw new \InvalidArgumentException('Copying this item would exceed your plan storage limit.');
+            }
+
+            $storage->copyProjectItem($userId, $website['slug'], $from, $to);
+            $websiteModel->syncFileRecords((int) $website['id'], $storage->listProjectFiles($userId, $website['slug']));
+            $newUsage = $storage->directorySize($storage->projectPath($userId, $website['slug']));
+            $websiteModel->updateStorageUsed((int) $website['id'], $newUsage);
+            Session::flash('success', 'Item copied.');
+        } catch (\Throwable $exception) {
+            Session::flash('error', $exception->getMessage());
+        }
+
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -218,7 +261,7 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -272,7 +315,7 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
     }
 
     /**
@@ -286,7 +329,7 @@ class FileManagerController extends Controller
             $file = (new ProjectStorageService())->downloadableFile($userId, $website['slug'], (string) $this->input('path', ''));
         } catch (\Throwable) {
             Session::flash('error', 'File was not found.');
-            $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+            $this->redirectAfterFileAction($website);
         }
 
         header('Content-Type: ' . $file['mime']);
@@ -308,7 +351,7 @@ class FileManagerController extends Controller
             $archive = (new ProjectArchiveService())->exportDraft($userId, $website['slug']);
         } catch (\Throwable $exception) {
             Session::flash('error', $exception->getMessage());
-            $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+            $this->redirectAfterFileAction($website);
         }
 
         header('Content-Type: application/zip');
@@ -365,7 +408,39 @@ class FileManagerController extends Controller
             Session::flash('error', $exception->getMessage());
         }
 
-        $this->redirectTo('/dashboard/websites/files?id=' . (int) $website['id']);
+        $this->redirectAfterFileAction($website);
+    }
+
+    /**
+     * Return file operations to the editor without allowing external redirects.
+     */
+    private function redirectAfterFileAction(array $website): void
+    {
+        $websiteId = (int) $website['id'];
+        $fallback = '/dashboard/websites/files?id=' . $websiteId;
+        $returnTo = trim((string) $this->input('return_to', $fallback));
+        $path = parse_url($returnTo, PHP_URL_PATH);
+        $query = parse_url($returnTo, PHP_URL_QUERY);
+        $queryValues = [];
+        if (is_string($query)) {
+            parse_str($query, $queryValues);
+        }
+
+        // The editor may run under a subdirectory locally. Validate the path and
+        // project ID, then rebuild a relative URL so external hosts are never trusted.
+        if (is_string($path)
+            && str_ends_with(rtrim($path, '/'), '/dashboard/websites/editor')
+            && (int) ($queryValues['id'] ?? 0) === $websiteId
+            && !str_contains($path, "\r")
+            && !str_contains($path, "\n")) {
+            // This path has already been validated and parsed from return_to.
+            // Redirect directly: redirectTo() prepends base_url and would corrupt
+            // paths that already include an installation subdirectory.
+            $safeReturnTo = $path . ($query !== null ? '?' . $query : '');
+            $this->redirect($safeReturnTo);
+        }
+
+        $this->redirectTo($fallback);
     }
 
     /**

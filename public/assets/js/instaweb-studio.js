@@ -27,10 +27,10 @@
   var cursorStatus = root.querySelector('[data-cursor-status]');
   var tabsHost = root.querySelector('.iw-studio-tabs');
   var currentTab = root.querySelector('[data-current-tab]');
+  var currentPath = String(config.currentPath || 'index.html');
   var openPaths = [currentPath];
   var editor = null;
   var models = {};
-  var currentPath = String(config.currentPath || 'index.html');
   var currentContent = String(config.currentContent || '');
   var currentExtension = String(config.extension || 'html').toLowerCase();
   var editVersion = 0;
@@ -43,6 +43,10 @@
   var previewVisible = !window.matchMedia('(max-width: 760px)').matches;
   var previousMobileLayout = window.matchMedia('(max-width: 760px)').matches;
   var latestRequest = 0;
+  var selectedFolder = '';
+  var clipboardPath = '';
+  var clipboardMode = 'copy';
+  var uploadInput = root.querySelector('[data-file-upload]');
 
   function languageFor(extension) {
     return ({ html: 'html', htm: 'html', css: 'css', js: 'javascript', json: 'json', md: 'markdown', txt: 'plaintext' })[extension] || 'plaintext';
@@ -123,6 +127,7 @@
     if (!previewFrame) return;
     var url = config.previewUrl || '';
     if (!url) return;
+    previewFrame.dataset.loaded = 'true';
     previewFrame.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_preview=' + Date.now();
   }
 
@@ -186,12 +191,116 @@
     scheduleSave();
   }
 
+  function submitFileAction(action, fields, fileInput) {
+    var routes = config.fileActions || {};
+    var endpoint = routes[action];
+    if (!endpoint) { setStatus('error', 'This file action is not configured.'); return; }
+    var actionForm = document.createElement('form');
+    actionForm.method = 'post';
+    actionForm.action = endpoint;
+    actionForm.enctype = fileInput ? 'multipart/form-data' : 'application/x-www-form-urlencoded';
+    actionForm.hidden = true;
+    var csrf = form ? form.querySelector('[name="_csrf"]') : null;
+    var values = Object.assign({ website_id: String(config.websiteId || ''), _csrf: csrf ? csrf.value : '', return_to: config.editorUrl + '?id=' + encodeURIComponent(config.websiteId) + '&path=' + encodeURIComponent(currentPath) }, fields || {});
+    Object.keys(values).forEach(function (name) {
+      var input = document.createElement('input');
+      input.type = 'hidden'; input.name = name; input.value = String(values[name] == null ? '' : values[name]);
+      actionForm.appendChild(input);
+    });
+    if (fileInput) {
+      fileInput.name = 'project_file';
+      actionForm.appendChild(fileInput);
+    }
+    document.body.appendChild(actionForm);
+    actionForm.submit();
+  }
+
+  function folderForPath(path) {
+    var normalized = String(path || '').replace(/\\\\/g, '/');
+    var index = normalized.lastIndexOf('/');
+    return index >= 0 ? normalized.slice(0, index) : '';
+  }
+
+  function showInlineNameInput(action, item, wrap) {
+    if (!treeHost) return;
+    treeHost.querySelectorAll('.iw-inline-name-row').forEach(function (row) { row.remove(); });
+    var row = document.createElement('form');
+    row.className = 'iw-inline-name-row';
+    row.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var value = input.value.trim();
+      if (!value) { input.focus(); return; }
+      if (action === 'rename') {
+        var parentPath = folderForPath(item.path);
+        var destination = (parentPath ? parentPath + '/' : '') + value;
+        if (destination === item.path) { row.remove(); return; }
+        submitFileAction('move', { from_path: item.path, to_path: destination });
+      } else if (action === 'new-folder') {
+        var folderPath = (selectedFolder ? selectedFolder + '/' : '') + value.split('/').filter(Boolean).join('/');
+        submitFileAction('createFolder', { folder_path: folderPath });
+      } else if (action === 'new-file') {
+        var filePath = (selectedFolder ? selectedFolder + '/' : '') + value.split('/').filter(Boolean).join('/');
+        submitFileAction('createFile', { file_path: filePath });
+      }
+    });
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'iw-inline-name-input';
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    input.setAttribute('aria-label', action === 'rename' ? 'Rename ' + item.name : action === 'new-folder' ? 'New folder name' : 'New file name');
+    input.placeholder = action === 'rename' ? 'New name' : action === 'new-folder' ? 'Folder name' : 'File name';
+    input.value = action === 'rename' && item ? item.name : '';
+    var submit = document.createElement('button');
+    submit.type = 'submit';
+    submit.title = 'Confirm';
+    submit.setAttribute('aria-label', 'Confirm name');
+    submit.innerHTML = '<i data-lucide="check"></i>';
+    var cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.title = 'Cancel';
+    cancel.setAttribute('aria-label', 'Cancel');
+    cancel.innerHTML = '<i data-lucide="x"></i>';
+    cancel.addEventListener('click', function () { row.remove(); });
+    row.appendChild(input);
+    row.appendChild(submit);
+    row.appendChild(cancel);
+    if (wrap && wrap.parentNode) wrap.parentNode.insertBefore(row, wrap.nextSibling);
+    else treeHost.insertBefore(row, treeHost.firstChild);
+    refreshIcons();
+    input.focus();
+    input.select();
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') { event.preventDefault(); row.remove(); }
+    });
+  }
+
+  function runItemAction(action, item, wrap) {
+    if (action === 'rename') {
+      showInlineNameInput('rename', item, wrap);
+    } else if (action === 'delete') {
+      if (!window.confirm('Delete "' + item.path + '"? This cannot be undone.')) return;
+      submitFileAction('delete', { path: item.path });
+    } else if (action === 'download') {
+      window.location.href = (config.fileActions.download || '') + '&path=' + encodeURIComponent(item.path);
+    } else if (action === 'copy') {
+      clipboardPath = item.path;
+      clipboardMode = 'copy';
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(item.path).catch(function () {});
+      setStatus('saved', 'Ready to copy: ' + item.path + ' · select a destination folder and press Paste');
+    } else if (action === 'cut') {
+      clipboardPath = item.path;
+      clipboardMode = 'cut';
+      setStatus('saved', 'Ready to move: ' + item.path + ' · select a destination folder and press Paste');
+    }
+  }
+
   function renderTree(query) {
     if (!treeHost) return;
     treeHost.replaceChildren();
     var normalizedQuery = String(query || '').trim().toLowerCase();
     var files = Array.isArray(config.files) ? config.files : [];
-    var rootNode = { name: '', type: 'folder', children: {} };
+    var rootNode = { name: '', path: '', type: 'folder', children: {} };
 
     files.forEach(function (file) {
       var path = String(file.path || '').replace(/\\/g, '/');
@@ -204,8 +313,8 @@
         }
         cursor = cursor.children[segment];
         if (index === segments.length - 1) {
-          cursor.type = 'file';
-          cursor.extension = String(file.extension || '').toLowerCase();
+          cursor.type = file.type === 'folder' ? 'folder' : 'file';
+          cursor.extension = cursor.type === 'file' ? String(file.extension || '').toLowerCase() : '';
           cursor.path = path;
         }
       });
@@ -222,31 +331,55 @@
         wrap.className = 'iw-tree-node';
         var button = document.createElement('button');
         button.type = 'button';
-        button.className = item.type === 'folder' ? 'iw-tree-folder' : 'iw-tree-file';
-        button.style.paddingLeft = (8 + Math.min(depth, 8) * 9) + 'px';
+        button.className = (item.type === 'folder' ? 'iw-tree-folder' : 'iw-tree-file') + (item.path === selectedFolder && item.type === 'folder' ? ' is-selected-folder' : '');
+        button.style.paddingLeft = '8px';
         if (item.type === 'folder') {
-          button.setAttribute('aria-expanded', 'true');
+          var containsCurrentFile = currentPath === item.path || currentPath.indexOf(item.path + '/') === 0;
+          var expandedByDefault = containsCurrentFile || normalizedQuery !== '';
+          button.setAttribute('aria-expanded', expandedByDefault ? 'true' : 'false');
           var caret = document.createElement('i');
           caret.setAttribute('data-lucide', 'chevron-down');
           caret.className = 'iw-tree-caret';
           button.appendChild(caret);
         } else {
           if (item.path === currentPath) button.classList.add('is-active');
-          var icon = document.createElement('i');
-          icon.setAttribute('data-lucide', iconFor(item));
-          button.appendChild(icon);
+          var imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
+          if (imageExtensions.indexOf(item.extension) !== -1) {
+            var thumbnail = document.createElement('img');
+            thumbnail.className = 'iw-tree-thumbnail';
+            thumbnail.alt = '';
+            thumbnail.loading = 'lazy';
+            thumbnail.src = config.baseUrl + '/dashboard/websites/preview/file?id=' + encodeURIComponent(config.websiteId) + '&path=' + encodeURIComponent(item.path);
+            thumbnail.onerror = function () { thumbnail.hidden = true; };
+            button.appendChild(thumbnail);
+          } else {
+            var icon = document.createElement('i');
+            icon.setAttribute('data-lucide', iconFor(item));
+            button.appendChild(icon);
+          }
         }
         var label = document.createElement('span');
         label.className = 'iw-tree-label';
         label.textContent = item.name;
         button.appendChild(label);
-        wrap.appendChild(button);
+        var row = document.createElement('div');
+        row.className = 'iw-tree-row';
+        row.appendChild(button);
+        wrap.appendChild(row);
 
         if (item.type === 'folder') {
           var childrenHost = document.createElement('div');
           childrenHost.className = 'iw-tree-children';
+          childrenHost.hidden = !expandedByDefault;
           appendChildren(childrenHost, item, depth + 1);
+          if (!expandedByDefault) {
+            var initialCaret = button.querySelector('.iw-tree-caret');
+            if (initialCaret) initialCaret.setAttribute('data-lucide', 'chevron-right');
+          }
           button.addEventListener('click', function () {
+            selectedFolder = item.path;
+            treeHost.querySelectorAll('.is-selected-folder').forEach(function (selected) { selected.classList.remove('is-selected-folder'); });
+            button.classList.add('is-selected-folder');
             var expanded = button.getAttribute('aria-expanded') === 'true';
             button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
             childrenHost.hidden = expanded;
@@ -257,8 +390,62 @@
           wrap.appendChild(childrenHost);
         } else {
           button.title = item.path;
-          button.addEventListener('click', function () { openFile(item.path); });
+          button.addEventListener('click', function () {
+            if (['html', 'htm', 'css', 'js', 'json', 'txt', 'md'].indexOf(item.extension) !== -1) {
+              openFile(item.path);
+            } else if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].indexOf(item.extension) !== -1) {
+              if (previewFrame) previewFrame.src = config.baseUrl + '/dashboard/websites/preview/file?id=' + encodeURIComponent(config.websiteId) + '&path=' + encodeURIComponent(item.path);
+              setPreviewVisible(true);
+            } else {
+              window.location.href = (config.fileActions.download || '') + '&path=' + encodeURIComponent(item.path);
+            }
+          });
         }
+        var menuButton = document.createElement('button');
+        menuButton.type = 'button';
+        menuButton.className = 'iw-tree-options';
+        menuButton.setAttribute('aria-label', 'Options for ' + item.name);
+        menuButton.title = 'File options';
+        var menuIcon = document.createElement('i');
+        menuIcon.setAttribute('data-lucide', 'ellipsis');
+        menuButton.appendChild(menuIcon);
+        menuButton.setAttribute('aria-haspopup', 'menu');
+        menuButton.setAttribute('aria-expanded', 'false');
+        menuButton.addEventListener('click', function (event) {
+          event.stopPropagation();
+          var existing = wrap.querySelector('.iw-tree-menu');
+          if (existing) { existing.remove(); menuButton.setAttribute('aria-expanded', 'false'); return; }
+          treeHost.querySelectorAll('.iw-tree-menu').forEach(function (menu) { menu.remove(); });
+          treeHost.querySelectorAll('.iw-tree-options[aria-expanded="true"]').forEach(function (openButton) { openButton.setAttribute('aria-expanded', 'false'); });
+          var menu = document.createElement('div');
+          menu.className = 'iw-tree-menu';
+          menu.setAttribute('role', 'menu');
+          var choices = item.type === 'folder'
+            ? [{ id: 'rename', label: 'Rename', icon: 'pencil' }, { id: 'cut', label: 'Cut', icon: 'scissors' }, { id: 'copy', label: 'Copy', icon: 'copy' }, { id: 'delete', label: 'Delete', icon: 'trash-2' }]
+            : [{ id: 'rename', label: 'Rename', icon: 'pencil' }, { id: 'cut', label: 'Cut', icon: 'scissors' }, { id: 'copy', label: 'Copy', icon: 'copy' }, { id: 'download', label: 'Download', icon: 'download' }, { id: 'delete', label: 'Delete', icon: 'trash-2' }];
+          choices.forEach(function (choice) {
+            var option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'iw-tree-menu-item' + (choice.id === 'delete' ? ' is-danger' : '');
+            option.setAttribute('role', 'menuitem');
+            var optionIcon = document.createElement('i');
+            optionIcon.setAttribute('data-lucide', choice.icon);
+            var optionLabel = document.createElement('span');
+            optionLabel.textContent = choice.label;
+            option.appendChild(optionIcon);
+            option.appendChild(optionLabel);
+            option.addEventListener('click', function () {
+              menu.remove();
+              menuButton.setAttribute('aria-expanded', 'false');
+              runItemAction(choice.id, item, wrap);
+            });
+            menu.appendChild(option);
+          });
+          wrap.appendChild(menu);
+          menuButton.setAttribute('aria-expanded', 'true');
+          refreshIcons();
+        });
+        row.appendChild(menuButton);
         parent.appendChild(wrap);
       });
     }
@@ -401,14 +588,105 @@
   root.querySelectorAll('[data-action]').forEach(function (button) {
     button.addEventListener('click', function () {
       var action = button.getAttribute('data-action');
-      if (action === 'save') saveBuffer();
-      if (action === 'preview') { saveBuffer().then(function (ok) { if (ok) { setPreviewVisible(true); refreshPreview(); } }); }
-      if (action === 'refresh-preview') { saveBuffer().then(function (ok) { if (ok) refreshPreview(); }); }
+      if (action === 'save') saveBuffer().then(function (ok) { if (ok) refreshPreview(); });
+      if (action === 'save-refresh-preview' || action === 'preview' || action === 'refresh-preview') {
+        saveBuffer().then(function (ok) {
+          if (!ok) return;
+          if (action === 'preview') setPreviewVisible(true);
+          refreshPreview();
+        });
+      }
       if (action === 'toggle-preview') setPreviewVisible(!previewVisible);
+      if (action === 'shortcuts') showShortcuts();
     });
   });
 
+  root.querySelectorAll('[data-file-action]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var action = button.getAttribute('data-file-action');
+      if (action === 'paste') {
+        if (!clipboardPath) { setStatus('error', 'Copy or cut a file or folder first.'); return; }
+        var name = clipboardPath.split('/').pop();
+        var destination = (selectedFolder ? selectedFolder + '/' : '') + name;
+        if (destination === clipboardPath) { setStatus('error', 'Choose a different destination folder first.'); return; }
+        if (clipboardMode === 'cut') submitFileAction('move', { from_path: clipboardPath, to_path: destination });
+        else submitFileAction('copy', { from_path: clipboardPath, to_path: destination });
+      } else if (action === 'new-file') {
+        showInlineNameInput('new-file');
+      } else if (action === 'new-folder') {
+        showInlineNameInput('new-folder');
+      } else if (action === 'upload' && uploadInput) {
+        uploadInput.click();
+      }
+    });
+  });
+  if (uploadInput) uploadInput.addEventListener('change', function () {
+    if (!uploadInput.files || !uploadInput.files.length) return;
+    var chosen = uploadInput.files[0];
+    var transfer = uploadInput;
+    // Upload endpoint currently accepts one file per request.
+    var hiddenFolder = selectedFolder;
+    submitFileAction('upload', { folder: hiddenFolder }, transfer);
+    setStatus('saving', 'Uploading ' + chosen.name + '…');
+  });
+
   if (searchInput) searchInput.addEventListener('input', function () { renderTree(searchInput.value); });
+
+  var shortcutDialog = root.querySelector('[data-shortcuts-dialog]');
+  function showShortcuts() {
+    if (!shortcutDialog) return;
+    if (typeof shortcutDialog.showModal === 'function') shortcutDialog.showModal();
+    else shortcutDialog.hidden = false;
+  }
+  function hideShortcuts() {
+    if (!shortcutDialog) return;
+    if (typeof shortcutDialog.close === 'function' && shortcutDialog.open) shortcutDialog.close();
+    else shortcutDialog.hidden = true;
+  }
+  if (shortcutDialog) {
+    shortcutDialog.addEventListener('click', function (event) {
+      if (event.target === shortcutDialog) hideShortcuts();
+    });
+    shortcutDialog.querySelectorAll('[data-shortcuts-close]').forEach(function (button) {
+      button.addEventListener('click', hideShortcuts);
+    });
+  }
+
+  document.addEventListener('keydown', function (event) {
+    if (!root.isConnected) return;
+    if (event.key === 'Escape' && shortcutDialog && shortcutDialog.open) {
+      hideShortcuts();
+      return;
+    }
+    var command = event.ctrlKey || event.metaKey;
+    var key = String(event.key || '').toLowerCase();
+    if (command && key === 's') {
+      event.preventDefault();
+      if (event.shiftKey) {
+        saveBuffer().then(function (ok) { if (ok) refreshPreview(); });
+      } else {
+        saveBuffer();
+      }
+      return;
+    }
+    if (event.key === 'F5') {
+      event.preventDefault();
+      saveBuffer().then(function (ok) { if (ok) refreshPreview(); });
+      return;
+    }
+    if (command && event.shiftKey && key === 'p') {
+      event.preventDefault();
+      showShortcuts();
+      return;
+    }
+    if (command && key === 'p' && searchInput) {
+      event.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+      return;
+    }
+  });
+
   if (fallback) {
     fallback.addEventListener('keydown', function (event) {
       if (event.key === 'Tab') {
@@ -429,9 +707,48 @@
   renderTabs();
   renderTree('');
 
-  // Show editable source immediately; do not wait for the preview iframe or window load.
+  // The server-rendered textarea is the first editor. Load heavyweight Monaco only
+  // after the browser has had a chance to paint the source and interactive controls.
   startFallback();
-  startMonaco();
+
+  function scheduleMonacoStartup() {
+    var loadMonaco = function () {
+      // Do not download Monaco twice if this function is ever called again.
+      if (window.require && window.require.config) {
+        startMonaco();
+        return;
+      }
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js';
+      script.async = true;
+      script.onload = startMonaco;
+      script.onerror = startFallback;
+      document.head.appendChild(script);
+    };
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(loadMonaco, { timeout: 1800 });
+    } else {
+      window.setTimeout(loadMonaco, 1000);
+    }
+  }
+
+  function schedulePreviewStartup() {
+    if (!previewFrame || !previewFrame.dataset.previewSrc) return;
+    var loadPreview = function () {
+      if (previewFrame.dataset.loaded === 'true') return;
+      previewFrame.dataset.loaded = 'true';
+      previewFrame.src = previewFrame.dataset.previewSrc;
+    };
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(loadPreview, { timeout: 1200 });
+    } else {
+      window.setTimeout(loadPreview, 700);
+    }
+  }
+
+  scheduleMonacoStartup();
+  schedulePreviewStartup();
   window.addEventListener('beforeunload', function (event) {
     if (isDirty()) {
       event.preventDefault();
