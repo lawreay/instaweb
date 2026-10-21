@@ -3,10 +3,17 @@ $active = 'dashboard';
 $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
 $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 ?>
-<div class="admin-pro-shell admin-dashboard-refresh">
+<div class="admin-pro-shell iw-client-shell admin-dashboard-refresh" data-admin-shell>
   <?php include APP_PATH . '/Views/admin/partials/sidebar.php'; ?>
+  <button class="iw-sidebar-backdrop" type="button" data-sidebar-close aria-label="Close navigation" tabindex="-1"></button>
 
-  <section class="admin-pro-main admin-dashboard-page">
+  <section class="admin-pro-main iw-client-main">
+    <header class="iw-client-topbar">
+      <button class="iw-mobile-menu" type="button" data-sidebar-open aria-controls="adminSidebar" aria-expanded="false" aria-label="Open navigation"><i data-lucide="menu"></i></button>
+      <div class="iw-topbar-context"><span class="iw-topbar-eyebrow">INSTAWEB WORKSPACE</span><span class="iw-topbar-page">Admin overview</span></div>
+      <div class="iw-topbar-actions"><a class="iw-topbar-account" href="<?= $e($baseUrl . '/profile') ?>"><i data-lucide="user-round"></i><span>Account</span></a></div>
+    </header>
+    <div class="admin-dashboard-page">
     <header class="ad-page-heading">
       <div>
         <p class="ad-eyebrow">InstaWeb / Control centre</p>
@@ -118,5 +125,6 @@ $e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES,
     </div>
 
     <footer class="ad-footer"><span>InstaWeb Admin Console · <?= $e(date('d M Y')) ?></span><a href="<?= $e($baseUrl . '/admin/settings') ?>">System settings</a></footer>
+    </div>
   </section>
 </div>

@@ -112,3 +112,62 @@
  .admin-dashboard-refresh .admin-pro-sidebar { width:min(86vw,300px); min-width:0; }
  .admin-dashboard-refresh .admin-pro-main { min-width:0; }
 }
+
+/* The administrator overview uses the exact compact workspace shell shown to clients. */
+.admin-dashboard-refresh .admin-pro-main.iw-client-main {
+  height: auto;
+  padding: 0;
+  overflow: visible;
+  background: var(--iw-shell-canvas);
+}
+
+.admin-dashboard-refresh .admin-pro-sidebar.iw-client-sidebar {
+  width: 100%;
+  min-width: 0;
+  padding: 1rem .65rem;
+  background: var(--iw-shell-surface);
+  border-right-color: var(--iw-shell-border);
+  box-shadow: none;
+}
+
+.admin-dashboard-refresh .admin-pro-brand.iw-client-brand {
+  justify-content: center;
+  padding: 0;
+  border: 0;
+}
+
+.admin-dashboard-refresh .admin-pro-logo.iw-client-brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  box-shadow: none;
+}
+
+.admin-dashboard-refresh .admin-pro-logo.iw-client-brand-mark img {
+  width: 100%;
+  height: 100%;
+}
+
+.admin-dashboard-refresh .admin-pro-sidebar-group { padding: 0; }
+.admin-dashboard-refresh .admin-pro-nav a { margin: 0; }
+.admin-dashboard-refresh .admin-pro-logout { margin: 0; }
+.admin-dashboard-refresh .admin-pro-logout button { border: 0; }
+
+@media (min-width: 900px) {
+  .admin-dashboard-refresh.is-expanded .admin-pro-brand.iw-client-brand { justify-content: flex-start; padding-left: .2rem; }
+}
+
+/* Keep the shared sidebar legible on the remaining administration screens. */
+.admin-pro-shell:not(.admin-dashboard-refresh) .admin-pro-brand.iw-client-brand {
+  justify-content: flex-start;
+  padding-left: .2rem;
+}
+.admin-pro-shell:not(.admin-dashboard-refresh) .iw-client-brand-copy,
+.admin-pro-shell:not(.admin-dashboard-refresh) .iw-client-nav a span,
+.admin-pro-shell:not(.admin-dashboard-refresh) .iw-client-logout span { display: block; }
+.admin-pro-shell:not(.admin-dashboard-refresh) .iw-client-nav a,
+.admin-pro-shell:not(.admin-dashboard-refresh) .iw-client-logout {
+  justify-content: flex-start;
+  padding-right: .8rem;
+  padding-left: .85rem;
+}

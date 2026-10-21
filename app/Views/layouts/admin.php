@@ -9,11 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <?php $themeSettings = (new \App\Models\Setting())->all(); ?>
-  <?php $themePrimary = $themeSettings['primary_color'] ?? '#0D6EFD'; ?>
-  <?php $themeSecondary = $themeSettings['secondary_color'] ?? '#00B4D8'; ?>
-  <?php $themeText = $themeSettings['text_color'] ?? '#e2dddd'; ?>
-  <?php $themeMutedText = $themeSettings['muted_text_color'] ?? '#64748b'; ?>
-  <?php $themeBackground = $themeSettings['page_background_color'] ?? 'linear-gradient(180deg, #f8fafc 0%, #eef7ff 100%)'; ?>
+  <?php $themePrimary = $themeSettings['primary_color'] ?? '#153E35'; ?>
+  <?php $themeSecondary = $themeSettings['secondary_color'] ?? '#B6D96C'; ?>
+  <?php $themeText = $themeSettings['text_color'] ?? '#182B25'; ?>
+  <?php $themeMutedText = $themeSettings['muted_text_color'] ?? '#6B756F'; ?>
+  <?php $themeBackground = $themeSettings['page_background_color'] ?? '#F7F6F0'; ?>
   <?php $themeSurfaceBg = $themeSettings['surface_background_color'] ?? '#ffffff'; ?>
   <?php $themeSurfaceBorder = $themeSettings['surface_border_color'] ?? 'rgba(15, 23, 42, 0.08)'; ?>
   <?php $themeSidebarBg = $themeSettings['sidebar_background_color'] ?? '#FFFFFF'; ?>
@@ -39,7 +39,8 @@
     }
   </style>
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/styles.css', ENT_QUOTES, 'UTF-8') ?>">
-  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/admin-dashboard-refresh.css', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard.css?v=20261021-topbar-plan', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/admin-dashboard-refresh.css?v=20261021-client-shell', ENT_QUOTES, 'UTF-8') ?>">
   <?php $appIcon = trim((string) ($themeSettings['app_icon_url'] ?? '')); ?>
   <?php if ($appIcon !== ''): ?>
     <link rel="icon" href="<?= htmlspecialchars($appIcon, ENT_QUOTES, 'UTF-8') ?>">
@@ -77,5 +78,26 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script src="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/js/main.js?v=20260629-tabs', ENT_QUOTES, 'UTF-8') ?>"></script>
+  <script>
+    (function () {
+      var shell = document.querySelector('[data-admin-shell]');
+      var sidebar = document.getElementById('adminSidebar');
+      if (!shell || !sidebar) return;
+      var key = 'instaweb-admin-sidebar-expanded';
+      var setExpanded = function (expanded) {
+        shell.classList.toggle('is-expanded', expanded);
+        var control = shell.querySelector('[data-sidebar-collapse]');
+        if (control) {
+          control.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+          control.setAttribute('aria-label', expanded ? 'Collapse sidebar' : 'Expand sidebar');
+        }
+        try { localStorage.setItem(key, expanded ? '1' : '0'); } catch (_) {}
+      };
+      try { setExpanded(localStorage.getItem(key) === '1'); } catch (_) {}
+      shell.querySelector('[data-sidebar-collapse]')?.addEventListener('click', function () { setExpanded(!shell.classList.contains('is-expanded')); });
+      shell.querySelector('[data-sidebar-open]')?.addEventListener('click', function () { shell.classList.add('mobile-nav-open'); document.body.classList.add('client-nav-locked'); });
+      shell.querySelector('[data-sidebar-close]')?.addEventListener('click', function () { shell.classList.remove('mobile-nav-open'); document.body.classList.remove('client-nav-locked'); });
+    }());
+  </script>
 </body>
 </html>
