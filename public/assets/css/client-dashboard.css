@@ -1638,12 +1638,19 @@ body.dashboard-body > .client-dashboard {
   white-space: nowrap;
 }
 
-.iw-topbar-account {
+.iw-topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.iw-topbar-account,
+.iw-topbar-plan {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   min-height: 40px;
-  margin-left: auto;
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--iw-shell-border);
   border-radius: 10px;
@@ -1654,14 +1661,22 @@ body.dashboard-body > .client-dashboard {
   text-decoration: none;
 }
 
-.iw-topbar-account:hover {
+.iw-topbar-account:hover,
+.iw-topbar-plan:hover {
   border-color: #c7d5c9;
   color: var(--iw-shell-primary);
 }
 
-.iw-topbar-account svg {
+.iw-topbar-account svg,
+.iw-topbar-plan svg {
   width: 17px;
   height: 17px;
+}
+
+.iw-topbar-plan {
+  border-color: #d7e9c9;
+  background: #f4faed;
+  color: #466c2c;
 }
 
 .iw-client-main > .admin-toast {
@@ -1816,6 +1831,10 @@ body.dashboard-body > .client-dashboard {
   }
 
   .iw-topbar-account span {
+    display: none;
+  }
+
+  .iw-topbar-plan span {
     display: none;
   }
 

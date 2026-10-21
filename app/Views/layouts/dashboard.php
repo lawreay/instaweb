@@ -36,8 +36,8 @@
     }
   </style>
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/styles.css', ENT_QUOTES, 'UTF-8') ?>">
-  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard.css?v=20261019-mobile-drawer-a11y', ENT_QUOTES, 'UTF-8') ?>">
-  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard-home.css?v=20261018-client-pages', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard.css?v=20261021-topbar-plan', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard-home.css?v=20261021-compact-hero', ENT_QUOTES, 'UTF-8') ?>">
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard-pages.css?v=20261019-mobile-header-fix', ENT_QUOTES, 'UTF-8') ?>">
   <?php $appIcon = trim((string) ($themeSettings['app_icon_url'] ?? '')); ?>
   <?php if ($appIcon !== ''): ?>
@@ -55,6 +55,11 @@
   $clientHeaderPath = '/' . ltrim($clientHeaderPath, '/');
   $clientHeaderPath = rtrim($clientHeaderPath, '/') ?: '/';
   $clientBaseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
+  $topbarPlanName = '';
+  if ($clientHeaderPath === '/dashboard' && isset($plan)) {
+      $topbarPlanKey = strtolower((string) $plan);
+      $topbarPlanName = (string) ($planDetails[$topbarPlanKey]['name'] ?? ucfirst($topbarPlanKey));
+  }
   ?>
   <div class="iw-client-shell" data-client-shell>
     <aside class="iw-client-sidebar" id="clientSidebar" aria-label="Client workspace navigation">
@@ -96,9 +101,14 @@
           <span class="iw-topbar-eyebrow">INSTAWEB WORKSPACE</span>
           <span class="iw-topbar-page"><?= htmlspecialchars($clientHeaderPath === '/dashboard' ? 'Overview' : (str_starts_with($clientHeaderPath, '/dashboard/websites') ? 'My Websites' : ($clientHeaderPath === '/dashboard/notifications' ? 'Notifications' : (str_starts_with($clientHeaderPath, '/profile') ? 'Account Settings' : 'Workspace'))), ENT_QUOTES, 'UTF-8') ?></span>
         </div>
-        <a class="iw-topbar-account" href="<?= htmlspecialchars($clientBaseUrl . '/profile', ENT_QUOTES, 'UTF-8') ?>" aria-label="Open account settings">
-          <i data-lucide="user-round"></i><span>Account</span>
-        </a>
+        <div class="iw-topbar-actions">
+          <?php if ($topbarPlanName !== ''): ?>
+            <a class="iw-topbar-plan" href="#iwSubscription"><i data-lucide="crown"></i><span><?= htmlspecialchars($topbarPlanName, ENT_QUOTES, 'UTF-8') ?> plan</span></a>
+          <?php endif; ?>
+          <a class="iw-topbar-account" href="<?= htmlspecialchars($clientBaseUrl . '/profile', ENT_QUOTES, 'UTF-8') ?>" aria-label="Open account settings">
+            <i data-lucide="user-round"></i><span>Account</span>
+          </a>
+        </div>
       </header>
   <?php foreach (['success' => 'success', 'warning' => 'warning', 'error' => 'danger'] as $key => $type): ?>
     <?php $message = \App\Core\Session::pullFlash($key); ?>

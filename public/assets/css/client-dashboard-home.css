@@ -90,10 +90,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 2rem;
+  gap: 1.25rem;
   max-width: 1500px;
   margin: 0 auto 1.25rem;
-  padding: clamp(1.4rem, 3vw, 2.4rem);
+  padding: clamp(1rem, 2vw, 1.35rem) clamp(1.25rem, 2.5vw, 2rem);
   overflow: hidden;
   border-radius: 22px;
   background: var(--iw-ink);
@@ -103,9 +103,9 @@
   content: "";
   position: absolute;
   right: 11%;
-  top: -110px;
-  width: 300px;
-  height: 300px;
+  top: -135px;
+  width: 250px;
+  height: 250px;
   border: 1px solid rgba(185, 231, 105, 0.25);
   border-radius: 50%;
   box-shadow: 0 0 0 36px rgba(185, 231, 105, 0.045), 0 0 0 74px rgba(185, 231, 105, 0.035);
@@ -117,7 +117,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.45rem;
   color: var(--iw-accent);
   font-size: 0.72rem;
   font-weight: 800;
@@ -135,17 +135,17 @@
   max-width: 680px;
   margin: 0;
   color: #fff;
-  font-size: clamp(1.45rem, 2.7vw, 2.25rem);
+  font-size: clamp(1.3rem, 2.1vw, 1.75rem);
   font-weight: 800;
   letter-spacing: -0.045em;
   line-height: 1.18;
 }
 .iw-home .iw-hero p {
   max-width: 620px;
-  margin: 0.7rem 0 0;
+  margin: 0.35rem 0 0;
   color: #c0cdc5;
   font-size: 0.92rem;
-  line-height: 1.7;
+  line-height: 1.5;
 }
 .iw-home .iw-hero-action { display: flex; align-items: center; justify-content: flex-end; }
 .iw-home .iw-stats {
