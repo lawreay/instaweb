@@ -6,12 +6,12 @@
       <?php if ($adminLogoUrl !== ''): ?>
         <img src="<?= htmlspecialchars($adminLogoUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Admin logo">
       <?php else: ?>
-        T
+        <i data-lucide="layers" aria-hidden="true"></i>
       <?php endif; ?>
     </div>
     <div>
       <strong>Instaweb</strong>
-      <span>Admin Console</span>
+      <span>Admin workspace</span>
     </div>
   </div>
 
