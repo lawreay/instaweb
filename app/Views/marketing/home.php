@@ -36,7 +36,7 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
 .nx.js [data-r=left]{transform:translateX(-70px)}.nx.js [data-r=right]{transform:translateX(70px)}.nx.js [data-r=zoom]{transform:scale(.9)}
 .nx.js [data-r].in{opacity:1;transform:none}
 /* hero */
-.nx-hero{min-height:100svh;display:flex;align-items:center;padding:110px 0 80px;position:relative;background:radial-gradient(900px 600px at 78% 40%,rgba(94,234,212,.22),transparent 70%),radial-gradient(700px 500px at 10% 90%,rgba(96,165,250,.16),transparent 70%),linear-gradient(135deg,#08111f,#0b1930)}
+.nx-hero{min-height:100svh;display:flex;align-items:center;padding:110px 0 80px;position:relative;background:transparent}
 .nx-hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center}
 .nx-hero h1{font-size:clamp(2.7rem,6.4vw,5.2rem);font-weight:700}
 .nx-hero .nx-lede{font-size:1.18rem}
@@ -49,9 +49,11 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
 .nx-float,.nx-spin{transform-style:preserve-3d;position:absolute;inset:0}
 @keyframes nxfloat{50%{transform:translateY(-18px)}}
 @keyframes nxspin{from{transform:rotateY(-26deg) rotateX(6deg)}to{transform:rotateY(26deg) rotateX(3deg)}}
-.nx-laptop-photo{position:absolute;inset:18px -22px auto;width:424px;margin:0;overflow:hidden;border:1px solid rgba(255,255,255,.22);border-radius:20px;box-shadow:0 32px 90px -18px rgba(0,0,0,.7),0 0 0 1px rgba(94,234,212,.14)}
-.nx-laptop-photo img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
-.nx-laptop-photo:after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(94,234,212,.12),transparent 48%,rgba(8,17,31,.22));pointer-events:none}
+.nx-device-stage{position:absolute;inset:0}.nx-laptop{position:absolute;right:-34px;top:42px;width:385px;height:248px;overflow:hidden;border:9px solid #334155;border-radius:16px;background:#08111f;box-shadow:0 30px 64px rgba(0,0,0,.45)}
+.nx-laptop:after{content:'';position:absolute;left:-30px;right:-30px;bottom:-24px;height:26px;border-radius:0 0 50% 50%;background:#64748b;box-shadow:0 9px 0 #1e293b}.nx-code-bar{display:flex;gap:6px;align-items:center;height:28px;padding:0 11px;border-bottom:1px solid #26354a;background:#111c2e}.nx-code-bar i{width:7px;height:7px;border-radius:50%;background:#fb7185}.nx-code-bar i:nth-child(2){background:#facc15}.nx-code-bar i:nth-child(3){background:#5eead4}.nx-code-bar span{margin-left:7px;color:#9fb0c8;font:10px 'IBM Plex Mono',monospace}
+.nx-code{padding:19px 20px;color:#d9e7ff;font:11px/1.85 'IBM Plex Mono',monospace}.nx-code b{color:#f0abfc;font-weight:500}.nx-code i{color:#5eead4;font-style:normal}.nx-code .indent{padding-left:18px}.nx-code .comment{color:#8192aa}
+.nx-phone{position:absolute;left:-4px;top:14px;width:150px;height:286px;padding:11px;border:7px solid #475569;border-radius:26px;background:#0b1322;box-shadow:0 24px 48px rgba(0,0,0,.42);z-index:2}.nx-phone:before{content:'';display:block;width:54px;height:8px;margin:0 auto 10px;border-radius:999px;background:#334155}.nx-phone-ui{height:237px;padding:12px;border-radius:14px;background:#edf7f2;color:#15251e;font:10px 'DM Sans',sans-serif}.nx-phone-ui strong{display:block;font-size:13px}.nx-phone-ui small{display:block;margin-top:3px;color:#607568}.nx-phone-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:13px}.nx-phone-stats span{padding:8px;border-radius:8px;background:#fff;color:#294436;font-weight:700}.nx-phone-stats em{display:block;margin-top:3px;color:#6b7f72;font-size:8px;font-style:normal;font-weight:500}.nx-phone-chart{height:68px;margin-top:10px;padding:10px;border-radius:9px;background:#fff}.nx-phone-chart i{display:inline-block;width:10px;height:var(--h);margin-right:5px;vertical-align:bottom;border-radius:3px 3px 0 0;background:#59b98d}
+.nx-device-chip{position:absolute;z-index:3;padding:8px 11px;border:1px solid rgba(190,202,224,.24);border-radius:10px;background:#121f35;color:#e8f1ff;font-size:.76rem;box-shadow:0 10px 28px rgba(0,0,0,.25)}.nx-device-chip.live{right:-5px;bottom:0}.nx-device-chip.sync{left:120px;bottom:18px;color:#a7f3d0}
 .nx-cloud{position:absolute;left:50%;top:-70px;width:200px;height:96px;margin-left:-100px;transform:translate3d(var(--cloud-x,0px),var(--cloud-y,0px),70px) scale(var(--cloud-scale,1));will-change:transform}
 .nx-cloud:before,.nx-cloud:after,.nx-cloud span{content:'';position:absolute;background:linear-gradient(#f4fffe,#a7f3ec);border-radius:50%}
 .nx-cloud span{left:0;bottom:0;width:200px;height:58px;border-radius:40px}
@@ -144,7 +146,11 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
       <div class="nx-rig" id="nxRig"><div class="nx-float"><div class="nx-spin">
         <div class="nx-cloud" id="nxCloud"><span></span><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
         <div class="nx-beam"></div>
-        <figure class="nx-laptop-photo"><img src="https://images.unsplash.com/photo-1641736494173-e7d5775121b2?auto=format&amp;fit=crop&amp;w=960&amp;q=85" alt=""></figure>
+        <div class="nx-device-stage">
+          <div class="nx-phone"><div class="nx-phone-ui"><strong>Workspace</strong><small>Good morning, Nancy</small><div class="nx-phone-stats"><span>3<em>Websites</em></span><span>2<em>Published</em></span></div><div class="nx-phone-chart"><i style="--h:28%"></i><i style="--h:55%"></i><i style="--h:42%"></i><i style="--h:76%"></i><i style="--h:63%"></i></div></div></div>
+          <div class="nx-laptop"><div class="nx-code-bar"><i></i><i></i><i></i><span>index.html</span></div><div class="nx-code"><b>&lt;main&gt;</b><br><span class="indent"><b>&lt;h1&gt;</b>Build online<b>&lt;/h1&gt;</b></span><br><span class="indent"><b>&lt;p&gt;</b><i>Publish with Instaweb</i><b>&lt;/p&gt;</b></span><br><span class="comment">// your site is live</span><br><b>&lt;/main&gt;</b></div></div>
+          <span class="nx-device-chip sync">✓ Synced</span><span class="nx-device-chip live">● Live preview</span>
+        </div>
       </div></div></div>
       <span class="nx-chip" style="left:2%;top:26%;--t:5.5s">Static sites</span>
       <span class="nx-chip" style="right:0;top:40%;--t:6.5s">WordPress</span>
