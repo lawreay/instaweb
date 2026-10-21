@@ -40,7 +40,7 @@
   </style>
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/styles.css', ENT_QUOTES, 'UTF-8') ?>">
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard.css?v=20261021-topbar-plan', ENT_QUOTES, 'UTF-8') ?>">
-  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/admin-dashboard-refresh.css?v=20261021-client-shell', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/admin-dashboard-refresh.css?v=20261021-admin-polish-1', ENT_QUOTES, 'UTF-8') ?>">
   <?php $appIcon = trim((string) ($themeSettings['app_icon_url'] ?? '')); ?>
   <?php if ($appIcon !== ''): ?>
     <link rel="icon" href="<?= htmlspecialchars($appIcon, ENT_QUOTES, 'UTF-8') ?>">
@@ -94,9 +94,31 @@
         try { localStorage.setItem(key, expanded ? '1' : '0'); } catch (_) {}
       };
       try { setExpanded(localStorage.getItem(key) === '1'); } catch (_) {}
-      shell.querySelector('[data-sidebar-collapse]')?.addEventListener('click', function () { setExpanded(!shell.classList.contains('is-expanded')); });
-      shell.querySelector('[data-sidebar-open]')?.addEventListener('click', function () { shell.classList.add('mobile-nav-open'); document.body.classList.add('client-nav-locked'); });
-      shell.querySelector('[data-sidebar-close]')?.addEventListener('click', function () { shell.classList.remove('mobile-nav-open'); document.body.classList.remove('client-nav-locked'); });
+      var mobileMenu = shell.querySelector('[data-sidebar-open]');
+      var closeButton = shell.querySelector('[data-sidebar-close]');
+      var closeMobileNav = function () {
+        shell.classList.remove('mobile-nav-open');
+        document.body.classList.remove('client-nav-locked');
+        if (mobileMenu) mobileMenu.setAttribute('aria-expanded', 'false');
+      };
+      shell.querySelector('[data-sidebar-collapse]')?.addEventListener('click', function () {
+        setExpanded(!shell.classList.contains('is-expanded'));
+      });
+      mobileMenu?.addEventListener('click', function () {
+        shell.classList.add('mobile-nav-open');
+        document.body.classList.add('client-nav-locked');
+        mobileMenu.setAttribute('aria-expanded', 'true');
+      });
+      closeButton?.addEventListener('click', closeMobileNav);
+      shell.querySelectorAll('#adminSidebar nav a').forEach(function (link) {
+        link.addEventListener('click', closeMobileNav);
+      });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeMobileNav();
+      });
+      window.addEventListener('resize', function () {
+        if (window.innerWidth > 900) closeMobileNav();
+      });
     }());
   </script>
 </body>
