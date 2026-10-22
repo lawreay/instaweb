@@ -1,0 +1,12 @@
+# LOCAL PROOF OF CONCEPT ONLY.
+# Do not deploy this compose file as a public editor service.
+services:
+  openvscode:
+    image: gitpod/openvscode-server:latest
+    init: true
+    ports:
+      # Bind to loopback so this test is not exposed to the local network.
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./workspace:/home/workspace
+    restart: "no"
