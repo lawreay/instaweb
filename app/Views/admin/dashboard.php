@@ -1,190 +1,144 @@
-<div class="admin-pro-shell">
-  <?php $active = 'dashboard'; include APP_PATH . '/Views/admin/partials/sidebar.php'; ?>
+<?php
+$active = 'dashboard';
+$baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
+$e = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+?>
+<div class="admin-pro-shell iw-client-shell admin-dashboard-refresh" data-admin-shell>
+  <?php include APP_PATH . '/Views/admin/partials/sidebar.php'; ?>
+  <button class="iw-sidebar-backdrop" type="button" data-sidebar-close aria-label="Close navigation" tabindex="-1"></button>
 
-  <section class="admin-pro-main">
-    <header class="admin-pro-topbar">
-      
-      <div class="admin-pro-topbar-right">
-        <form class="admin-pro-search" action="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/users', ENT_QUOTES, 'UTF-8') ?>" method="GET">
-          <i data-lucide="search"></i>
-          <input type="search" name="q" placeholder="Search users, websites, payments" aria-label="Search admin" />
-          <button type="submit"><i data-lucide="arrow-right"></i></button>
-        </form>
-        <button type="button" class="admin-pro-icon-btn" aria-label="Notifications">
-          <i data-lucide="bell"></i>
-          <span class="icon-badge"></span>
-        </button>
-        <a class="btn btn-primary btn-sm" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/users', ENT_QUOTES, 'UTF-8') ?>">
-          <i data-lucide="plus"></i> Add user
-        </a>
+  <section class="admin-pro-main iw-client-main">
+    <header class="ad-topbar">
+      <button class="ad-topbar-menu" type="button" data-sidebar-open aria-controls="adminSidebar" aria-expanded="false" aria-label="Open navigation"><i data-lucide="menu"></i></button>
+      <div class="ad-topbar-context">
+        <span class="ad-topbar-eyebrow">INSTAWEB WORKSPACE</span>
+        <span class="ad-topbar-page">Admin overview</span>
+      </div>
+      <nav class="ad-topbar-actions" aria-label="Account actions">
+        <a class="ad-topbar-link" href="<?= $e($baseUrl . '/admin/notifications') ?>"><i data-lucide="bell"></i><span>Notifications</span></a>
+        <a class="ad-topbar-link" href="<?= $e($baseUrl . '/profile') ?>"><i data-lucide="user-round"></i><span>Account</span></a>
+      </nav>
+    </header>
+    <div class="admin-dashboard-page">
+    <header class="ad-page-heading">
+      <div>
+        <p class="ad-eyebrow">InstaWeb / Control centre</p>
+        <h1>Platform overview</h1>
+        <p class="ad-subtitle">A clear view of your users, hosted websites, and platform activity.</p>
+      </div>
+      <div class="ad-actions">
+        <a class="ad-button" href="<?= $e($baseUrl . '/admin/websites') ?>"><i data-lucide="globe-2"></i> Manage websites</a>
+        <a class="ad-button ad-button-primary" href="<?= $e($baseUrl . '/admin/users') ?>"><i data-lucide="user-plus"></i> Manage users</a>
       </div>
     </header>
 
-    <div class="admin-pro-summary-panel">
-      <div class="admin-pro-card">
-        <div>
-          <span>Users</span>
-          <strong><?= number_format($stats['users']) ?></strong>
-        </div>
-        <i data-lucide="users"></i>
-      </div>
-      <div class="admin-pro-card">
-        <div>
-          <span>Websites</span>
-          <strong><?= number_format($stats['websites']) ?></strong>
-        </div>
-        <i data-lucide="globe-2"></i>
-      </div>
-      <div class="admin-pro-card">
-        <div>
-          <span>Revenue</span>
-          <strong>MWK <?= number_format($stats['paid_revenue'], 2) ?></strong>
-        </div>
-        <i data-lucide="banknote"></i>
-      </div>
-      <div class="admin-pro-card">
-        <div>
-          <span>Reports</span>
-          <strong><?= number_format($stats['reports']) ?></strong>
-        </div>
-        <i data-lucide="flag"></i>
-      </div>
-    </div>
+    <section class="ad-metrics" aria-label="Platform statistics">
+      <article class="ad-metric">
+        <div class="ad-metric-top"><span>Total users</span><span class="ad-metric-icon"><i data-lucide="users"></i></span></div>
+        <strong class="ad-metric-value"><?= number_format((int) ($stats['users'] ?? 0)) ?></strong>
+        <p class="ad-metric-note"><?= number_format((int) ($stats['active_users'] ?? 0)) ?> active accounts</p>
+      </article>
+      <article class="ad-metric">
+        <div class="ad-metric-top"><span>Hosted websites</span><span class="ad-metric-icon"><i data-lucide="globe-2"></i></span></div>
+        <strong class="ad-metric-value"><?= number_format((int) ($stats['websites'] ?? 0)) ?></strong>
+        <p class="ad-metric-note"><?= number_format((int) ($stats['published_websites'] ?? 0)) ?> published websites</p>
+      </article>
+      <article class="ad-metric">
+        <div class="ad-metric-top"><span>Paid revenue</span><span class="ad-metric-icon"><i data-lucide="wallet"></i></span></div>
+        <strong class="ad-metric-value">MWK <?= number_format((float) ($stats['paid_revenue'] ?? 0), 2) ?></strong>
+        <p class="ad-metric-note"><?= number_format((int) ($stats['payments'] ?? 0)) ?> payment records</p>
+      </article>
+      <article class="ad-metric">
+        <div class="ad-metric-top"><span>Open reports</span><span class="ad-metric-icon"><i data-lucide="flag"></i></span></div>
+        <strong class="ad-metric-value"><?= number_format((int) ($stats['pending_reports'] ?? 0)) ?></strong>
+        <p class="ad-metric-note"><?= number_format((int) ($stats['reports'] ?? 0)) ?> reports submitted in total</p>
+      </article>
+    </section>
 
-    <?php
-      $siteValue = max(1, (int) ($stats['websites'] ?? 0));
-      $revenueValue = max(1.0, (float) ($stats['paid_revenue'] ?? 0));
-      $chartMax = max($siteValue, $revenueValue);
-      $siteHeight = 110 * min(1, $siteValue / $chartMax);
-      $revenueHeight = 110 * min(1, $revenueValue / $chartMax);
-      $revenuePerSite = $siteValue > 0 ? $revenueValue / $siteValue : 0;
-    ?>
-
-    <div class="row g-4">
-      <div class="col-xl-8">
-        <div class="admin-pro-card mb-4">
-          <div class="admin-pro-card-head">
-            <h2>Revenue vs Sites</h2>
-            <span>Current snapshot</span>
+    <div class="ad-main-grid">
+      <div class="ad-stack">
+        <section class="ad-panel">
+          <div class="ad-panel-heading">
+            <div><h2>Recently registered users</h2><p>The latest accounts created on InstaWeb.</p></div>
+            <a class="ad-panel-link" href="<?= $e($baseUrl . '/admin/users') ?>">All users <i data-lucide="arrow-up-right"></i></a>
           </div>
-          <div class="revenue-sites-chart">
-            <svg viewBox="0 0 320 180" role="img" aria-label="Revenue versus number of sites chart">
-              <line x1="30" y1="145" x2="292" y2="145" stroke="var(--surface-border, #dbe3ee)" stroke-width="2" />
-              <line x1="30" y1="35" x2="30" y2="145" stroke="var(--surface-border, #dbe3ee)" stroke-width="2" />
-              <rect x="72" y="<?= 145 - $siteHeight ?>" width="72" height="<?= $siteHeight ?>" rx="10" fill="var(--app-primary, #0d6efd)" />
-              <rect x="176" y="<?= 145 - $revenueHeight ?>" width="72" height="<?= $revenueHeight ?>" rx="10" fill="var(--app-secondary, #00b4d8)" />
-              <text x="108" y="166" text-anchor="middle" class="chart-label">Sites</text>
-              <text x="212" y="166" text-anchor="middle" class="chart-label">Revenue</text>
-              <text x="108" y="<?= 138 - $siteHeight ?>" text-anchor="middle" class="chart-value"><?= number_format($siteValue) ?></text>
-              <text x="212" y="<?= 138 - $revenueHeight ?>" text-anchor="middle" class="chart-value">MWK <?= number_format($revenueValue, 0) ?></text>
-            </svg>
-            <div class="chart-footnote">
-              <span>Revenue per site</span>
-              <strong>MWK <?= number_format($revenuePerSite, 2) ?></strong>
-            </div>
-          </div>
-        </div>
-        <div class="admin-pro-card">
-          <div class="admin-pro-card-head">
-            <h2>Recent Users</h2>
-            <span><?= count($recentUsers) ?> shown</span>
-          </div>
-          <div class="table-responsive">
-            <table class="admin-pro-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Verified</th>
-                </tr>
-              </thead>
+          <div class="ad-table-wrap">
+            <table class="ad-table">
+              <thead><tr><th>User</th><th>Role</th><th>Account status</th><th>Email</th></tr></thead>
               <tbody>
-                <?php foreach ($recentUsers as $user): ?>
-                  <tr>
-                    <td>
-                      <strong><?= htmlspecialchars($user['fullname'], ENT_QUOTES, 'UTF-8') ?></strong>
-                      <small>@<?= htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8') ?></small>
-                    </td>
-                    <td><?= htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><span class="status-chip"><?= htmlspecialchars($user['role'], ENT_QUOTES, 'UTF-8') ?></span></td>
-                    <td><span class="status-chip <?= htmlspecialchars($user['account_status'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($user['account_status'], ENT_QUOTES, 'UTF-8') ?></span></td>
-                    <td><?= ((int) $user['email_verified']) === 1 ? 'Yes' : 'No' ?></td>
-                  </tr>
-                <?php endforeach; ?>
-                <?php if ($recentUsers === []): ?>
-                  <tr><td colspan="5">No users found.</td></tr>
-                <?php endif; ?>
+              <?php foreach ($recentUsers as $user): ?>
+                <tr>
+                  <td><span class="ad-primary-cell"><?= $e($user['fullname'] ?? 'Unnamed user') ?></span><span class="ad-secondary-cell">@<?= $e($user['username'] ?? '') ?></span></td>
+                  <td><?= $e(ucwords(str_replace('_', ' ', (string) ($user['role'] ?? 'user')))) ?></td>
+                  <td><span class="ad-pill <?= $e(strtolower((string) ($user['account_status'] ?? 'unknown'))) ?>"><?= $e(ucwords(str_replace('_', ' ', (string) ($user['account_status'] ?? 'unknown')))) ?></span></td>
+                  <td><?= ((int) ($user['email_verified'] ?? 0)) === 1 ? '<span class="ad-pill active">Verified</span>' : '<span class="ad-pill pending">Unverified</span>' ?></td>
+                </tr>
+              <?php endforeach; ?>
+              <?php if ($recentUsers === []): ?><tr><td colspan="4" class="ad-empty">No user accounts have been registered yet.</td></tr><?php endif; ?>
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
+
+        <section class="ad-panel">
+          <div class="ad-panel-heading">
+            <div><h2>Recently added websites</h2><p>Hosting records and their current status.</p></div>
+            <a class="ad-panel-link" href="<?= $e($baseUrl . '/admin/websites') ?>">All websites <i data-lucide="arrow-up-right"></i></a>
+          </div>
+          <div class="ad-table-wrap">
+            <table class="ad-table">
+              <thead><tr><th>Website</th><th>Owner</th><th>Status</th><th>Storage used</th></tr></thead>
+              <tbody>
+              <?php foreach ($recentWebsites as $website): ?>
+                <tr>
+                  <td><span class="ad-primary-cell"><?= $e(($website['website_name'] ?? '') ?: 'Untitled website') ?></span><span class="ad-secondary-cell"><?= $e(($website['custom_domain'] ?? '') ?: (($website['subdomain'] ?? '') ?: ($website['slug'] ?? ''))) ?></span></td>
+                  <td><?= $e($website['username'] ?? 'Unknown') ?><span class="ad-secondary-cell"><?= $e($website['email'] ?? '') ?></span></td>
+                  <td><span class="ad-pill <?= $e(strtolower((string) ($website['status'] ?? 'unknown'))) ?>"><?= $e(ucwords(str_replace('_', ' ', (string) ($website['status'] ?? 'unknown')))) ?></span></td>
+                  <td><?= number_format(((int) ($website['storage_used'] ?? 0)) / 1048576, 2) ?> MB</td>
+                </tr>
+              <?php endforeach; ?>
+              <?php if ($recentWebsites === []): ?><tr><td colspan="4" class="ad-empty">No websites have been created yet.</td></tr><?php endif; ?>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
 
-      <div class="col-xl-4">
-        <div class="admin-pro-card h-100">
-          <div class="admin-pro-card-head">
-            <h2>Payments</h2>
-            <span>Summary</span>
-          </div>
-          <div class="admin-pro-summary-list">
+      <aside class="ad-stack ad-side-grid">
+        <section class="ad-panel">
+          <div class="ad-panel-heading"><div><h2>Payment summary</h2><p>Records grouped by payment status.</p></div><a class="ad-panel-link" href="<?= $e($baseUrl . '/admin/payments') ?>">View all <i data-lucide="arrow-up-right"></i></a></div>
+          <div class="ad-payment-list">
             <?php foreach ($paymentSummary as $payment): ?>
-              <div>
-                <span><?= htmlspecialchars($payment['payment_status'], ENT_QUOTES, 'UTF-8') ?></span>
-                <strong><?= number_format((float) $payment['amount'], 2) ?></strong>
+              <div class="ad-payment-row">
+                <div class="ad-payment-label"><span class="ad-payment-icon"><i data-lucide="credit-card"></i></span><div><strong><?= $e(ucwords(str_replace('_', ' ', (string) ($payment['payment_status'] ?? 'unknown')))) ?></strong><small><?= number_format((int) ($payment['total'] ?? 0)) ?> transactions</small></div></div>
+                <span class="ad-payment-amount">MWK <?= number_format((float) ($payment['amount'] ?? 0), 2) ?></span>
               </div>
             <?php endforeach; ?>
-            <?php if ($paymentSummary === []): ?>
-              <p class="text-secondary mb-0">No payment records yet.</p>
-            <?php endif; ?>
+            <?php if ($paymentSummary === []): ?><p class="ad-empty">No payment records yet.</p><?php endif; ?>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <div class="col-12">
-        <div class="admin-pro-card">
-          <div class="admin-pro-card-head">
-            <h2>Recent Websites</h2>
-            <span>Hosting records</span>
+        <section class="ad-panel">
+          <div class="ad-panel-heading"><div><h2>Quick access</h2><p>Common platform administration tasks.</p></div></div>
+          <div class="ad-shortcuts">
+            <a class="ad-shortcut" href="<?= $e($baseUrl . '/admin/users') ?>"><span class="ad-shortcut-icon"><i data-lucide="users"></i></span><span><strong>User management</strong><small>Accounts, roles, and plans</small></span><i data-lucide="chevron-right"></i></a>
+            <a class="ad-shortcut" href="<?= $e($baseUrl . '/admin/websites') ?>"><span class="ad-shortcut-icon"><i data-lucide="globe-2"></i></span><span><strong>Website management</strong><small>Hosting records and status</small></span><i data-lucide="chevron-right"></i></a>
+            <a class="ad-shortcut" href="<?= $e($baseUrl . '/admin/reports') ?>"><span class="ad-shortcut-icon"><i data-lucide="shield-alert"></i></span><span><strong>Review reports</strong><small>Investigate reported websites</small></span><i data-lucide="chevron-right"></i></a>
+            <a class="ad-shortcut" href="<?= $e($baseUrl . '/admin/settings') ?>"><span class="ad-shortcut-icon"><i data-lucide="settings"></i></span><span><strong>Platform settings</strong><small>Configure InstaWeb</small></span><i data-lucide="chevron-right"></i></a>
           </div>
-          <div class="table-responsive">
-            <table class="admin-pro-table">
-              <thead>
-                <tr>
-                  <th>Website</th>
-                  <th>Owner</th>
-                  <th>Status</th>
-                  <th>Storage</th>
-                  <th>Created</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php foreach ($recentWebsites as $website): ?>
-                  <tr>
-                    <td>
-                      <strong><?= htmlspecialchars($website['website_name'] ?: 'Untitled website', ENT_QUOTES, 'UTF-8') ?></strong>
-                      <small><?= htmlspecialchars($website['subdomain'] ?: $website['slug'], ENT_QUOTES, 'UTF-8') ?></small>
-                    </td>
-                    <td><?= htmlspecialchars($website['username'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><span class="status-chip <?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?></span></td>
-                    <td><?= number_format(((int) $website['storage_used']) / 1048576, 2) ?> MB</td>
-                    <td><?= htmlspecialchars($website['created_at'], ENT_QUOTES, 'UTF-8') ?></td>
-                  </tr>
-                <?php endforeach; ?>
-                <?php if ($recentWebsites === []): ?>
-                  <tr><td colspan="5">No websites found yet.</td></tr>
-                <?php endif; ?>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+        </section>
+      </aside>
     </div>
 
-    <footer class="admin-pro-footer">
-      <span>Dashboard updated <?= htmlspecialchars(date('d M Y'), ENT_QUOTES, 'UTF-8') ?></span>
-      <span>Need help? <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/settings', ENT_QUOTES, 'UTF-8') ?>">System settings</a></span>
+    <footer class="ad-footer">
+      <span>© <?= $e(date('Y')) ?> InstaWeb · Administration</span>
+      <nav aria-label="Administrative and legal links">
+        <a href="<?= $e($baseUrl . '/admin/settings') ?>">System settings</a>
+        <a href="<?= $e($baseUrl . '/admin/legal') ?>">Policies</a>
+        <a href="<?= $e($baseUrl . '/terms') ?>">Terms</a>
+        <a href="<?= $e($baseUrl . '/privacy') ?>">Privacy</a>
+      </nav>
     </footer>
+    </div>
   </section>
 </div>
