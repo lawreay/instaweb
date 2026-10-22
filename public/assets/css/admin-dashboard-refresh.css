@@ -430,3 +430,15 @@
   .admin-dashboard-refresh.mobile-nav-open .admin-sidebar-overlay { display: block; }
   .admin-dashboard-refresh .ad-topbar { z-index: 10; }
 }
+
+@media (max-width: 900px) {
+  .admin-dashboard-refresh .admin-pro-sidebar,
+  .admin-pro-shell .admin-pro-sidebar { z-index: 1050; }
+  .admin-dashboard-refresh.sidebar-open .admin-pro-sidebar,
+  .admin-dashboard-refresh.mobile-nav-open .admin-pro-sidebar,
+  .admin-pro-shell.sidebar-open .admin-pro-sidebar,
+  .admin-pro-shell.mobile-nav-open .admin-pro-sidebar { transform: translateX(0); }
+  .admin-pro-shell .admin-sidebar-overlay { display: none; }
+  .admin-pro-shell.sidebar-open .admin-sidebar-overlay,
+  .admin-pro-shell.mobile-nav-open .admin-sidebar-overlay { display: block; }
+}
