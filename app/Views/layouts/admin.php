@@ -77,6 +77,6 @@
   <?= $content ?? '' ?>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-  <script src="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/js/main.js?v=20260629-tabs', ENT_QUOTES, 'UTF-8') ?>"></script>
+  <script src="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/js/main.js?v=20261022-sidebar-state-fix', ENT_QUOTES, 'UTF-8') ?>"></script>
 </body>
 </html>

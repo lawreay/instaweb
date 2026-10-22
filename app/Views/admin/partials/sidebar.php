@@ -70,11 +70,12 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       // Migrate the old numeric value to the canonical boolean value.
       var saved = localStorage.getItem(storageKey);
-      if (saved === '1') {
-        localStorage.setItem(storageKey, 'true');
-        return true;
+      if (saved === '1' || saved === '0') {
+        var expanded = saved === '1';
+        localStorage.setItem(storageKey, expanded ? 'true' : 'false');
+        return expanded;
       }
-      return saved === 'true' || saved === '1';
+      return saved === 'true';
     } catch (e) {
       return false;
     }
