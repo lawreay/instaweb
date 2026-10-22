@@ -54,14 +54,14 @@
 /* Admin navigation: use the existing controls, persist desktop collapse state, and
    keep the mobile drawer above the backdrop instead of underneath it. */
 document.addEventListener('DOMContentLoaded', function () {
-  var shell = document.querySelector('[data-admin-shell]');
+  var shell = document.querySelector('[data-admin-shell], .admin-pro-shell');
   if (!shell || shell.dataset.adminSidebarReady === 'true') return;
   shell.dataset.adminSidebarReady = 'true';
 
   var sidebar = shell.querySelector('#adminSidebar');
   var collapse = shell.querySelector('[data-sidebar-collapse]');
-  var open = shell.querySelector('[data-sidebar-open]');
-  var backdrop = shell.querySelector('[data-sidebar-close]');
+  var open = shell.querySelector('[data-sidebar-open], [data-admin-sidebar-toggle]');
+  var backdrop = shell.querySelector('[data-sidebar-close], [data-admin-sidebar-overlay]');
   if (!sidebar) return;
 
   var storageKey = 'instaweb-admin-sidebar-expanded';
