@@ -40,7 +40,7 @@
   </style>
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/styles.css', ENT_QUOTES, 'UTF-8') ?>">
   <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/client-dashboard.css?v=20261021-topbar-plan', ENT_QUOTES, 'UTF-8') ?>">
-  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/admin-dashboard-refresh.css?v=20261021-admin-polish-1', ENT_QUOTES, 'UTF-8') ?>">
+  <link rel="stylesheet" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/css/admin-dashboard-refresh.css?v=20261022-sidebar-state-fix', ENT_QUOTES, 'UTF-8') ?>">
   <?php $appIcon = trim((string) ($themeSettings['app_icon_url'] ?? '')); ?>
   <?php if ($appIcon !== ''): ?>
     <link rel="icon" href="<?= htmlspecialchars($appIcon, ENT_QUOTES, 'UTF-8') ?>">
@@ -78,48 +78,5 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script src="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/js/main.js?v=20260629-tabs', ENT_QUOTES, 'UTF-8') ?>"></script>
-  <script>
-    (function () {
-      var shell = document.querySelector('[data-admin-shell]');
-      var sidebar = document.getElementById('adminSidebar');
-      if (!shell || !sidebar) return;
-      var key = 'instaweb-admin-sidebar-expanded';
-      var setExpanded = function (expanded) {
-        shell.classList.toggle('is-expanded', expanded);
-        var control = shell.querySelector('[data-sidebar-collapse]');
-        if (control) {
-          control.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-          control.setAttribute('aria-label', expanded ? 'Collapse sidebar' : 'Expand sidebar');
-        }
-        try { localStorage.setItem(key, expanded ? '1' : '0'); } catch (_) {}
-      };
-      try { setExpanded(localStorage.getItem(key) === '1'); } catch (_) {}
-      var mobileMenu = shell.querySelector('[data-sidebar-open]');
-      var closeButton = shell.querySelector('[data-sidebar-close]');
-      var closeMobileNav = function () {
-        shell.classList.remove('mobile-nav-open');
-        document.body.classList.remove('client-nav-locked');
-        if (mobileMenu) mobileMenu.setAttribute('aria-expanded', 'false');
-      };
-      shell.querySelector('[data-sidebar-collapse]')?.addEventListener('click', function () {
-        setExpanded(!shell.classList.contains('is-expanded'));
-      });
-      mobileMenu?.addEventListener('click', function () {
-        shell.classList.add('mobile-nav-open');
-        document.body.classList.add('client-nav-locked');
-        mobileMenu.setAttribute('aria-expanded', 'true');
-      });
-      closeButton?.addEventListener('click', closeMobileNav);
-      shell.querySelectorAll('#adminSidebar nav a').forEach(function (link) {
-        link.addEventListener('click', closeMobileNav);
-      });
-      document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') closeMobileNav();
-      });
-      window.addEventListener('resize', function () {
-        if (window.innerWidth > 900) closeMobileNav();
-      });
-    }());
-  </script>
 </body>
 </html>

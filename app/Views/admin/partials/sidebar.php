@@ -66,6 +66,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var storageKey = 'instaweb-admin-sidebar-expanded';
   var mobileQuery = window.matchMedia('(max-width: 900px)');
+  var readExpanded = function () {
+    try {
+      // Migrate the old numeric value to the canonical boolean value.
+      var saved = localStorage.getItem(storageKey);
+      if (saved === '1') {
+        localStorage.setItem(storageKey, 'true');
+        return true;
+      }
+      return saved === 'true' || saved === '1';
+    } catch (e) {
+      return false;
+    }
+  };
   var setExpanded = function (expanded, persist) {
     if (mobileQuery.matches) expanded = true;
     shell.classList.toggle('is-expanded', !!expanded);
@@ -92,8 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.style.overflow = 'hidden';
   };
 
-  var expanded = false;
-  try { expanded = localStorage.getItem(storageKey) === 'true'; } catch (e) {}
+  var expanded = readExpanded();
   setExpanded(expanded, false);
 
   if (collapse) collapse.addEventListener('click', function () {
@@ -115,9 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
     closeMobile();
     if (mobileQuery.matches) setExpanded(true, false);
     else {
-      var saved = false;
-      try { saved = localStorage.getItem(storageKey) === 'true'; } catch (e) {}
-      setExpanded(saved, false);
+      setExpanded(readExpanded(), false);
     }
   };
   if (mobileQuery.addEventListener) mobileQuery.addEventListener('change', handleBreakpoint);

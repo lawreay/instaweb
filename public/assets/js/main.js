@@ -168,7 +168,9 @@ function initializeResponsiveSidebars() {
     });
   });
 
-  document.querySelectorAll('.admin-pro-shell').forEach((shell) => {
+  // The redesigned admin dashboard provides its own controller for its compact
+  // sidebar. Keep this legacy controller for the remaining admin screens only.
+  document.querySelectorAll('.admin-pro-shell:not([data-admin-shell])').forEach((shell) => {
     const sidebar = shell.querySelector('.admin-pro-sidebar');
     if (!sidebar) {
       return;
