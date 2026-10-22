@@ -398,3 +398,35 @@
   .admin-dashboard-refresh *::before,
   .admin-dashboard-refresh *::after { scroll-behavior: auto!important; transition-duration: .01ms!important; animation-duration: .01ms!important; animation-iteration-count: 1!important; }
 }
+
+
+/* Admin sidebar interaction fixes: keep desktop state consistent and use a true mobile drawer. */
+.admin-dashboard-refresh .admin-pro-sidebar { position: sticky; }
+.admin-dashboard-refresh .iw-sidebar-collapse {
+  z-index: 35;
+  top: 1.55rem;
+  right: .55rem;
+}
+.admin-dashboard-refresh.is-expanded .iw-sidebar-collapse { right: .55rem; }
+.admin-dashboard-refresh .admin-pro-brand { padding-right: 2.2rem; }
+.admin-dashboard-refresh.is-expanded .admin-pro-brand { padding-right: 2.2rem; }
+.admin-dashboard-refresh .iw-sidebar-backdrop { display: none; }
+@media (max-width: 900px) {
+  .admin-dashboard-refresh .admin-pro-sidebar { z-index: 1050; }
+  .admin-dashboard-refresh .iw-sidebar-backdrop,
+  .admin-dashboard-refresh .admin-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: rgba(17, 24, 39, .42);
+    cursor: pointer;
+  }
+  .admin-dashboard-refresh.sidebar-open .iw-sidebar-backdrop,
+  .admin-dashboard-refresh.mobile-nav-open .iw-sidebar-backdrop,
+  .admin-dashboard-refresh.sidebar-open .admin-sidebar-overlay,
+  .admin-dashboard-refresh.mobile-nav-open .admin-sidebar-overlay { display: block; }
+  .admin-dashboard-refresh .ad-topbar { z-index: 10; }
+}
