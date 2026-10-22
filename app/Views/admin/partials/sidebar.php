@@ -1,36 +1,31 @@
-<aside class="admin-pro-sidebar">
+<aside class="admin-pro-sidebar iw-client-sidebar" id="adminSidebar" aria-label="Administrator navigation">
   <?php $sidebarSettings = (new \App\Models\Setting())->all(); ?>
   <?php $adminLogoUrl = trim((string) ($sidebarSettings['admin_logo'] ?? '')); ?>
-  <div class="admin-pro-brand">
-    <div class="admin-pro-logo">
+  <a class="admin-pro-brand iw-client-brand" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin', ENT_QUOTES, 'UTF-8') ?>" aria-label="InstaWeb admin overview">
+    <span class="admin-pro-logo iw-client-brand-mark">
       <?php if ($adminLogoUrl !== ''): ?>
         <img src="<?= htmlspecialchars($adminLogoUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Admin logo">
       <?php else: ?>
-        T
+        <i data-lucide="layers"></i>
       <?php endif; ?>
-    </div>
-    <div>
+    </span>
+    <span class="iw-client-brand-copy">
       <strong>Instaweb</strong>
-      <span>Admin Console</span>
-    </div>
-  </div>
+      <small>Admin workspace</small>
+    </span>
+  </a>
+  <button class="iw-sidebar-collapse" type="button" data-sidebar-collapse aria-label="Expand sidebar" aria-expanded="false" title="Expand sidebar">
+    <i data-lucide="panel-left-open"></i>
+  </button>
 
-  <nav class="admin-pro-nav">
+  <nav class="admin-pro-nav iw-client-nav" aria-label="Main navigation">
     <div class="admin-pro-sidebar-group">
-      <p class="group-title">Workspace</p>
       <a class="<?= ($active ?? '') === 'dashboard' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin', ENT_QUOTES, 'UTF-8') ?>">
-        <i data-lucide="layout-dashboard"></i><span>Dashboard</span>
+        <i data-lucide="layout-dashboard"></i><span>Overview</span>
       </a>
       <a class="<?= ($active ?? '') === 'websites' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/websites', ENT_QUOTES, 'UTF-8') ?>">
         <i data-lucide="globe-2"></i><span>Websites</span>
       </a>
-      <a class="<?= ($active ?? '') === 'media' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/media', ENT_QUOTES, 'UTF-8') ?>">
-        <i data-lucide="image"></i><span>Media</span>
-      </a>
-    </div>
-
-    <div class="admin-pro-sidebar-group">
-      <p class="group-title">Management</p>
       <a class="<?= ($active ?? '') === 'users' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/users', ENT_QUOTES, 'UTF-8') ?>">
         <i data-lucide="users"></i><span>Users</span>
       </a>
@@ -40,38 +35,103 @@
       <a class="<?= ($active ?? '') === 'reports' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/reports', ENT_QUOTES, 'UTF-8') ?>">
         <i data-lucide="flag"></i><span>Reports</span>
       </a>
-      <a class="<?= ($active ?? '') === 'notifications' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/notifications', ENT_QUOTES, 'UTF-8') ?>">
-        <i data-lucide="bell"></i><span>Notifications</span>
-      </a>
-    </div>
-
-    <div class="admin-pro-sidebar-group">
-      <p class="group-title">Settings</p>
-      <a class="<?= ($active ?? '') === 'profile' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/profile', ENT_QUOTES, 'UTF-8') ?>">
-        <i data-lucide="user"></i><span>Profile</span>
-      </a>
       <a class="<?= ($active ?? '') === 'settings' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/settings', ENT_QUOTES, 'UTF-8') ?>">
         <i data-lucide="settings"></i><span>Settings</span>
-      </a>
-      <a class="<?= ($active ?? '') === 'legal' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/legal', ENT_QUOTES, 'UTF-8') ?>">
-        <i data-lucide="shield-check"></i><span>Legal</span>
-      </a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/dashboard', ENT_QUOTES, 'UTF-8') ?>">
-        <i data-lucide="monitor"></i><span>Client View</span>
-      </a>
-      <a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/', ENT_QUOTES, 'UTF-8') ?>">
-        <i data-lucide="globe"></i><span>Website</span>
       </a>
     </div>
   </nav>
 
-  <div class="admin-pro-sidebar-card">
-    <strong>Admin</strong>
-    <small>Logged in as <?= htmlspecialchars(\App\Core\Session::get('user_name', 'Admin'), ENT_QUOTES, 'UTF-8') ?></small>
+  <div class="iw-sidebar-bottom">
+    <form method="POST" action="<?= htmlspecialchars(($app['base_url'] ?? '') . '/logout', ENT_QUOTES, 'UTF-8') ?>" class="admin-pro-logout">
+      <?= \App\Core\Csrf::field() ?>
+      <button type="submit" class="iw-client-logout"><i data-lucide="log-out"></i><span>Sign out</span></button>
+    </form>
   </div>
-
-  <form method="POST" action="<?= htmlspecialchars(($app['base_url'] ?? '') . '/logout', ENT_QUOTES, 'UTF-8') ?>" class="admin-pro-logout">
-    <?= \App\Core\Csrf::field() ?>
-    <button type="submit"><i data-lucide="log-out"></i><span>Log out</span></button>
-  </form>
 </aside>
+
+
+<script>
+/* Admin navigation: use the existing controls, persist desktop collapse state, and
+   keep the mobile drawer above the backdrop instead of underneath it. */
+document.addEventListener('DOMContentLoaded', function () {
+  var shell = document.querySelector('[data-admin-shell], .admin-pro-shell');
+  if (!shell || shell.dataset.adminSidebarReady === 'true') return;
+  shell.dataset.adminSidebarReady = 'true';
+
+  var sidebar = shell.querySelector('#adminSidebar');
+  var collapse = shell.querySelector('[data-sidebar-collapse]');
+  var open = shell.querySelector('[data-sidebar-open], [data-admin-sidebar-toggle]');
+  var backdrop = shell.querySelector('[data-sidebar-close], [data-admin-sidebar-overlay]');
+  if (!sidebar) return;
+
+  var storageKey = 'instaweb-admin-sidebar-expanded';
+  var mobileQuery = window.matchMedia('(max-width: 900px)');
+  var readExpanded = function () {
+    try {
+      // Migrate the old numeric value to the canonical boolean value.
+      var saved = localStorage.getItem(storageKey);
+      if (saved === '1' || saved === '0') {
+        var expanded = saved === '1';
+        localStorage.setItem(storageKey, expanded ? 'true' : 'false');
+        return expanded;
+      }
+      return saved === 'true';
+    } catch (e) {
+      return false;
+    }
+  };
+  var setExpanded = function (expanded, persist) {
+    if (mobileQuery.matches) expanded = true;
+    shell.classList.toggle('is-expanded', !!expanded);
+    if (collapse) {
+      collapse.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      collapse.setAttribute('aria-label', expanded ? 'Collapse sidebar' : 'Expand sidebar');
+      collapse.title = expanded ? 'Collapse sidebar' : 'Expand sidebar';
+      var icon = collapse.querySelector('[data-lucide]');
+      if (icon) icon.setAttribute('data-lucide', expanded ? 'panel-left-close' : 'panel-left-open');
+    }
+    if (persist && !mobileQuery.matches) {
+      try { localStorage.setItem(storageKey, expanded ? 'true' : 'false'); } catch (e) {}
+    }
+    if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+  };
+  var closeMobile = function () {
+    shell.classList.remove('sidebar-open', 'mobile-nav-open');
+    if (open) open.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  };
+  var openMobile = function () {
+    shell.classList.add('sidebar-open');
+    if (open) open.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  };
+
+  var expanded = readExpanded();
+  setExpanded(expanded, false);
+
+  if (collapse) collapse.addEventListener('click', function () {
+    if (!mobileQuery.matches) setExpanded(!shell.classList.contains('is-expanded'), true);
+  });
+  if (open) open.addEventListener('click', function () {
+    if (mobileQuery.matches) {
+      shell.classList.contains('sidebar-open') ? closeMobile() : openMobile();
+    }
+  });
+  if (backdrop) backdrop.addEventListener('click', closeMobile);
+  sidebar.querySelectorAll('a').forEach(function (link) {
+    link.addEventListener('click', function () { if (mobileQuery.matches) closeMobile(); });
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') closeMobile();
+  });
+  var handleBreakpoint = function () {
+    closeMobile();
+    if (mobileQuery.matches) setExpanded(true, false);
+    else {
+      setExpanded(readExpanded(), false);
+    }
+  };
+  if (mobileQuery.addEventListener) mobileQuery.addEventListener('change', handleBreakpoint);
+  else if (mobileQuery.addListener) mobileQuery.addListener(handleBreakpoint);
+});
+</script>
