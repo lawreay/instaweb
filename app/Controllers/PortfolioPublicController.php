@@ -36,12 +36,14 @@ class PortfolioPublicController extends Controller
             return;
         }
 
+        $advancedModel = new AdvancedPortfolio();
         header('Content-Type: text/html; charset=UTF-8');
         echo View::render('portfolio/public', [
             'app' => $this->config,
             'website' => $website,
             'portfolio' => $portfolio,
             'projects' => $portfolioModel->projects((int) $portfolio['id']),
+            'advancedSettings' => $advancedModel->settings((int) $website['id'], (int) $website['user_id']),
         ], '');
     }
 }
