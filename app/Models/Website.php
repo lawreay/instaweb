@@ -19,7 +19,7 @@ class Website extends Model
     public function forUser(int $userId): array
     {
         $statement = $this->query(
-            'SELECT id, user_id, website_name, slug, subdomain, custom_domain, storage_used, bandwidth_used, status, expires_at, created_at
+            'SELECT id, user_id, website_name, slug, template_key, subdomain, custom_domain, storage_used, bandwidth_used, status, expires_at, created_at
              FROM websites
              WHERE user_id = :user_id
              ORDER BY created_at DESC',
@@ -50,17 +50,18 @@ class Website extends Model
     /**
      * Create a website project record.
      */
-    public function createProject(int $userId, string $name, string $slug, bool $premium, int $freeHostingDays = 30): int
+    public function createProject(int $userId, string $name, string $slug, bool $premium, int $freeHostingDays = 30, string $templateKey = 'blank'): int
     {
         $expiresAt = $premium ? null : (new DateTimeImmutable('+' . max(1, $freeHostingDays) . ' days'))->format('Y-m-d H:i:s');
         $statement = $this->database->prepare(
-            'INSERT INTO websites (user_id, website_name, slug, status, expires_at)
-             VALUES (:user_id, :website_name, :slug, :status, :expires_at)'
+            'INSERT INTO websites (user_id, website_name, slug, template_key, status, expires_at)
+             VALUES (:user_id, :website_name, :slug, :template_key, :status, :expires_at)'
         );
         $statement->execute([
             'user_id' => $userId,
             'website_name' => $name,
             'slug' => $slug,
+            'template_key' => $templateKey,
             'status' => 'draft',
             'expires_at' => $expiresAt,
         ]);
