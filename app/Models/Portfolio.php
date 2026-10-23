@@ -35,6 +35,26 @@ class Portfolio extends Model
     }
 
     /**
+     * Load public portfolio content only when its parent website is published.
+     */
+    public function findPublishedForWebsite(int $websiteId): ?array
+    {
+        $statement = $this->query(
+            "SELECT p.*, w.website_name, w.slug, w.status AS website_status
+             FROM portfolios p
+             INNER JOIN websites w ON w.id = p.website_id AND w.user_id = p.user_id
+             WHERE p.website_id = :website_id
+               AND w.template_key = 'portfolio'
+               AND w.status = 'published'
+             LIMIT 1",
+            ['website_id' => $websiteId]
+        );
+        $portfolio = $statement->fetch();
+
+        return $portfolio ?: null;
+    }
+
+    /**
      * Create a default portfolio for an already-created website project.
      */
     public function createForWebsite(
