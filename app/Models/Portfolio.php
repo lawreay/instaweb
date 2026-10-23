@@ -118,4 +118,63 @@ class Portfolio extends Model
 
         return $statement->fetchAll();
     }
+
+    /**
+     * Add a project only when the portfolio and website belong to the current user.
+     */
+    public function addProjectForOwner(int $portfolioId, int $websiteId, int $userId, array $data): bool
+    {
+        $statement = $this->query(
+            'INSERT INTO portfolio_projects (portfolio_id, title, summary, project_url, sort_order)
+             SELECT p.id, :title, :summary, :project_url,
+                    COALESCE((SELECT MAX(existing.sort_order) + 1
+                              FROM portfolio_projects existing
+                              WHERE existing.portfolio_id = p.id), 0)
+             FROM portfolios p
+             INNER JOIN websites w ON w.id = p.website_id
+             WHERE p.id = :portfolio_id
+               AND p.website_id = :website_id
+               AND p.user_id = :user_id
+               AND w.user_id = :website_user_id',
+            [
+                'title' => $data['title'],
+                'summary' => $data['summary'],
+                'project_url' => $data['project_url'],
+                'portfolio_id' => $portfolioId,
+                'website_id' => $websiteId,
+                'user_id' => $userId,
+                'website_user_id' => $userId,
+            ]
+        );
+
+        return $statement->rowCount() === 1;
+    }
+
+    /**
+     * Delete a project only through a portfolio owned by the current user.
+     */
+    public function deleteProjectForOwner(int $projectId, int $portfolioId, int $websiteId, int $userId): bool
+    {
+        $statement = $this->query(
+            'DELETE pp
+             FROM portfolio_projects pp
+             INNER JOIN portfolios p ON p.id = pp.portfolio_id
+             INNER JOIN websites w ON w.id = p.website_id
+             WHERE pp.id = :project_id
+               AND p.id = :portfolio_id
+               AND p.website_id = :website_id
+               AND p.user_id = :user_id
+               AND w.user_id = :website_user_id',
+            [
+                'project_id' => $projectId,
+                'portfolio_id' => $portfolioId,
+                'website_id' => $websiteId,
+                'user_id' => $userId,
+                'website_user_id' => $userId,
+            ]
+        );
+
+        return $statement->rowCount() === 1;
+    }
+
 }
