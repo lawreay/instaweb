@@ -174,7 +174,8 @@ class WebsiteController extends Controller
                 ? (new PublicSiteUrlService())->absoluteUrl(
                     (string) ($this->config['base_url'] ?? ''),
                     (int) $website['id'],
-                    (string) $website['slug']
+                    (string) $website['slug'],
+                    (string) ($website['template_key'] ?? 'blank')
                 )
                 : '',
             'active' => 'websites',
