@@ -65,7 +65,9 @@ $formatBytes = static function (int $bytes): string {
                 <?php else: ?>
                   <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
                 <?php endif; ?>
+                <?php if (!in_array(strtolower((string) ($website['template_key'] ?? 'blank')), ['wordpress', 'portfolio'], true)): ?>
                 <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> File manager</a>
+                <?php endif; ?>
                 <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
                   <button type="button" class="btn btn-sm btn-outline-secondary btn-share-site" data-share-url="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" title="Share site"><i data-lucide="share-2"></i> Share</button>
                 <?php endif; ?>
