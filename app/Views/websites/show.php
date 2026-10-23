@@ -26,7 +26,11 @@ $formatBytes = static function (int $bytes): string {
         <?php endif; ?>
       </div>
       <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/edit?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="pencil"></i> Edit</a>
+        <?php if ($templateKey === 'portfolio'): ?>
+          <a class="btn btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/portfolio?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="panels-top-left"></i> Edit Portfolio</a>
+        <?php else: ?>
+          <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/edit?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="pencil"></i> Edit</a>
+        <?php endif; ?>
         <?php if (!$managedContentType): ?>
         <a class="btn btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="upload-cloud"></i> File Manager</a>
         <?php endif; ?>
