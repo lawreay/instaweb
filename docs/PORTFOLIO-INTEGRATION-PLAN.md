@@ -1,225 +1,221 @@
 # Portfolio Integration Plan: Custom Portfolios into InstaWeb
 
-**Status:** Planning  
+**Status:** Agreed architecture; implementation pending  
+**Decision date:** 2026-10-23  
 **Target repository:** `lawreay/instaweb`  
 **Reference project:** `lawreay/Custom-portfolios`  
-**Proposed stack:** React UI, existing InstaWeb PHP backend, MySQL  
-**Scope:** Portfolio website type, template gallery, editor, preview, and publishing integration
+**Stack:** Existing InstaWeb PHP backend and MySQL; existing dashboard and website lifecycle  
+**Scope:** Portfolio website type, shared editor, reusable templates, private preview, dynamic public rendering, and publishing lifecycle integration
 
-## 1. Decision: Build the InstaWeb feature cleanly, using Custom-portfolios as the reference
+## 1. Agreed decision
 
-**Recommendation: do not copy the entire Custom-portfolios application into InstaWeb, and do not throw away its working functionality and start blindly from zero.**
+**Keep the existing portfolio application/design and render public portfolios dynamically with PHP and MySQL. Do not generate static HTML copies.**
 
-Use a selective-rebuild approach:
+Replace the existing public landing-page behavior with a database-driven renderer that resolves the requested published InstaWeb website, loads its portfolio data and selected template, and renders the response on each request. The standalone portfolio is a reference implementation, not a second application to deploy for every client.
 
-1. Inspect and document the existing Custom-portfolios editor, portfolio fields, content flows, and current template.
-2. Reuse its proven requirements, content model, validation rules, useful assets, and design ideas where they fit.
-3. Build the portfolio feature inside InstaWeb's existing website lifecycle and account system.
-4. Build the new template gallery, editor interface, and template components with React.
-5. Keep InstaWeb's existing PHP backend and MySQL as the source of truth. Add or adapt PHP endpoints and schema through explicit, reviewable migrations.
-6. Port content only through a deliberate migration or import process if existing portfolio data needs to be retained. Do not copy the old app's authentication, routing, publishing system, or configuration wholesale.
+This supersedes any earlier static-generation proposal in this plan.
 
-This avoids inheriting unrelated legacy code while preserving useful work. It also avoids a risky, unnecessary rewrite of InstaWeb itself.
+Core rules:
+
+1. All implementation changes happen in InstaWeb. Do not modify `lawreay/Custom-portfolios`.
+2. Keep InstaWeb authentication, account ownership, dashboard shell, website records, Manage flow, and lifecycle.
+3. Do not create a second login, dashboard, or per-client portfolio application.
+4. Link each portfolio's data/settings to its InstaWeb website record and owner.
+5. Replace the fixed `admin` public-owner lookup with website/slug resolution.
+6. Reuse the existing PHP renderer/design, refactored to render the resolved portfolio and selected template.
+7. Public rendering is dynamic. Publish/unpublish controls whether the saved portfolio is publicly available; publishing does not generate a static copy.
+8. Verify the production PHP execution route before implementation. The ordinary static publisher currently excludes PHP, and WordPress's PHP-enabled workflow does not automatically prove ordinary website routes can execute PHP.
+9. Never enable arbitrary PHP execution for customer-uploaded files as a shortcut.
 
 ## 2. Product experience
 
-The intended flow is:
-
 1. A signed-in user opens **Create Website** in InstaWeb.
-2. They choose **Portfolio** as the website type.
-3. They browse a gallery of templates with real, working sample portfolios using fictional sample content such as “John Doe”.
-4. They preview a template before selecting it.
-5. InstaWeb creates a portfolio associated with that user's website record.
-6. The user edits their own profile, projects, skills, experience, education, contact details, images, and other supported content.
-7. The user previews the result, selects a unique public slug, and publishes.
-8. The published portfolio is served through InstaWeb's existing hosting and publishing lifecycle.
+2. They choose **Portfolio**.
+3. InstaWeb creates a normal website record associated with the authenticated owner and initializes portfolio settings/content.
+4. The portfolio appears in the existing website list.
+5. **Manage** opens the editor for that specific website without a second login or dashboard.
+6. The client edits profile, biography, skills, projects, experience, education, contact information, CV, images, and supported appearance settings.
+7. The client chooses a template, saves a draft, and previews it privately.
+8. Publish makes the saved version available through the portfolio's public URL.
+9. A visitor opens that URL; PHP resolves the website record, loads its published content and selected template, and renders the portfolio dynamically.
+10. Share, unpublish, and delete use InstaWeb's existing website lifecycle and affect only the selected website.
 
-A user should be able to switch templates without re-entering portfolio content. Template selection and appearance settings must remain separate from the portfolio's actual content.
+A template change must not require the client to re-enter content. Template and appearance settings remain separate from portfolio content.
 
-## 3. Planned template system
-
-The current Custom-portfolios design is the proposed **Classic** default, subject to a review to confirm it is suitable for the first integrated release.
-
-Initial template candidates:
-
-- **Classic:** Existing portfolio design, adapted into a reusable template.
-- **Modern Developer:** A contemporary developer-focused layout.
-- **Minimal:** A restrained, content-first layout.
-- **Creative:** A more visual layout for designers and creative professionals.
-
-Build and verify one end-to-end template first. Add further templates after the shared data model, editor, preview, and publishing path work reliably.
-
-Each template should be a React component that receives normalized portfolio data and supported appearance settings. Templates must not contain their own copies of the user's content or implement separate save/publish logic.
-
-The gallery should show working previews with sample data, not screenshots pretending to be interactive pages. Preview mode must not accidentally modify or publish a user's real portfolio.
-
-## 4. What to bring forward from Custom-portfolios
-
-Treat these as candidates to inspect and reuse, not as permission to copy files without review.
-
-- **Portfolio fields and content structure:** profile, biography, skills, projects, work experience, education, contact information, CV/resume, and supported social links.
-- **Existing editor workflows:** useful field groups, validation rules, image/CV handling, and established content-management behavior.
-- **Existing Classic design:** preserve its visual identity where useful, then extract it into a reusable React template.
-- **Existing assets:** logos, icons, fonts, and other assets only where ownership/licensing and quality are clear.
-- **Theme ideas:** useful colors, typography, section visibility, and layout options, normalized into a documented settings format.
-- **Existing data:** preserve or import real content if needed. Inspect the schema and data first; do not assume the old schema is the final InstaWeb schema.
-
-Before porting a behavior, confirm that it works, is secure, and fits InstaWeb's account and website model.
-
-## 5. What must be replaced or excluded from the old project
-
-The following old-project responsibilities should not be carried over as independent systems:
-
-- **Separate login and authentication:** use InstaWeb's authenticated session and authorization rules.
-- **Hard-coded single portfolio or administrator ownership:** support portfolio records associated with the correct InstaWeb website and owner.
-- **Standalone publishing and URL routing:** integrate with InstaWeb's website lifecycle and routing after verifying how its hosting works.
-- **Direct assumptions about a single public user:** resolve public content by the published website/portfolio slug and its associated record.
-- **Database initialization that changes schema during normal requests:** use explicit, versioned migrations and deployment steps.
-- **Development/debug utilities in production:** remove or disable password-debug pages and similar diagnostics before deployment.
-- **Destructive seeding or reset scripts in production:** isolate development fixtures and ensure they cannot erase real portfolio content.
-- **Credentials committed in source code:** move secrets to environment/configuration outside version control, rotate any exposed database credentials, and review Git history where necessary.
-- **Duplicated application shell and unrelated dashboard code:** use InstaWeb's existing dashboard, navigation, website management, and access controls.
-- **Duplicated portfolio content per template:** store content once and render it through the selected template.
-
-Do not delete the reference project or its data as part of this work. “Remove” means exclude or replace these responsibilities in the integrated InstaWeb implementation. Keep the reference repository intact until the new feature is verified and any required data has been migrated safely.
-
-## 6. Target architecture
+## 3. Target request architecture
 
 ```text
-InstaWeb
-├── Existing account and authorization system
-├── Existing website lifecycle
-│   └── Website type: Portfolio
-├── React portfolio experience
-│   ├── Template gallery and live sample previews
-│   ├── Shared portfolio editor
-│   ├── Portfolio preview
-│   └── Template components
-│       ├── Classic
-│       ├── Modern Developer
-│       ├── Minimal
-│       └── Creative
-├── PHP backend/API
-│   ├── Authorization and ownership checks
-│   ├── Portfolio content operations
-│   ├── Template/settings operations
-│   └── Preview and publishing integration
-└── MySQL
-    ├── Existing InstaWeb users and websites
-    └── Portfolio-specific content/settings linked to a website
+Public portfolio URL
+        |
+        v
+InstaWeb public route / PHP execution path
+        |
+        v
+Resolve published website by validated slug/domain
+        |
+        v
+Load website-linked portfolio and published data
+        |
+        +------ Selected template
+        |
+        v
+Render HTML response dynamically with PHP
+        |
+        v
+Visitor sees the correct portfolio
 ```
 
-This is a logical architecture, not a claim that the exact folders, API routes, or database tables already exist. Inspect the repositories before choosing implementation paths.
+Management uses the same website record but a different authorization path: authenticated InstaWeb user → owner-scoped website lookup → editor → save/preview/publish. Public routes must never expose drafts or use the logged-in session as the identity of a public portfolio.
 
-### Ownership and data rules
+## 4. Template and content model
 
-- Every portfolio must be linked to an existing InstaWeb website record and its authorized owner.
-- Enforce ownership and permissions on the server for every read/write operation; hiding UI controls is not security.
-- Use a unique, validated public slug and reserve system routes.
-- Keep draft/preview content private unless the owner deliberately publishes it.
-- Keep portfolio content independent of the selected template.
-- Define supported template settings explicitly and validate them on the server.
-- Use parameterized database queries, CSRF protection where applicable, output escaping, upload validation, and sensible upload limits.
-- Do not expose database credentials or private draft data in public responses.
+The existing Custom-portfolios design is the proposed first template, subject to inspection and refactoring. Preserve its visual identity where practical and remove hardcoded personal content from markup.
 
-## 7. What to add to InstaWeb
+Initial candidates after the first end-to-end flow is reliable:
 
-1. **Portfolio** as a first-class website type in the existing website-creation flow.
-2. A template gallery with sample data and working preview pages.
-3. React template components and a shared rendering contract.
-4. A React editing experience backed by authorized PHP endpoints.
-5. Portfolio-specific persistence linked to the InstaWeb website record.
-6. Template selection and validated appearance settings.
-7. A preview/draft workflow integrated with InstaWeb.
-8. Slug selection/uniqueness validation and public rendering through the existing hosting/routing model.
-9. Tests for ownership, saving, template switching, preview privacy, slug collisions, publishing, and regression behavior.
-10. Documentation for setup, API contracts, migrations, template development, and deployment.
+- **Classic:** Existing portfolio design adapted into a reusable PHP template.
+- **Modern Developer:** Developer-focused layout.
+- **Minimal:** Content-first layout.
+- **Creative:** Visual layout for designers and creative professionals.
 
-Avoid adding billing, subscription limits, a separate authentication service, or a second hosting system as part of the initial slice unless an existing InstaWeb requirement makes one essential.
+Do not build all templates before one shared template/data contract works. Templates contain presentation only; they must not own independent content copies, authentication, persistence, or publish logic.
 
-## 8. What not to rebuild
+Candidate structured content:
 
-- Do not rewrite InstaWeb's account system.
-- Do not create a separate portfolio application for every user.
-- Do not duplicate the portfolio content for every template.
-- Do not copy the old dashboard wholesale.
-- Do not migrate the entire InstaWeb backend to another framework for this feature.
-- Do not add all templates before proving that one can be created, edited, previewed, and published end to end.
-- Do not merge this work into unrelated dashboard/sidebar work.
+- Profile, biography, contact details and social links.
+- Projects and technology tags.
+- Work experience, education, and skills.
+- CV/resume and approved public images.
+- Validated theme colors, typography, section visibility/order, and supported backgrounds.
 
-## 9. Implementation phases
+Assess news, popups, bookings, requests, comments, and visitor analytics separately. Defer them from the first release until the core portfolio lifecycle is safe and reliable.
 
-### Phase 0: Repository audit
+## 5. What to reuse and what to replace
 
-- Inspect InstaWeb's website types, account ownership, route handling, hosting/publishing lifecycle, upload handling, and database conventions.
-- Inspect Custom-portfolios' editor, schema, current template, assets, authentication, public renderer, and debug/seed scripts.
-- Identify reusable behavior and document incompatibilities.
-- Check whether any real portfolio data must be migrated.
-- Record the current tests and establish a baseline.
+### Reuse
 
-**Exit condition:** an agreed data mapping and integration design, based on inspected code rather than assumptions.
+- Existing portfolio design, responsive layout, useful content fields, and suitable PHP rendering logic.
+- Existing InstaWeb user/session and authorization system.
+- Existing website record, owner association, slug, dashboard list, Manage entry point, and website lifecycle.
+- InstaWeb database configuration, models/services/controllers conventions, storage controls, CSRF protection, and validation patterns.
 
-### Phase 1: One vertical slice
+### Replace or exclude from the integrated flow
 
-- Add Portfolio to the existing website creation flow.
-- Create/link a portfolio record to the new website and its owner.
-- Build the Classic React template using sample and real saved data.
-- Connect the editor to PHP endpoints and MySQL.
-- Support save, preview, slug validation, and publish through InstaWeb.
-- Test access control and the existing website lifecycle.
+- Standalone portfolio login and recovery.
+- Separate portfolio session and database bootstrap.
+- Fixed `admin` username as the public portfolio identity.
+- Hardcoded personal content in the template.
+- Runtime schema changes from ordinary page requests.
+- Any assumption that each client needs a separate copied application.
+- Static HTML generation for portfolio publishing.
+- Unsafe debug pages, destructive production seed/reset scripts, and committed credentials.
 
-**Exit condition:** a user can create, edit, preview, and publish one portfolio without separate authentication or a separate publishing system.
+Do not delete or modify the reference repository. Port or refactor only reviewed components inside InstaWeb.
 
-### Phase 2: Template gallery and switching
+## 6. Data ownership, public resolution, and security
 
-- Add working sample previews.
-- Add template selection and persistence.
-- Verify switching templates does not change or delete content.
-- Add Modern Developer after the shared contract is stable.
+- Associate each portfolio configuration/content set with an InstaWeb website record; the website record identifies its owner.
+- For editor actions, verify the authenticated user owns the requested website on every read/write/preview/publish/unpublish/delete request.
+- For public requests, resolve the published website by its validated slug/domain/route and load only its published portfolio content. Never trust a submitted owner ID or use a fixed username.
+- Use prepared statements, CSRF protection for state-changing editor actions, context-aware output escaping, and server-side validation.
+- Allowlist template identifiers and appearance options; validate URLs and upload MIME type, extension, size, filename, and storage path.
+- Do not permit uploaded PHP or arbitrary scripts to execute.
+- Keep drafts private and define whether each CV/image is public.
+- Use explicit, versioned migrations; do not mutate the schema on normal requests.
+- If caching is used, scope cache keys and invalidation by website and publication version to prevent cross-portfolio leakage.
+- Return suitable not-found/unpublished responses without exposing private content.
+- Rotate the reference repository's exposed database credential; never copy or repeat it.
 
-### Phase 3: More templates and polish
+## 7. Hosting and routing requirement
 
-- Add Minimal and Creative templates.
-- Add only well-defined customization options.
-- Verify responsive behavior, accessibility, performance, and public-page metadata/SEO.
-- Test image/CV uploads, empty states, malformed input, and failure recovery.
+InstaWeb's current ordinary-site publishing path filters PHP files, while WordPress uses a separate PHP-enabled workflow. Dynamic portfolio rendering therefore needs a deliberate public PHP execution path.
 
-### Phase 4: Security, migration, and release
+During Phase 0, inspect the actual production web-server configuration, routes, WordPress provisioning/runtime, public URL scheme, and security boundaries. Decide the smallest safe way to route a portfolio URL to the PHP renderer. Do not assume WordPress's installation path is reusable, and do not enable PHP execution across arbitrary uploaded website directories. If a scoped PHP route/configuration is required, implement and test it before claiming dynamic public rendering works.
 
-- Remove or isolate unsafe legacy utilities from the integrated application.
-- Rotate exposed credentials and keep secrets outside source control.
-- Add/verify explicit migrations and rollback/recovery instructions.
-- Test draft privacy, ownership, slug collisions, published routes, and backups.
-- Update documentation and release notes.
+## 8. Implementation phases
 
-## 10. Acceptance checklist
+### Phase 0 — Audit and mapping
 
-- [ ] Portfolio appears in InstaWeb's existing Create Website flow.
-- [ ] A portfolio is linked to the correct website and owner.
-- [ ] The gallery presents working sample previews.
-- [ ] The Classic template renders the shared portfolio data.
-- [ ] Editing and saving persist data through PHP and MySQL.
-- [ ] Unauthorized users cannot read or modify another user's private portfolio.
-- [ ] Template switching preserves portfolio content.
-- [ ] Preview does not publish a draft accidentally.
-- [ ] Slugs are validated, unique, and do not shadow reserved routes.
-- [ ] Publishing uses InstaWeb's existing lifecycle and hosting model.
-- [ ] No second authentication or publishing system is introduced.
-- [ ] Legacy debug, destructive seed, and embedded-secret risks are addressed.
-- [ ] Relevant automated tests pass and existing website types still work.
+- Locate the exact reference SQL schema and content handlers.
+- Map the MVP content fields to the InstaWeb website record and proposed tables.
+- Trace route dispatch, website ownership, preview, publish/unpublish, WordPress provisioning, public URL handling, and server PHP execution.
+- Record draft versus published visibility rules and the hosting approach.
+- Establish the existing test baseline.
 
-## 11. Working rules
+**Exit condition:** reviewed data mapping, route map, and confirmed PHP-enabled public route design.
+
+### Phase 1 — Portfolio creation
+
+- Add/confirm Portfolio as a first-class website type.
+- Initialize portfolio configuration/content linked to the newly created website record.
+- Preserve current owner checks, slug uniqueness, plan limits, and failure rollback behavior.
+
+**Exit condition:** selecting Portfolio creates one correctly owned website and portfolio configuration.
+
+### Phase 2 — Shared editor integration
+
+- Connect Manage to the selected portfolio in InstaWeb's existing dashboard.
+- Implement MVP structured fields and basic appearance controls.
+- Use InstaWeb authentication, CSRF, services, models, and views/components.
+- Remove dependency on standalone authentication and the hardcoded `admin` lookup.
+
+**Exit condition:** owner can save and reload their portfolio without a second login or dashboard.
+
+### Phase 3 — Dynamic renderer and preview
+
+- Refactor the existing design into a reusable template driven by saved data.
+- Load the selected template and content for the resolved website record.
+- Implement owner-authorized private preview and public rendering of published content.
+- Verify two users can use the same template while seeing only their own content.
+
+**Exit condition:** same renderer produces distinct, correctly isolated portfolios for two test users.
+
+### Phase 4 — Public routing and lifecycle
+
+- Implement/verify the PHP-enabled public route.
+- Connect publish, Share, unpublish, and delete to InstaWeb's existing website lifecycle.
+- Do not generate static portfolio copies.
+- Verify unpublishing blocks public access but preserves the draft; republishing exposes the current saved/published version according to the agreed policy.
+
+**Exit condition:** published portfolio URL dynamically renders the correct website data and template.
+
+### Phase 5 — Security, regression, and release
+
+- Test cross-user access, CSRF, invalid IDs/slugs, uploads, template switching, missing data, render failures, publish/unpublish/delete, and responsive layout.
+- Verify CSS/JS/images/CV links and correct public URL behavior.
+- Run existing tests and confirm generic static sites and WordPress still work.
+- Release only after review and passing checks.
+
+**Exit condition:** create → manage → edit → preview → publish → share passes in a test environment without regressions.
+
+## 9. Acceptance checklist
+
+- [ ] Portfolio is created through InstaWeb and linked to the correct owner.
+- [ ] No second login or dashboard is introduced.
+- [ ] Manage opens the editor for the selected website and checks ownership server-side.
+- [ ] Existing design is preserved as a reusable template.
+- [ ] Content is stored once and rendered from database records.
+- [ ] Public renderer resolves a website by slug/domain and renders its published data dynamically with PHP.
+- [ ] Portfolio publishing does not generate static HTML copies.
+- [ ] Preview is private; draft data is not publicly exposed.
+- [ ] Template switching preserves content.
+- [ ] Share, unpublish, and delete affect only the selected website.
+- [ ] PHP hosting/routing is confirmed and safely scoped.
+- [ ] Cross-client isolation and cache behavior are tested.
+- [ ] WordPress and generic static website workflows remain functional.
+- [ ] All changes are inside InstaWeb; the reference repository is untouched.
+- [ ] No credentials, customer data, or unsafe debug utilities are introduced.
+
+## 10. Working rules
 
 - Keep this feature on a dedicated branch, separate from unrelated dashboard work.
 - Make small, reviewable commits.
-- Read the repository's `AGENTS.md` and current phase/project documentation before changing code.
-- Inspect existing conventions before adding new folders, routes, tables, or dependencies.
-- Never claim tests, migrations, deployments, or data migrations succeeded until verified.
-- Do not delete or modify the Custom-portfolios reference repository as a shortcut.
-- Document decisions that change the data model, API contract, or public URL behavior.
+- Read `AGENTS.md` and current project/phase documentation before changing code.
+- Inspect existing conventions before adding routes, tables, folders, or dependencies.
+- Never claim tests, migrations, hosting changes, or deployments succeeded until verified.
+- Record changes to the schema, API contract, or public URL behavior in the docs.
+- Keep all implementation changes in `lawreay/instaweb`; do not modify `lawreay/Custom-portfolios`.
 
 ## Final recommendation
 
-**Build the portfolio feature inside InstaWeb with React, PHP, and MySQL. Use Custom-portfolios as the functional and visual reference, selectively reuse proven work, and replace its standalone application boundaries with InstaWeb integration.**
-
-The first milestone is one complete Classic portfolio flow. Once that works safely, add the gallery and further React templates without duplicating the backend or portfolio data.
+Implement the agreed dynamic approach inside InstaWeb: preserve the existing PHP portfolio design/renderer, replace the hardcoded public landing behavior with website-record-driven rendering, reuse InstaWeb authentication and management, and load each client's selected template and data dynamically. Confirm the production PHP route first, then build one secure end-to-end portfolio flow before expanding the template gallery.
