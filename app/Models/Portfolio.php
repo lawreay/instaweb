@@ -1,8 +1,8 @@
 <?php
 
-namespace App\\Models;
+namespace App\Models;
 
-use App\\Core\\Model;
+use App\Core\Model;
 
 /**
  * Persists portfolio content separately from the generated website files.
