@@ -36,41 +36,49 @@ $formatBytes = static function (int $bytes): string {
       <?php else: ?>
         <div class="client-site-list">
           <?php foreach ($websites as $website): ?>
+            <?php
+              $websiteId = (int) $website['id'];
+              $websiteStatus = (string) ($website['status'] ?? 'draft');
+              $publicUrl = (string) ($website['public_url'] ?? '');
+              $isPublished = $websiteStatus === 'published' && $publicUrl !== '';
+              $manageUrl = $baseUrl . '/dashboard/websites/show?id=' . $websiteId;
+              $previewUrl = $baseUrl . '/dashboard/websites/preview?id=' . $websiteId;
+            ?>
             <article class="client-site">
               <div class="site-icon"><i data-lucide="globe-2"></i></div>
-              <div>
+              <div class="client-site-info">
                 <strong>
-                  <a href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>">
+                  <a href="<?= htmlspecialchars($manageUrl, ENT_QUOTES, 'UTF-8') ?>">
                     <?= htmlspecialchars($website['website_name'] ?: 'Untitled website', ENT_QUOTES, 'UTF-8') ?>
                   </a>
                 </strong>
                 <span>
-                  <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
-                    <?= htmlspecialchars((string) $website['public_url'], ENT_QUOTES, 'UTF-8') ?>
-                  <?php elseif (($website['status'] ?? '') === 'draft'): ?>
-                    Not published yet
+                  <?php if ($isPublished): ?>
+                    <?= htmlspecialchars($publicUrl, ENT_QUOTES, 'UTF-8') ?>
+                  <?php elseif ($websiteStatus === 'draft'): ?>
+                    Draft website · not published yet
                   <?php else: ?>
                     Public URL unavailable
                   <?php endif; ?>
-                  · <?= htmlspecialchars($formatBytes((int) $website['storage_used']), ENT_QUOTES, 'UTF-8') ?>
+                  · <?= htmlspecialchars($formatBytes((int) ($website['storage_used'] ?? 0)), ENT_QUOTES, 'UTF-8') ?>
                 </span>
               </div>
               <div class="client-site-actions">
-                <span class="client-status <?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?></span>
-                <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
-                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit site</a>
-                  <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
-                <?php elseif (($website['status'] ?? '') === 'draft'): ?>
-                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="pencil"></i> Continue editing</a>
+                <span class="client-status <?= htmlspecialchars($websiteStatus, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(ucfirst($websiteStatus), ENT_QUOTES, 'UTF-8') ?></span>
+
+                <?php if ($isPublished): ?>
+                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($publicUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit</a>
                 <?php else: ?>
-                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
+                  <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($previewUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="file-text"></i> Draft</a>
                 <?php endif; ?>
-                <?php if (!in_array(strtolower((string) ($website['template_key'] ?? 'blank')), ['wordpress', 'portfolio'], true)): ?>
-                <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> File manager</a>
-                <?php endif; ?>
-                <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
-                  <button type="button" class="btn btn-sm btn-outline-secondary btn-share-site" data-share-url="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" title="Share site"><i data-lucide="share-2"></i> Share</button>
-                <?php endif; ?>
+
+                <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars($manageUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
+
+                <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/delete', ENT_QUOTES, 'UTF-8') ?>" onsubmit="return confirm('Delete this website project and its files? This cannot be undone.');">
+                  <?= \\App\\Core\\Csrf::field() ?>
+                  <input type="hidden" name="id" value="<?= $websiteId ?>">
+                  <button type="submit" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2"></i> Delete</button>
+                </form>
               </div>
             </article>
           <?php endforeach; ?>
