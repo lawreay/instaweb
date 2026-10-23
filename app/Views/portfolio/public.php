@@ -34,7 +34,7 @@ $initials = strtoupper(substr($name, 0, 1));
     <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.css') ?>">
   <?php endif; ?>
   <style>
-    body{min-height:100vh}#portfolio-container{overflow:hidden}.portfolio-nav-logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid currentColor;font-weight:800}
+    body{min-height:100vh;overflow-x:clip}#portfolio-container{overflow:hidden}.portfolio-nav-logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid currentColor;font-weight:800}
     .portfolio-avatar{display:grid;place-items:center;overflow:hidden;width:100%;aspect-ratio:4/5;background:linear-gradient(135deg,#d97706,#172b3a);color:#fff;font-size:clamp(4rem,12vw,8rem);font-weight:800}
     .portfolio-avatar img{width:100%;height:100%;object-fit:cover}.portfolio-content-section{padding:5rem clamp(1.25rem,6vw,6rem)}
     .portfolio-content-inner{max-width:1120px;margin:0 auto}.portfolio-content-section h2{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.04em}
@@ -45,6 +45,20 @@ $initials = strtoupper(substr($name, 0, 1));
     .portfolio-about{background:#f8fafc;color:#172b3a}.portfolio-contact{background:#172b3a;color:#f8fafc}
     .portfolio-contact a{color:#fbbf24}.portfolio-footer{padding:1.5rem;text-align:center;font-size:.85rem;color:#64748b}
     .portfolio-empty{padding:2rem;border:1px dashed #94a3b8;color:#64748b}
+    body.portfolio-template-classic .portfolio-hero{min-height:88vh;padding:125px clamp(22px,7vw,100px) 72px;display:flex;align-items:center;background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 55%,#fff7ed 100%);color:#172b3a}
+    body.portfolio-template-classic .hero-shell{width:min(100%,1120px);margin:0 auto;position:relative}
+    body.portfolio-template-classic .hero-copy{max-width:760px;padding:2rem 0}
+    body.portfolio-template-classic .hero-kicker{font-size:.75rem;font-weight:800;letter-spacing:.14em;color:#64748b}
+    body.portfolio-template-classic .hero-eyebrow{color:#c2410c;text-transform:uppercase;letter-spacing:.12em;font-size:.8rem;font-weight:800}
+    body.portfolio-template-classic .portfolio-hero h1{font-size:clamp(3rem,8vw,6.5rem);line-height:.98;letter-spacing:-.06em;font-weight:850;color:#172b3a;overflow-wrap:anywhere}
+    body.portfolio-template-classic .hero-role{font-size:1.1rem;font-weight:700;color:#334155;margin-top:1.5rem}
+    body.portfolio-template-classic .hero-summary{max-width:680px;color:#475569;font-size:1.05rem;line-height:1.8}
+    body.portfolio-template-classic .hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;margin-top:1.8rem}
+    body.portfolio-template-classic .hero-button{display:inline-flex;align-items:center;gap:.7rem;padding:.9rem 1.2rem;border:1px solid #172b3a;text-decoration:none;font-weight:750}
+    body.portfolio-template-classic .hero-button-primary{background:#172b3a;color:#fff}
+    body.portfolio-template-classic .hero-button-secondary{color:#172b3a;background:transparent}
+    body.portfolio-template-classic .hero-footnote{margin-top:2rem;color:#64748b;font-size:.8rem;font-weight:700;letter-spacing:.06em}
+    body.portfolio-template-classic .hero-footnote-line{display:inline-block;width:2rem;height:2px;margin-right:.6rem;background:#c2410c;vertical-align:middle}
     @media(max-width:650px){.portfolio-content-section{padding:3.5rem 1.25rem}.portfolio-hero{min-height:auto}}
   </style>
 </head>
@@ -130,7 +144,7 @@ $initials = strtoupper(substr($name, 0, 1));
         <?php else: ?>
           <div class="portfolio-project-grid mt-4">
             <?php foreach ($projects as $project): ?>
-              <article class="portfolio-project-card glass-card reveal-on-scroll">
+              <article class="portfolio-project-card glass-card">
                 <p class="hero-eyebrow mb-2">PROJECT</p>
                 <h3><?= $escape($project['title'] ?? '') ?></h3>
                 <?php if (!empty($project['summary'])): ?><p><?= nl2br($escape($project['summary'])) ?></p><?php endif; ?>
