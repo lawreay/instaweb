@@ -38,6 +38,17 @@ class PublishingService
     }
 
     /**
+     * Publish a database-backed portfolio without generating static HTML copies.
+     */
+    public function publishPortfolio(int $projectId, string $slug): string
+    {
+        // Remove any older static publication so Apache cannot serve stale HTML.
+        $this->unpublish($projectId, $slug);
+
+        return 'p/' . rawurlencode($slug);
+    }
+
+    /**
      * Remove a published site directory.
      */
     public function unpublish(int $projectId, string $slug): void
