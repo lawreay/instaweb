@@ -92,9 +92,42 @@ class Website extends Model
      */
     public function deleteForUser(int $id, int $userId): bool
     {
-        $statement = $this->database->prepare('DELETE FROM websites WHERE id = :id AND user_id = :user_id');
+        // Legacy websites uses MyISAM, so portfolio cleanup cannot rely on a
+        // foreign key cascade from websites to portfolios.
+        $this->database->beginTransaction();
 
-        return $statement->execute(['id' => $id, 'user_id' => $userId]);
+        try {
+            $ownedWebsite = $this->database->prepare(
+                'SELECT id FROM websites WHERE id = :id AND user_id = :user_id LIMIT 1'
+            );
+            $ownedWebsite->execute(['id' => $id, 'user_id' => $userId]);
+
+            if (!$ownedWebsite->fetchColumn()) {
+                $this->database->commit();
+                return false;
+            }
+
+            $deletePortfolios = $this->database->prepare(
+                'DELETE FROM portfolios WHERE website_id = :website_id AND user_id = :user_id'
+            );
+            $deletePortfolios->execute(['website_id' => $id, 'user_id' => $userId]);
+
+            $statement = $this->database->prepare(
+                'DELETE FROM websites WHERE id = :id AND user_id = :user_id'
+            );
+            $statement->execute(['id' => $id, 'user_id' => $userId]);
+            $deleted = $statement->rowCount() === 1;
+
+            $this->database->commit();
+
+            return $deleted;
+        } catch (\\Throwable $exception) {
+            if ($this->database->inTransaction()) {
+                $this->database->rollBack();
+            }
+
+            throw $exception;
+        }
     }
 
     /**
