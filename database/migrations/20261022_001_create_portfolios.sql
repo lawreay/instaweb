@@ -1,6 +1,12 @@
 -- InstaWeb portfolio integration, migration 001.
 -- Apply once to the existing InstaWeb database after taking a backup.
 -- This migration intentionally stores portfolio content separately from generated site files.
+--
+-- Compatibility note:
+-- The current production users and websites tables use MyISAM, which cannot be
+-- referenced by InnoDB foreign keys. Keep those legacy tables unchanged and
+-- enforce website/user ownership in the application layer. portfolio_projects
+-- can still use a foreign key because both portfolio tables use InnoDB.
 
 CREATE TABLE IF NOT EXISTS portfolios (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -20,10 +26,7 @@ CREATE TABLE IF NOT EXISTS portfolios (
     UNIQUE KEY uq_portfolios_website (website_id),
     UNIQUE KEY uq_portfolios_public_name (user_id, display_name),
     KEY idx_portfolios_user (user_id),
-    CONSTRAINT fk_portfolios_website
-        FOREIGN KEY (website_id) REFERENCES websites(id) ON DELETE CASCADE,
-    CONSTRAINT fk_portfolios_user
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    KEY idx_portfolios_user_website (user_id, website_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS portfolio_projects (
