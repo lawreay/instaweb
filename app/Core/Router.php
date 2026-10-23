@@ -65,6 +65,15 @@ class Router
             return;
         }
 
+        if ($method === 'GET' && preg_match('#^/p/([a-z0-9-]{1,80})/?$#i', $path, $matches)) {
+            $controller = new \\App\\Controllers\\PortfolioPublicController(
+                $config,
+                array_merge($_REQUEST, ['slug' => $matches[1]])
+            );
+            $controller->show();
+            return;
+        }
+
         http_response_code(404);
         echo 'Route not found: ' . htmlspecialchars($path, ENT_QUOTES, 'UTF-8');
     }
