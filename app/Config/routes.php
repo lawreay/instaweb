@@ -10,6 +10,7 @@ use App\Controllers\LegalController;
 use App\Controllers\MarketingController;
 use App\Controllers\AdminController;
 use App\Controllers\WebsiteController;
+use App\Controllers\PortfolioController;
 use App\Controllers\FileManagerController;
 use App\Controllers\EditorController;
 use App\Controllers\PreviewController;
