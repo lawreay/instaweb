@@ -136,6 +136,25 @@ class EditorController extends Controller
         exit;
     }
 
+    /**
+     * Managed project types must use their dedicated management experience.
+     */
+    private function assertCodeEditorAllowed(array $website): void
+    {
+        $templateKey = strtolower((string) ($website['template_key'] ?? 'blank'));
+        if (!in_array($templateKey, ['wordpress', 'portfolio'], true)) {
+            return;
+        }
+
+        Session::flash(
+            'error',
+            $templateKey === 'wordpress'
+                ? 'The code editor is disabled for WordPress projects.'
+                : 'The code editor is disabled for portfolio projects. Use the portfolio editor.'
+        );
+        $this->redirectTo('/dashboard/websites/show?id=' . (int) $website['id']);
+    }
+
     private function requireWebsite(): array
     {
         if (!AuthService::check()) {
@@ -149,6 +168,8 @@ class EditorController extends Controller
             Session::flash('error', 'Website project not found.');
             $this->redirectTo('/dashboard/websites');
         }
+
+        $this->assertCodeEditorAllowed($website);
 
         return [$userId, $website];
     }
@@ -166,6 +187,8 @@ class EditorController extends Controller
             Session::flash('error', 'Website project not found.');
             $this->redirectTo('/dashboard/websites');
         }
+
+        $this->assertCodeEditorAllowed($website);
 
         return [$userId, $website];
     }
