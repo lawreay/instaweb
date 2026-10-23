@@ -49,6 +49,12 @@ $initials = strtoupper(substr($name, 0, 1));
   </style>
 </head>
 <body class="portfolio-template-<?= $escape($template) ?>">
+  <?php if (!empty($isPreview)): ?>
+    <div style="position:relative;z-index:10000;padding:.65rem 1rem;background:#fef3c7;color:#78350f;text-align:center;font:600 13px/1.4 Arial,sans-serif">
+      Draft preview · changes are shown from your saved portfolio data.
+      <a href="<?= $escape($baseUrl . '/dashboard/websites/portfolio?id=' . (int) $website['id']) ?>" style="margin-left:.6rem;color:#78350f;text-decoration:underline">Back to Portfolio Studio</a>
+    </div>
+  <?php endif; ?>
   <header class="navbar">
     <nav>
       <div class="nav-container">
