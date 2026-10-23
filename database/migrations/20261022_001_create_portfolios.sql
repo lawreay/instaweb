@@ -1,19 +1,6 @@
 -- InstaWeb portfolio integration, migration 001.
 -- Apply once to the existing InstaWeb database after taking a backup.
 -- This migration intentionally stores portfolio content separately from generated site files.
--- It also records each website's selected runtime/template so dashboard access can be restricted.
-
-ALTER TABLE websites
-    ADD COLUMN template_key VARCHAR(40) NOT NULL DEFAULT 'blank' AFTER slug;
-
--- Backfill types for existing managed projects where reliable evidence exists.
-UPDATE websites w
-INNER JOIN files f ON f.website_id = w.id AND f.filepath = 'wp-config.php'
-SET w.template_key = 'wordpress';
-
-UPDATE websites w
-INNER JOIN portfolios p ON p.website_id = w.id
-SET w.template_key = 'portfolio';
 
 CREATE TABLE IF NOT EXISTS portfolios (
     id INT AUTO_INCREMENT PRIMARY KEY,
