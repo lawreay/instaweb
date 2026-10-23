@@ -66,7 +66,7 @@ class Router
         }
 
         if ($method === 'GET' && preg_match('#^/p/([a-z0-9-]{1,80})/?$#i', $path, $matches)) {
-            $controller = new \\App\\Controllers\\PortfolioPublicController(
+            $controller = new \App\Controllers\PortfolioPublicController(
                 $config,
                 array_merge($_REQUEST, ['slug' => $matches[1]])
             );
