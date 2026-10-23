@@ -92,26 +92,25 @@ users (InstaWeb account)
 
 All management requests must first resolve the selected website with both its ID and the authenticated owner's ID (equivalent to InstaWeb's existing `findForUser(websiteId, userId)` pattern). All writes, uploads, deletes, preview routes, and public actions must remain scoped to the selected website.
 
-## 4. Proposed schema changes (design only, not applied)
+## 4. Implemented schema mapping and remaining extensions
 
-### A. Extend `websites`
+### A. Existing `websites` table
 
-Add explicit persisted metadata for the selected project/runtime, for example:
+The current implementation uses `websites.template_key` as the controlled website runtime/type selector. The value `portfolio` identifies a database-rendered portfolio; static template choices and `wordpress` keep their existing paths. The migration file `database/migrations/20261023_001_add_website_template_key.sql` adds the column when missing and backfills recognizable existing site types. The migration has not been verified as executed against the user's local database.
 
-- `website_type` — controlled value such as `static`, `wordpress`, or `portfolio`.
-- `template_key` — stable template identifier, initially something like `minimal`; it is not a user-supplied filesystem path.
+### B. Portfolio profile and projects
 
-The exact column names and migration defaults should be confirmed against current production data before implementation. Existing generic static and WordPress sites must continue working unchanged. The form's current `template=portfolio` value is not enough because the current schema does not store that selection.
+The current implementation adds:
 
-### B. Convert portfolio content ownership to `website_id`
+- `portfolios`: one profile/settings row per website, including `website_id`, `user_id`, `template_key`, display name, headline, bio, email, location, avatar path, social-links JSON, and publication metadata.
+- `portfolio_projects`: project cards attached to `portfolios.id`, with title, summary, optional URL/image path, and sort order.
+- The editor and public renderer validate website/user ownership through the existing `websites` record. Public reads require the website status to be `published`.
 
-In the InstaWeb database, create portfolio content tables from the legacy structures, but scope them to the selected website:
+Migration source: `database/migrations/20261022_001_create_portfolios.sql`. The tables use InnoDB and avoid foreign keys to existing MyISAM `websites`/`users` tables; project rows cascade from the InnoDB portfolio row.
 
-- `portfolio_settings.website_id`: unique foreign key to `websites.id` (one settings/profile row per portfolio).
-- Child/content/engagement tables: `website_id` foreign key to `websites.id`, indexed for the renderer and dashboard queries.
-- Keep primary keys and auto-increment IDs for each content row.
-- Add appropriate unique constraints, nullability, indexes, and foreign keys after reviewing existing query behavior.
-- Keep uploaded files under a website-specific storage path; store relative paths, not absolute paths tied to the old domain.
+### C. Future schema extensions
+
+The legacy portfolio contains additional sections and engagement data (skills, education, experience, sections, visits, messages, requests, comments, and bookings). These are not all represented by the current InstaWeb schema/editor yet. Map and migrate only the fields required by the next implementation slices, keeping all content isolated by the selected `website_id`. Store upload paths as website-scoped relative paths rather than old-domain absolute URLs.
 
 The old dump's `id` columns and `ALTER TABLE` statements are separated: run-time migrations must explicitly create primary keys and auto-increment behavior, rather than copying only the initial `CREATE TABLE` statements. The dump also contains seeded records. Do not bring those sample rows into a new client's portfolio by default.
 
