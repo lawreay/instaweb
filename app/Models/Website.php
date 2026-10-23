@@ -140,7 +140,7 @@ class Website extends Model
     public function publishedSites(): array
     {
         $statement = $this->query(
-            'SELECT id, slug, website_name, created_at
+            'SELECT id, slug, website_name, template_key, created_at
              FROM websites
              WHERE status = :status
              ORDER BY created_at DESC',
