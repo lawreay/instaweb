@@ -75,7 +75,7 @@ $formatBytes = static function (int $bytes): string {
                 <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars($manageUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
 
                 <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/delete', ENT_QUOTES, 'UTF-8') ?>" onsubmit="return confirm('Delete this website project and its files? This cannot be undone.');">
-                  <?= \\App\\Core\\Csrf::field() ?>
+                  <?= \App\Core\Csrf::field() ?>
                   <input type="hidden" name="id" value="<?= $websiteId ?>">
                   <button type="submit" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2"></i> Delete</button>
                 </form>
