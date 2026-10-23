@@ -68,6 +68,7 @@ $formatBytes = static function (int $bytes): string {
 
                 <?php if ($isPublished): ?>
                   <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($publicUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit</a>
+                  <button type="button" class="btn btn-sm btn-outline-secondary btn-share-site" data-share-url="<?= htmlspecialchars($publicUrl, ENT_QUOTES, 'UTF-8') ?>" title="Copy public website link"><i data-lucide="copy"></i> Copy Link</button>
                 <?php else: ?>
                   <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($previewUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="file-text"></i> Draft</a>
                 <?php endif; ?>
