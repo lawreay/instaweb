@@ -92,9 +92,22 @@ class Website extends Model
      */
     public function deleteForUser(int $id, int $userId): bool
     {
-        $statement = $this->database->prepare('DELETE FROM websites WHERE id = :id AND user_id = :user_id');
+        // MyISAM does not cascade deletes into the InnoDB portfolio tables.
+        $statement = $this->database->prepare(
+            'DELETE FROM websites WHERE id = :id AND user_id = :user_id'
+        );
+        $statement->execute(['id' => $id, 'user_id' => $userId]);
 
-        return $statement->execute(['id' => $id, 'user_id' => $userId]);
+        if ($statement->rowCount() !== 1) {
+            return false;
+        }
+
+        $deletePortfolios = $this->database->prepare(
+            'DELETE FROM portfolios WHERE website_id = :website_id AND user_id = :user_id'
+        );
+        $deletePortfolios->execute(['website_id' => $id, 'user_id' => $userId]);
+
+        return true;
     }
 
     /**

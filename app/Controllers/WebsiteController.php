@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Core\Csrf;
 use App\Core\Session;
 use App\Core\Validator;
+use App\Models\Portfolio;
 use App\Models\Website;
 use App\Services\AuthService;
 use App\Services\NotificationManager;
@@ -123,6 +124,10 @@ class WebsiteController extends Controller
             $projectSize = $storage->directorySize($storage->projectPath($userId, $slug));
             $websiteModel->addFileRecord($websiteId, $template === 'wordpress' ? 'wp-config.php' : 'index.html', $template === 'wordpress' ? 'wp-config.php' : 'index.html', $template === 'wordpress' ? 'php' : 'html', $starterSize);
             $websiteModel->updateStorageUsed($websiteId, $projectSize);
+
+            if ($template === 'portfolio') {
+                (new Portfolio())->createForWebsite($websiteId, $userId, $name, 'classic');
+            }
         } catch (\Throwable $exception) {
             $storage->deleteProjectDirectory($userId, $slug);
             $websiteModel->deleteForUser($websiteId, $userId);
