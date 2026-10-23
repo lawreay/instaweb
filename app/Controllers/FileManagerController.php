@@ -460,6 +460,8 @@ class FileManagerController extends Controller
             $this->redirectTo('/dashboard/websites');
         }
 
+        $this->assertFileManagerAllowed($website);
+
         return [$userId, $website];
     }
 
@@ -480,7 +482,29 @@ class FileManagerController extends Controller
             $this->redirectTo('/dashboard/websites');
         }
 
+        $this->assertFileManagerAllowed($website);
+
         return [$userId, $website];
+    }
+
+    /**
+     * File operations are unavailable for managed WordPress and portfolio projects.
+     * Their files/content must be handled by their dedicated runtime/editor.
+     */
+    private function assertFileManagerAllowed(array $website): void
+    {
+        $templateKey = strtolower((string) ($website['template_key'] ?? 'blank'));
+        if (!in_array($templateKey, ['wordpress', 'portfolio'], true)) {
+            return;
+        }
+
+        Session::flash(
+            'error',
+            $templateKey === 'wordpress'
+                ? 'The file manager is disabled for WordPress projects. Manage WordPress through its own dashboard.'
+                : 'The file manager is disabled for portfolio projects. Portfolio content must be managed through the portfolio editor.'
+        );
+        $this->redirectTo('/dashboard/websites/show?id=' . (int) $website['id']);
     }
 
     /**

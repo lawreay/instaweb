@@ -1,8 +1,8 @@
 <?php
 
-namespace App\\Models;
+namespace App\Models;
 
-use App\\Core\\Model;
+use App\Core\Model;
 
 /**
  * Persists portfolio content separately from the generated website files.
@@ -54,14 +54,14 @@ class Portfolio extends Model
                 'display_name' => $displayName,
                 'headline' => 'Portfolio',
                 'bio' => '',
-                'social_links' => json_encode(new \\stdClass()),
+                'social_links' => json_encode(new \stdClass()),
                 'website_id' => $websiteId,
                 'user_id' => $userId,
             ]
         );
 
         if ($statement->rowCount() !== 1) {
-            throw new \\RuntimeException('Website not found for the current user.');
+            throw new \RuntimeException('Website not found for the current user.');
         }
 
         return (int) $this->database->lastInsertId();

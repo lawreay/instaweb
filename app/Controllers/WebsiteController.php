@@ -113,7 +113,7 @@ class WebsiteController extends Controller
         }
 
         $storage = new ProjectStorageService();
-        $websiteId = $websiteModel->createProject($userId, $name, $slug, $premium, $planService->freeHostingDays());
+        $websiteId = $websiteModel->createProject($userId, $name, $slug, $premium, $planService->freeHostingDays(), $template);
 
         try {
             $projectPath = $storage->ensureProjectDirectory($userId, $slug);
