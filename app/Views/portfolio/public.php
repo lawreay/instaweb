@@ -181,6 +181,9 @@ $initials = strtoupper(substr($name, 0, 1));
       });
     }());
   </script>
-  <?php if ($template === '3d'): ?><script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.js') ?>"></script><?php endif; ?>
+  <?php if ($template === '3d'): ?>
+    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"}}</script>
+    <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.js') ?>"></script>
+  <?php endif; ?>
 </body>
 </html>
