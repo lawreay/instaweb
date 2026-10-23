@@ -151,6 +151,26 @@ class Website extends Model
     }
 
     /**
+     * Find a published portfolio website by its public slug.
+     */
+    public function findPublishedPortfolioBySlug(string $slug): ?array
+    {
+        $statement = $this->query(
+            "SELECT w.*
+             FROM websites w
+             INNER JOIN portfolios p ON p.website_id = w.id AND p.user_id = w.user_id
+             WHERE w.slug = :slug
+               AND w.template_key = 'portfolio'
+               AND w.status = 'published'
+             LIMIT 1",
+            ['slug' => $slug]
+        );
+        $website = $statement->fetch();
+
+        return $website ?: null;
+    }
+
+    /**
      * Return the user's current plan from role or latest subscription.
      */
     public function userPlan(int $userId): string
