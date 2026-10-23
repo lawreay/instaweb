@@ -1,6 +1,8 @@
 <?php
 $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
 $liveUrl = (string) ($liveUrl ?? '');
+$templateKey = strtolower((string) ($website['template_key'] ?? 'blank'));
+$managedContentType = in_array($templateKey, ['wordpress', 'portfolio'], true);
 $formatBytes = static function (int $bytes): string {
     if ($bytes >= 1073741824) {
         return number_format($bytes / 1073741824, 2) . ' GB';
@@ -25,10 +27,19 @@ $formatBytes = static function (int $bytes): string {
       </div>
       <div class="d-flex gap-2 flex-wrap">
         <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/edit?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="pencil"></i> Edit</a>
+        <?php if (!$managedContentType): ?>
         <a class="btn btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="upload-cloud"></i> File Manager</a>
+        <?php endif; ?>
+        <?php if (!$managedContentType): ?>
         <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/editor?id=' . (int) $website['id'] . '&path=index.html', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="code-2"></i> Code Editor</a>
+        <?php endif; ?>
         <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/preview?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="eye"></i> Preview</a>
       </div>
+      <?php if ($templateKey === 'wordpress'): ?>
+        <p class="text-secondary mt-3 mb-0">WordPress files are managed by WordPress. File Manager and the code editor are disabled for this project.</p>
+      <?php elseif ($templateKey === 'portfolio'): ?>
+        <p class="text-secondary mt-3 mb-0">Portfolio content is managed through the portfolio editor. File Manager and the code editor are disabled for this project.</p>
+      <?php endif; ?>
     </header>
 
     <div class="client-stat-grid">
