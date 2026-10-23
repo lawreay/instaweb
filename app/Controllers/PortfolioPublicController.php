@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\View;
 use App\Models\Portfolio;
+use App\Models\AdvancedPortfolio;
 use App\Models\Website;
 
 /**
