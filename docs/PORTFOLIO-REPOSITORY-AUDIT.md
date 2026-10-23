@@ -1,7 +1,7 @@
 # Portfolio Integration: Repository Audit
 
 **Branch:** `feature/portfolio-integration`  
-**Audit status:** Initial architecture and lifecycle inspection; no application code or database has been changed.  
+**Audit status:** Initial audit retained for history; the dynamic-rendering implementation is now in progress on `feature/portfolio-editor-workflow`.  
 **Reference project:** `lawreay/Custom-portfolios`
 
 ## 1. Confirmed InstaWeb architecture
@@ -17,9 +17,13 @@ Inspected `app/Config/routes.php`, `app/Controllers/WebsiteController.php`, `app
 - Publishing copies allowed static file types from the draft to `public/sites/{projectId}/{slug}`. Ordinary static projects require `index.html`; PHP execution is specially enabled for the WordPress case. The public URL is a static path, `sites/{id}/{slug}/`.
 - Existing website creation also applies plan limits, slug generation, file records, storage accounting, notifications, and cleanup if starter creation fails.
 
-## 2. Architectural consequence
+## 2. Agreed architecture
 
-The first portfolio release should be a **static-export portfolio**. React can power the authenticated gallery/editor UI, and the PHP backend can save portfolio data. A build/render service then writes a self-contained `index.html` plus CSS, JS, and image assets into the existing draft directory. Existing preview and publishing routes can handle those files without executing arbitrary PHP for a portfolio.
+The agreed implementation is **dynamic PHP/MySQL rendering**, not static export. A published portfolio is resolved by its unique website slug at `/p/{slug}`; the renderer loads the published InstaWeb website record, its owner-linked portfolio row, saved projects, and selected design from MySQL on each request.
+
+The portfolio editor and public renderer live inside InstaWeb. Publish/unpublish changes whether the database-backed portfolio is publicly available. Portfolio publishing must not copy a generated HTML snapshot into `public/sites`. Existing generic static websites and WordPress keep their separate publishing paths.
+
+Design source repositories remain read-only references. The current implementation imports portfolio styles and 3D interaction into `public/assets/portfolio-template/`; it does not modify the reference repositories.
 
 We must decide how React is built and deployed before adding frontend dependencies. Options are to bundle the editor assets with a documented build step or use a carefully versioned prebuilt asset bundle. Do not silently introduce a frontend toolchain that contributors or deployment cannot reproduce.
 
@@ -71,3 +75,24 @@ The old project is a functional/visual reference, not a second application to em
 - This audit document is committed on that branch.
 - No production data, database schema, credentials, or `main` branch have been changed.
 - No app code has been changed yet. Do not merge this branch until the first vertical slice is implemented and tested.
+
+
+## 7. Implementation status (2026-10-23)
+
+Implemented on the draft branch `feature/portfolio-editor-workflow`:
+
+- Portfolio profile editor with name, headline, bio, public email, location, and design selection.
+- Owner-scoped project add/remove actions with CSRF validation.
+- Dynamic public renderer at `/p/{slug}`, gated on website status `published`.
+- Portfolio publishing skips static HTML copies; owner-only preview renders saved database content.
+- Public URLs and sitemap entries distinguish portfolio routes from static website paths.
+- Existing portfolio CSS and 3D interaction assets copied into InstaWeb.
+
+Still required before merge:
+
+- Local database test using the migrations and at least two different user accounts.
+- Browser verification of profile saves, project CRUD, all three designs, private preview, publish/unpublish, and public URL.
+- Regression checks for generic static sites and WordPress.
+- Review and integration of any remaining sections/data from the reference portfolio that are not represented by the current profile/projects schema.
+
+PHP syntax checks are run by GitHub Actions. They do not replace the local database and browser checks above.
