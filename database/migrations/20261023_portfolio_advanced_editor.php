@@ -6,7 +6,9 @@ declare(strict_types=1);
  * Schema for the namespaced advanced portfolio editor data.
  *
  * Run this migration after the base InstaWeb schema. It intentionally does
- * not reuse the upstream Custom-portfolios table names.
+ * not reuse the upstream Custom-portfolios table names. Existing InstaWeb
+ * users and websites tables use MyISAM, so ownership is enforced by the
+ * application instead of foreign keys to those legacy tables.
  */
 return static function (PDO $pdo): void {
     $pdo->exec(<<<'SQL'
@@ -20,9 +22,7 @@ CREATE TABLE IF NOT EXISTS portfolio_advanced_settings (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_portfolio_advanced_setting (website_id, setting_key),
-    KEY idx_portfolio_advanced_settings_owner (user_id, website_id),
-    CONSTRAINT fk_portfolio_advanced_settings_website FOREIGN KEY (website_id) REFERENCES websites(id) ON DELETE CASCADE,
-    CONSTRAINT fk_portfolio_advanced_settings_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    KEY idx_portfolio_advanced_settings_owner (user_id, website_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
@@ -39,9 +39,7 @@ CREATE TABLE IF NOT EXISTS portfolio_advanced_items (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_portfolio_advanced_items_order (website_id, section_key, sort_order, id),
-    KEY idx_portfolio_advanced_items_owner (user_id, website_id, section_key),
-    CONSTRAINT fk_portfolio_advanced_items_website FOREIGN KEY (website_id) REFERENCES websites(id) ON DELETE CASCADE,
-    CONSTRAINT fk_portfolio_advanced_items_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    KEY idx_portfolio_advanced_items_owner (user_id, website_id, section_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 
@@ -56,9 +54,7 @@ CREATE TABLE IF NOT EXISTS portfolio_advanced_uploads (
     file_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uq_portfolio_advanced_upload_key (website_id, storage_key),
-    KEY idx_portfolio_advanced_uploads_owner (user_id, website_id),
-    CONSTRAINT fk_portfolio_advanced_uploads_website FOREIGN KEY (website_id) REFERENCES websites(id) ON DELETE CASCADE,
-    CONSTRAINT fk_portfolio_advanced_uploads_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    KEY idx_portfolio_advanced_uploads_owner (user_id, website_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL);
 };
