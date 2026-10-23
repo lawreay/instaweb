@@ -35,7 +35,12 @@ class PublishController extends Controller
             $websiteModel = new Website();
 
             (new BackupService())->backupDraft($userId, $website['slug']);
-            (new PublishingService())->publish($userId, (int) $website['id'], $website['slug']);
+            $publishingService = new PublishingService();
+            if (($website['template_key'] ?? '') === 'portfolio') {
+                $publishingService->publishPortfolio((int) $website['id'], (string) $website['slug']);
+            } else {
+                $publishingService->publish($userId, (int) $website['id'], $website['slug']);
+            }
             $websiteModel->updateStatus((int) $website['id'], $userId, 'published');
             try {
                 (new SitemapGenerator($this->config))->writeToFile();
