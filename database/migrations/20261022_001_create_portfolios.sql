@@ -24,7 +24,6 @@ CREATE TABLE IF NOT EXISTS portfolios (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_portfolios_website (website_id),
-    UNIQUE KEY uq_portfolios_public_name (user_id, display_name),
     KEY idx_portfolios_user (user_id),
     KEY idx_portfolios_user_website (user_id, website_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
