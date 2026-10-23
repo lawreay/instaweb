@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\View;
+use App\Models\Portfolio;
 use App\Core\Session;
 use App\Models\Website;
 use App\Services\AuthService;
