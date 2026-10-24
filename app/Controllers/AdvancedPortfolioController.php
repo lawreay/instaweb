@@ -27,11 +27,20 @@ class AdvancedPortfolioController extends Controller
         'show_contact' => ['1', 1],
     ];
 
+    /**
+     * Structured content areas ported from the feature set in the root idea.php
+     * reference dashboard. Hero/About and Projects keep their dedicated editors.
+     */
     private const SECTIONS = [
+        'goals' => 'Goals',
+        'interests' => 'Interests',
+        'challenges' => 'Challenges',
         'experience' => 'Work experience',
         'education' => 'Education',
         'skills' => 'Skills',
-        'interests' => 'Interests',
+        'news' => 'News and updates',
+        'partnerships' => 'Partnerships',
+        'cv' => 'CV / Resume',
     ];
 
     public function edit(): void
