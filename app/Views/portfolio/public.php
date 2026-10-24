@@ -11,7 +11,10 @@ $backgroundColor = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($advancedSettings
 $textColor = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($advancedSettings['text_color'] ?? '')) ? $advancedSettings['text_color'] : '#111827';
 $fontFamilies = ['system' => 'system-ui, -apple-system, sans-serif', 'sans-serif' => 'Arial, Helvetica, sans-serif', 'serif' => 'Georgia, serif', 'mono' => 'ui-monospace, monospace'];
 $fontFamily = $fontFamilies[(string) ($advancedSettings['font_family'] ?? 'system')] ?? $fontFamilies['system'];
-$heroStyle = in_array(($advancedSettings['hero_style'] ?? 'centered'), ['centered', 'split', 'minimal'], true) ? $advancedSettings['hero_style'] : 'centered';
+$heroStyle = (string) ($advancedSettings['hero_style'] ?? 'centered');
+if (!in_array($heroStyle, ['centered', 'split', 'minimal'], true)) {
+    $heroStyle = 'centered';
+}
 $showProjects = ($advancedSettings['show_projects'] ?? '1') !== '0';
 $showContact = ($advancedSettings['show_contact'] ?? '1') !== '0';
 $sectionLabels = [
