@@ -114,6 +114,9 @@ $initials = strtoupper(substr($name, 0, 1));
         </button>
         <ul id="nav-menu">
           <li><a href="#about">About</a></li>
+          <?php foreach ($sectionLabels as $sectionKey => $sectionLabel): ?>
+            <?php if (!empty($sectionItems[$sectionKey])): ?><li><a href="#<?= $escape($sectionKey) ?>"><?= $escape($sectionLabel) ?></a></li><?php endif; ?>
+          <?php endforeach; ?>
           <?php if ($showProjects): ?><li><a href="#projects">Projects</a></li><?php endif; ?>
           <?php if ($showContact && $email !== ''): ?><li><a href="#contact">Contact</a></li><?php endif; ?>
         </ul>
