@@ -17,7 +17,23 @@ $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? '')
       </div>
     </header>
 
-    <section class="client-card mb-4">
+    <section class="client-card mb-4" aria-label="Editor navigation">
+      <div class="client-card-head">
+        <h2>Portfolio workspace</h2>
+        <span><?= count($items) ?> saved section items</span>
+      </div>
+      <p class="text-secondary mb-3">Use these shortcuts to jump between the editor areas. Hero, About, and Projects remain in the main Portfolio Studio; these sections are stored separately for this website.</p>
+      <nav class="d-flex flex-wrap gap-2" aria-label="Portfolio editor sections">
+        <a class="btn btn-sm btn-outline-secondary" href="<?= $escape($baseUrl . '/dashboard/websites/portfolio?id=' . $websiteId) ?>">Hero &amp; About</a>
+        <a class="btn btn-sm btn-outline-secondary" href="#visual-design">Visual design</a>
+        <?php foreach (($sectionLabels ?? []) as $sectionKey => $sectionLabel): ?>
+          <a class="btn btn-sm btn-outline-secondary" href="#section-<?= $escape($sectionKey) ?>"><?= $escape($sectionLabel) ?></a>
+        <?php endforeach; ?>
+        <a class="btn btn-sm btn-outline-secondary" href="<?= $escape($baseUrl . '/dashboard/websites/portfolio?id=' . $websiteId) ?>#projects">Projects</a>
+      </nav>
+    </section>
+
+    <section id="visual-design" class="client-card mb-4">
       <div class="client-card-head">
         <h2>Visual design</h2>
         <span><?= $escape($website['website_name'] ?? 'Portfolio') ?></span>
@@ -81,7 +97,7 @@ $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? '')
       <p class="text-secondary">Add and manage extra content here. Changes are saved to this portfolio only.</p>
       <?php foreach (($sectionLabels ?? []) as $sectionKey => $sectionLabel): ?>
         <?php $sectionItems = array_values(array_filter($items, static fn (array $item): bool => ($item['section_key'] ?? '') === $sectionKey)); ?>
-        <div class="border rounded-3 p-3 mb-4">
+        <div id="section-<?= $escape($sectionKey) ?>" class="border rounded-3 p-3 mb-4">
           <h3 class="h5 mb-3"><?= $escape($sectionLabel) ?></h3>
           <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced/items/save') ?>" class="row g-3 mb-3">
             <?= \App\Core\Csrf::field() ?>
