@@ -84,7 +84,7 @@ $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? '')
         <div class="border rounded-3 p-3 mb-4">
           <h3 class="h5 mb-3"><?= $escape($sectionLabel) ?></h3>
           <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced/items/save') ?>" class="row g-3 mb-3">
-            <?= \\App\\Core\\Csrf::field() ?>
+            <?= \App\Core\Csrf::field() ?>
             <input type="hidden" name="id" value="<?= $websiteId ?>">
             <input type="hidden" name="section_key" value="<?= $escape($sectionKey) ?>">
             <div class="col-12 col-md-6"><label class="form-label">Title</label><input class="form-control" name="title" maxlength="190" required placeholder="<?= $escape($sectionKey === 'skills' ? 'e.g. PHP and MySQL' : ($sectionKey === 'interests' ? 'e.g. Photography' : ($sectionKey === 'education' ? 'e.g. Diploma in ICT' : 'e.g. Software Developer'))) ?>"></div>
@@ -100,9 +100,9 @@ $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? '')
           <?php else: ?>
             <?php foreach ($sectionItems as $item): ?>
               <?php $payload = json_decode((string) ($item['payload'] ?? '{}'), true); $payload = is_array($payload) ? $payload : []; ?>
-              <div class="border-top pt-3 mt-3">
+              <div class="border-top pt-3 mt-3 d-flex flex-column gap-3">
                 <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced/items/save') ?>" class="row g-2">
-                  <?= \\App\\Core\\Csrf::field() ?>
+                  <?= \App\Core\Csrf::field() ?>
                   <input type="hidden" name="id" value="<?= $websiteId ?>">
                   <input type="hidden" name="item_id" value="<?= (int) $item['id'] ?>">
                   <input type="hidden" name="section_key" value="<?= $escape($item['section_key']) ?>">
@@ -112,19 +112,26 @@ $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? '')
                   <div class="col-12 col-md-6"><label class="form-label">Link</label><input class="form-control" type="url" name="link" maxlength="500" value="<?= $escape($payload['link'] ?? '') ?>"></div>
                   <div class="col-12"><label class="form-label">Description / details</label><textarea class="form-control" name="details" rows="2" maxlength="5000"><?= $escape($payload['details'] ?? '') ?></textarea></div>
                   <div class="col-12 col-md-3"><label class="form-label">Display order</label><input class="form-control" type="number" name="sort_order" min="0" max="9999" value="<?= (int) ($item['sort_order'] ?? 0) ?>"></div>
-                  <div class="col-12 d-flex gap-2 flex-wrap">
+                  <div class="col-12">
                     <button class="btn btn-sm btn-primary" type="submit">Save changes</button>
-                </form>
-                    <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced/items/toggle') ?>">
-                      <?= \\App\\Core\\Csrf::field() ?><input type="hidden" name="id" value="<?= $websiteId ?>"><input type="hidden" name="item_id" value="<?= (int) $item['id'] ?>"><input type="hidden" name="enabled" value="<?= empty($item['is_enabled']) ? '1' : '0' ?>">
-                      <button class="btn btn-sm btn-outline-secondary" type="submit"><?= empty($item['is_enabled']) ? 'Enable' : 'Hide' ?></button>
-                    </form>
-                    <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced/items/delete') ?>" onsubmit="return confirm('Delete this portfolio item?')">
-                      <?= \\App\\Core\\Csrf::field() ?><input type="hidden" name="id" value="<?= $websiteId ?>"><input type="hidden" name="item_id" value="<?= (int) $item['id'] ?>">
-                      <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
-                    </form>
                   </div>
+                </form>
+                <div class="d-flex gap-2 flex-wrap">
+                  <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced/items/toggle') ?>">
+                    <?= \App\Core\Csrf::field() ?>
+                    <input type="hidden" name="id" value="<?= $websiteId ?>">
+                    <input type="hidden" name="item_id" value="<?= (int) $item['id'] ?>">
+                    <input type="hidden" name="enabled" value="<?= empty($item['is_enabled']) ? '1' : '0' ?>">
+                    <button class="btn btn-sm btn-outline-secondary" type="submit"><?= empty($item['is_enabled']) ? 'Enable' : 'Hide' ?></button>
+                  </form>
+                  <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced/items/delete') ?>" onsubmit="return confirm('Delete this portfolio item?')">
+                    <?= \App\Core\Csrf::field() ?>
+                    <input type="hidden" name="id" value="<?= $websiteId ?>">
+                    <input type="hidden" name="item_id" value="<?= (int) $item['id'] ?>">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                  </form>
                 </div>
+              </div>
             <?php endforeach; ?>
           <?php endif; ?>
         </div>

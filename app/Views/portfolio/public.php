@@ -14,6 +14,19 @@ $fontFamily = $fontFamilies[(string) ($advancedSettings['font_family'] ?? 'syste
 $heroStyle = in_array(($advancedSettings['hero_style'] ?? 'centered'), ['centered', 'split', 'minimal'], true) ? $advancedSettings['hero_style'] : 'centered';
 $showProjects = ($advancedSettings['show_projects'] ?? '1') !== '0';
 $showContact = ($advancedSettings['show_contact'] ?? '1') !== '0';
+$sectionLabels = [
+    'experience' => 'Work experience',
+    'education' => 'Education',
+    'skills' => 'Skills',
+    'interests' => 'Interests',
+];
+$sectionItems = [];
+foreach (($advancedItems ?? []) as $item) {
+    $sectionKey = (string) ($item['section_key'] ?? '');
+    if (isset($sectionLabels[$sectionKey])) {
+        $sectionItems[$sectionKey][] = $item;
+    }
+}
 $avatar = trim((string) ($portfolio['avatar_path'] ?? ''));
 $avatarUrl = '';
 if ($avatar !== '' && !str_contains($avatar, '..') && preg_match('#^uploads/[A-Za-z0-9_./-]+$#', $avatar)) {
@@ -148,6 +161,37 @@ $initials = strtoupper(substr($name, 0, 1));
         </div>
       </div>
     </section>
+
+    <?php foreach ($sectionLabels as $sectionKey => $sectionLabel): ?>
+      <?php if (!empty($sectionItems[$sectionKey])): ?>
+        <section id="<?= $escape($sectionKey) ?>" class="portfolio-content-section">
+          <div class="portfolio-content-inner">
+            <p class="hero-eyebrow">Portfolio</p>
+            <h2><?= $escape($sectionLabel) ?></h2>
+            <div class="portfolio-project-grid mt-4">
+              <?php foreach ($sectionItems[$sectionKey] as $item): ?>
+                <?php
+                $payload = json_decode((string) ($item['payload'] ?? '{}'), true);
+                $payload = is_array($payload) ? $payload : [];
+                $itemLink = trim((string) ($payload['link'] ?? ''));
+                $itemLinkScheme = strtolower((string) parse_url($itemLink, PHP_URL_SCHEME));
+                if (!in_array($itemLinkScheme, ['http', 'https'], true)) {
+                    $itemLink = '';
+                }
+                ?>
+                <article class="portfolio-project-card glass-card">
+                  <h3><?= $escape($item['title'] ?? '') ?></h3>
+                  <?php if (!empty($payload['organisation'])): ?><p class="mb-1"><?= $escape($payload['organisation']) ?></p><?php endif; ?>
+                  <?php if (!empty($payload['period'])): ?><p class="mb-2"><?= $escape($payload['period']) ?></p><?php endif; ?>
+                  <?php if (!empty($payload['details'])): ?><p><?= nl2br($escape($payload['details'])) ?></p><?php endif; ?>
+                  <?php if ($itemLink !== ''): ?><a href="<?= $escape($itemLink) ?>" target="_blank" rel="noopener noreferrer">Learn more <span aria-hidden="true">↗</span></a><?php endif; ?>
+                </article>
+              <?php endforeach; ?>
+            </div>
+          </div>
+        </section>
+      <?php endif; ?>
+    <?php endforeach; ?>
 
     <?php if ($showProjects): ?><section id="projects" class="portfolio-content-section">
       <div class="portfolio-content-inner">

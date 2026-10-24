@@ -68,6 +68,21 @@ class AdvancedPortfolio extends Model
         return $statement->fetchAll();
     }
 
+    public function visibleItems(int $websiteId, int $userId): array
+    {
+        $statement = $this->query(
+            'SELECT id, section_key, title, payload, sort_order, is_enabled
+             FROM portfolio_advanced_items
+             WHERE website_id = :website_id
+               AND user_id = :user_id
+               AND is_enabled = 1
+             ORDER BY section_key, sort_order, id',
+            ['website_id' => $websiteId, 'user_id' => $userId]
+        );
+
+        return $statement->fetchAll();
+    }
+
     public function saveItem(int $websiteId, int $userId, string $sectionKey, string $title, array $payload, int $sortOrder, ?int $itemId = null): void
     {
         $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
