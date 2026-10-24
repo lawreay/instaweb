@@ -17,11 +17,17 @@ if (!in_array($heroStyle, ['centered', 'split', 'minimal'], true)) {
 }
 $showProjects = ($advancedSettings['show_projects'] ?? '1') !== '0';
 $showContact = ($advancedSettings['show_contact'] ?? '1') !== '0';
+// Keep this list aligned with AdvancedPortfolioController::SECTIONS.
 $sectionLabels = [
+    'goals' => 'Goals',
+    'interests' => 'Interests',
+    'challenges' => 'Challenges',
     'experience' => 'Work experience',
     'education' => 'Education',
     'skills' => 'Skills',
-    'interests' => 'Interests',
+    'news' => 'News and updates',
+    'partnerships' => 'Partnerships',
+    'cv' => 'CV / Resume',
 ];
 $sectionItems = [];
 foreach (($advancedItems ?? []) as $item) {
