@@ -83,8 +83,13 @@ $initials = strtoupper(substr($name, 0, 1));
     body.portfolio-template-classic .hero-footnote-line{display:inline-block;width:2rem;height:2px;margin-right:.6rem;background:#c2410c;vertical-align:middle}
     body.portfolio-hero-style-centered .hero-copy{text-align:center;margin-inline:auto}
     body.portfolio-hero-style-centered .hero-actions,body.portfolio-hero-style-centered .hero-footnote{justify-content:center}
+    body.portfolio-template-classic.portfolio-hero-style-split .hero-shell{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(220px,.75fr);align-items:center;gap:clamp(2rem,6vw,5rem)}
+    body.portfolio-template-classic.portfolio-hero-style-split .hero-copy{max-width:none;text-align:left;margin:0}
+    body.portfolio-template-classic.portfolio-hero-style-split .hero-portrait-wrap{width:min(100%,380px);justify-self:end}
+    body.portfolio-template-classic.portfolio-hero-style-split .hero-actions,body.portfolio-template-classic.portfolio-hero-style-split .hero-footnote{justify-content:flex-start}
     body.portfolio-hero-style-minimal .portfolio-hero{min-height:65vh}
     body.portfolio-hero-style-minimal .hero-footnote,body.portfolio-hero-style-minimal .hero-kicker{display:none}
+    @media(max-width:760px){body.portfolio-template-classic.portfolio-hero-style-split .hero-shell{grid-template-columns:1fr}body.portfolio-template-classic.portfolio-hero-style-split .hero-portrait-wrap{width:min(100%,300px);justify-self:start;grid-row:1}}
     .hero-eyebrow,.portfolio-project-card a{color:var(--portfolio-accent)!important}
     body.portfolio-template-classic .portfolio-hero{background:linear-gradient(135deg,<?= $escape($backgroundColor) ?> 0%,#e2e8f0 55%,<?= $escape($backgroundColor) ?> 100%)}
     @media(max-width:650px){.portfolio-content-section{padding:3.5rem 1.25rem}.portfolio-hero{min-height:auto}}
@@ -137,7 +142,7 @@ $initials = strtoupper(substr($name, 0, 1));
             <div class="hero-footnote"><span class="hero-footnote-line"></span><span><?= $escape($location !== '' ? $location : 'Selected work and experience') ?></span></div>
           <?php endif; ?>
         </div>
-        <?php if ($template === 'editorial' || $avatarUrl !== ''): ?>
+        <?php if ($template === 'editorial' || $avatarUrl !== '' || $heroStyle === 'split'): ?>
           <div class="hero-portrait-wrap">
             <div class="hero-photo-frame">
               <div class="portfolio-avatar"><?php if ($avatarUrl !== ''): ?><img src="<?= $escape($avatarUrl) ?>" alt="<?= $escape($name) ?>"><?php else: ?><?= $escape($initials) ?><?php endif; ?></div>
