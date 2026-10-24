@@ -3,6 +3,9 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\View;
+use App\Models\Portfolio;
+use App\Models\AdvancedPortfolio;
 use App\Core\Session;
 use App\Models\Website;
 use App\Services\AuthService;
@@ -19,7 +22,30 @@ class PreviewController extends Controller
      */
     public function show(): void
     {
-        [, $website] = $this->requireWebsite();
+        [$userId, $website] = $this->requireWebsite();
+        if (($website['template_key'] ?? '') === 'portfolio') {
+            $portfolioModel = new Portfolio();
+            $advancedModel = new AdvancedPortfolio();
+            $portfolio = $portfolioModel->findForWebsiteOwner((int) $website['id'], $userId);
+            if (!$portfolio) {
+                Session::flash('error', 'Portfolio data is not initialized for this website.');
+                $this->redirectTo('/dashboard/websites/show?id=' . (int) $website['id']);
+                return;
+            }
+
+            header('Content-Type: text/html; charset=UTF-8');
+            echo View::render('portfolio/public', [
+                'app' => $this->config,
+                'website' => $website,
+                'portfolio' => $portfolio,
+                'projects' => $portfolioModel->projects((int) $portfolio['id']),
+                'advancedSettings' => $advancedModel->settings((int) $website['id'], $userId),
+                'advancedItems' => $advancedModel->visibleItems((int) $website['id'], $userId),
+                'isPreview' => true,
+            ], '');
+            return;
+        }
+
         $liveUrl = ($website['status'] ?? '') === 'published'
             ? (new PublicSiteUrlService())->absoluteUrl(
                 (string) ($this->config['base_url'] ?? ''),

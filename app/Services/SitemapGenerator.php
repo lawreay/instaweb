@@ -35,7 +35,7 @@ class SitemapGenerator
 
         foreach ($publishedSites as $website) {
             $urls[] = [
-                'loc' => $this->urlService->absoluteUrl($baseUrl, (int) $website['id'], (string) $website['slug']),
+                'loc' => $this->urlService->absoluteUrl($baseUrl, (int) $website['id'], (string) $website['slug'], (string) ($website['template_key'] ?? 'blank')),
                 'lastmod' => $this->formatLastModified($website['created_at'] ?? ''),
                 'changefreq' => 'weekly',
                 'priority' => '0.8',
