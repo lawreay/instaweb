@@ -8,6 +8,7 @@
 **/storage/
 **/uploads/
 public/sites/
+public/sitemap.xml
 
 # Local dependency trees
 node_modules/
