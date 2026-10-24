@@ -5,6 +5,28 @@ $name = trim((string) ($portfolio['display_name'] ?? 'Portfolio'));
 $headline = trim((string) ($portfolio['headline'] ?? ''));
 $bio = trim((string) ($portfolio['bio'] ?? ''));
 $template = (string) ($portfolio['template_key'] ?? 'classic');
+$advancedSettings = is_array($advancedSettings ?? null) ? $advancedSettings : [];
+$accentColor = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($advancedSettings['accent_color'] ?? '')) ? $advancedSettings['accent_color'] : '#f97316';
+$backgroundColor = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($advancedSettings['background_color'] ?? '')) ? $advancedSettings['background_color'] : '#ffffff';
+$textColor = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($advancedSettings['text_color'] ?? '')) ? $advancedSettings['text_color'] : '#111827';
+$fontFamilies = ['system' => 'system-ui, -apple-system, sans-serif', 'sans-serif' => 'Arial, Helvetica, sans-serif', 'serif' => 'Georgia, serif', 'mono' => 'ui-monospace, monospace'];
+$fontFamily = $fontFamilies[(string) ($advancedSettings['font_family'] ?? 'system')] ?? $fontFamilies['system'];
+$heroStyle = in_array(($advancedSettings['hero_style'] ?? 'centered'), ['centered', 'split', 'minimal'], true) ? $advancedSettings['hero_style'] : 'centered';
+$showProjects = ($advancedSettings['show_projects'] ?? '1') !== '0';
+$showContact = ($advancedSettings['show_contact'] ?? '1') !== '0';
+$sectionLabels = [
+    'experience' => 'Work experience',
+    'education' => 'Education',
+    'skills' => 'Skills',
+    'interests' => 'Interests',
+];
+$sectionItems = [];
+foreach (($advancedItems ?? []) as $item) {
+    $sectionKey = (string) ($item['section_key'] ?? '');
+    if (isset($sectionLabels[$sectionKey])) {
+        $sectionItems[$sectionKey][] = $item;
+    }
+}
 $avatar = trim((string) ($portfolio['avatar_path'] ?? ''));
 $avatarUrl = '';
 if ($avatar !== '' && !str_contains($avatar, '..') && preg_match('#^uploads/[A-Za-z0-9_./-]+$#', $avatar)) {
@@ -34,7 +56,7 @@ $initials = strtoupper(substr($name, 0, 1));
     <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.css') ?>">
   <?php endif; ?>
   <style>
-    body{min-height:100vh;overflow-x:clip}#portfolio-container{overflow:hidden}.portfolio-nav-logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid currentColor;font-weight:800}
+    body{font-family:<?= $escape($fontFamily) ?>;background-color:<?= $escape($backgroundColor) ?>;color:<?= $escape($textColor) ?>;--portfolio-accent:<?= $escape($accentColor) ?>;min-height:100vh;overflow-x:clip}#portfolio-container{overflow:hidden}.portfolio-nav-logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid currentColor;font-weight:800}
     .portfolio-avatar{display:grid;place-items:center;overflow:hidden;width:100%;aspect-ratio:4/5;background:linear-gradient(135deg,#d97706,#172b3a);color:#fff;font-size:clamp(4rem,12vw,8rem);font-weight:800}
     .portfolio-avatar img{width:100%;height:100%;object-fit:cover}.portfolio-content-section{padding:5rem clamp(1.25rem,6vw,6rem)}
     .portfolio-content-inner{max-width:1120px;margin:0 auto}.portfolio-content-section h2{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.04em}
@@ -59,10 +81,21 @@ $initials = strtoupper(substr($name, 0, 1));
     body.portfolio-template-classic .hero-button-secondary{color:#172b3a;background:transparent}
     body.portfolio-template-classic .hero-footnote{margin-top:2rem;color:#64748b;font-size:.8rem;font-weight:700;letter-spacing:.06em}
     body.portfolio-template-classic .hero-footnote-line{display:inline-block;width:2rem;height:2px;margin-right:.6rem;background:#c2410c;vertical-align:middle}
+    body.portfolio-hero-style-centered .hero-copy{text-align:center;margin-inline:auto}
+    body.portfolio-hero-style-centered .hero-actions,body.portfolio-hero-style-centered .hero-footnote{justify-content:center}
+    body.portfolio-template-classic.portfolio-hero-style-split .hero-shell{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(220px,.75fr);align-items:center;gap:clamp(2rem,6vw,5rem)}
+    body.portfolio-template-classic.portfolio-hero-style-split .hero-copy{max-width:none;text-align:left;margin:0}
+    body.portfolio-template-classic.portfolio-hero-style-split .hero-portrait-wrap{width:min(100%,380px);justify-self:end}
+    body.portfolio-template-classic.portfolio-hero-style-split .hero-actions,body.portfolio-template-classic.portfolio-hero-style-split .hero-footnote{justify-content:flex-start}
+    body.portfolio-hero-style-minimal .portfolio-hero{min-height:65vh}
+    body.portfolio-hero-style-minimal .hero-footnote,body.portfolio-hero-style-minimal .hero-kicker{display:none}
+    @media(max-width:760px){body.portfolio-template-classic.portfolio-hero-style-split .hero-shell{grid-template-columns:1fr}body.portfolio-template-classic.portfolio-hero-style-split .hero-portrait-wrap{width:min(100%,300px);justify-self:start;grid-row:1}}
+    .hero-eyebrow,.portfolio-project-card a{color:var(--portfolio-accent)!important}
+    body.portfolio-template-classic .portfolio-hero{background:linear-gradient(135deg,<?= $escape($backgroundColor) ?> 0%,#e2e8f0 55%,<?= $escape($backgroundColor) ?> 100%)}
     @media(max-width:650px){.portfolio-content-section{padding:3.5rem 1.25rem}.portfolio-hero{min-height:auto}}
   </style>
 </head>
-<body class="portfolio-template-<?= $escape($template) ?>">
+<body class="portfolio-template-<?= $escape($template) ?> portfolio-hero-style-<?= $escape($heroStyle) ?>">
   <?php if (!empty($isPreview)): ?>
     <div style="position:relative;z-index:10000;padding:.65rem 1rem;background:#fef3c7;color:#78350f;text-align:center;font:600 13px/1.4 Arial,sans-serif">
       Draft preview · changes are shown from your saved portfolio data.
@@ -81,8 +114,11 @@ $initials = strtoupper(substr($name, 0, 1));
         </button>
         <ul id="nav-menu">
           <li><a href="#about">About</a></li>
-          <li><a href="#projects">Projects</a></li>
-          <?php if ($email !== ''): ?><li><a href="#contact">Contact</a></li><?php endif; ?>
+          <?php foreach ($sectionLabels as $sectionKey => $sectionLabel): ?>
+            <?php if (!empty($sectionItems[$sectionKey])): ?><li><a href="#<?= $escape($sectionKey) ?>"><?= $escape($sectionLabel) ?></a></li><?php endif; ?>
+          <?php endforeach; ?>
+          <?php if ($showProjects): ?><li><a href="#projects">Projects</a></li><?php endif; ?>
+          <?php if ($showContact && $email !== ''): ?><li><a href="#contact">Contact</a></li><?php endif; ?>
         </ul>
       </div>
     </nav>
@@ -100,8 +136,8 @@ $initials = strtoupper(substr($name, 0, 1));
           <p id="hero-title" class="hero-role"><?= $escape($headline) ?></p>
           <p id="hero-tagline" class="hero-summary"><?= nl2br($escape($bio !== '' ? $bio : 'Welcome to my portfolio. Explore selected work and get in touch.')) ?></p>
           <div class="hero-actions">
-            <a class="hero-button hero-button-primary" href="#projects">Explore my work <span aria-hidden="true">↘</span></a>
-            <?php if ($email !== ''): ?><a class="hero-text-link hero-button-secondary" href="mailto:<?= $escape($email) ?>">Contact me <span aria-hidden="true">↗</span></a><?php endif; ?>
+            <?php if ($showProjects): ?><a class="hero-button hero-button-primary" href="#projects">Explore my work <span aria-hidden="true">↘</span></a><?php endif; ?>
+            <?php if ($showContact && $email !== ''): ?><a class="hero-text-link hero-button-secondary" href="mailto:<?= $escape($email) ?>">Contact me <span aria-hidden="true">↗</span></a><?php endif; ?>
           </div>
           <?php if ($template === '3d'): ?>
             <div class="hero-proof"><div><strong>Selected work</strong><span><?= count($projects) ?> portfolio projects</span></div><div><strong><?= $escape($location !== '' ? $location : 'Open to opportunities') ?></strong><span>Profile and work</span></div></div>
@@ -109,7 +145,7 @@ $initials = strtoupper(substr($name, 0, 1));
             <div class="hero-footnote"><span class="hero-footnote-line"></span><span><?= $escape($location !== '' ? $location : 'Selected work and experience') ?></span></div>
           <?php endif; ?>
         </div>
-        <?php if ($template === 'editorial' || $avatarUrl !== ''): ?>
+        <?php if ($template === 'editorial' || $avatarUrl !== '' || $heroStyle === 'split'): ?>
           <div class="hero-portrait-wrap">
             <div class="hero-photo-frame">
               <div class="portfolio-avatar"><?php if ($avatarUrl !== ''): ?><img src="<?= $escape($avatarUrl) ?>" alt="<?= $escape($name) ?>"><?php else: ?><?= $escape($initials) ?><?php endif; ?></div>
@@ -134,7 +170,38 @@ $initials = strtoupper(substr($name, 0, 1));
       </div>
     </section>
 
-    <section id="projects" class="portfolio-content-section">
+    <?php foreach ($sectionLabels as $sectionKey => $sectionLabel): ?>
+      <?php if (!empty($sectionItems[$sectionKey])): ?>
+        <section id="<?= $escape($sectionKey) ?>" class="portfolio-content-section">
+          <div class="portfolio-content-inner">
+            <p class="hero-eyebrow">Portfolio</p>
+            <h2><?= $escape($sectionLabel) ?></h2>
+            <div class="portfolio-project-grid mt-4">
+              <?php foreach ($sectionItems[$sectionKey] as $item): ?>
+                <?php
+                $payload = json_decode((string) ($item['payload'] ?? '{}'), true);
+                $payload = is_array($payload) ? $payload : [];
+                $itemLink = trim((string) ($payload['link'] ?? ''));
+                $itemLinkScheme = strtolower((string) parse_url($itemLink, PHP_URL_SCHEME));
+                if (!in_array($itemLinkScheme, ['http', 'https'], true)) {
+                    $itemLink = '';
+                }
+                ?>
+                <article class="portfolio-project-card glass-card">
+                  <h3><?= $escape($item['title'] ?? '') ?></h3>
+                  <?php if (!empty($payload['organisation'])): ?><p class="mb-1"><?= $escape($payload['organisation']) ?></p><?php endif; ?>
+                  <?php if (!empty($payload['period'])): ?><p class="mb-2"><?= $escape($payload['period']) ?></p><?php endif; ?>
+                  <?php if (!empty($payload['details'])): ?><p><?= nl2br($escape($payload['details'])) ?></p><?php endif; ?>
+                  <?php if ($itemLink !== ''): ?><a href="<?= $escape($itemLink) ?>" target="_blank" rel="noopener noreferrer">Learn more <span aria-hidden="true">↗</span></a><?php endif; ?>
+                </article>
+              <?php endforeach; ?>
+            </div>
+          </div>
+        </section>
+      <?php endif; ?>
+    <?php endforeach; ?>
+
+    <?php if ($showProjects): ?><section id="projects" class="portfolio-content-section">
       <div class="portfolio-content-inner">
         <p class="hero-eyebrow">Selected work</p>
         <h2>Projects</h2>
@@ -154,9 +221,9 @@ $initials = strtoupper(substr($name, 0, 1));
           </div>
         <?php endif; ?>
       </div>
-    </section>
+    </section><?php endif; ?>
 
-    <?php if ($email !== ''): ?>
+    <?php if ($showContact && $email !== ''): ?>
       <section id="contact" class="portfolio-content-section portfolio-contact">
         <div class="portfolio-content-inner">
           <p class="hero-eyebrow">Get in touch</p>

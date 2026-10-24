@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\View;
 use App\Models\Portfolio;
+use App\Models\AdvancedPortfolio;
 use App\Models\Website;
 
 /**
@@ -36,12 +37,15 @@ class PortfolioPublicController extends Controller
             return;
         }
 
+        $advancedModel = new AdvancedPortfolio();
         header('Content-Type: text/html; charset=UTF-8');
         echo View::render('portfolio/public', [
             'app' => $this->config,
             'website' => $website,
             'portfolio' => $portfolio,
             'projects' => $portfolioModel->projects((int) $portfolio['id']),
+            'advancedSettings' => $advancedModel->settings((int) $website['id'], (int) $website['user_id']),
+            'advancedItems' => $advancedModel->visibleItems((int) $website['id'], (int) $website['user_id']),
         ], '');
     }
 }

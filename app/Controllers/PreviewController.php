@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\View;
 use App\Models\Portfolio;
+use App\Models\AdvancedPortfolio;
 use App\Core\Session;
 use App\Models\Website;
 use App\Services\AuthService;
@@ -24,6 +25,7 @@ class PreviewController extends Controller
         [$userId, $website] = $this->requireWebsite();
         if (($website['template_key'] ?? '') === 'portfolio') {
             $portfolioModel = new Portfolio();
+            $advancedModel = new AdvancedPortfolio();
             $portfolio = $portfolioModel->findForWebsiteOwner((int) $website['id'], $userId);
             if (!$portfolio) {
                 Session::flash('error', 'Portfolio data is not initialized for this website.');
@@ -37,6 +39,8 @@ class PreviewController extends Controller
                 'website' => $website,
                 'portfolio' => $portfolio,
                 'projects' => $portfolioModel->projects((int) $portfolio['id']),
+                'advancedSettings' => $advancedModel->settings((int) $website['id'], $userId),
+                'advancedItems' => $advancedModel->visibleItems((int) $website['id'], $userId),
                 'isPreview' => true,
             ], '');
             return;

@@ -11,6 +11,7 @@ use App\Controllers\MarketingController;
 use App\Controllers\AdminController;
 use App\Controllers\WebsiteController;
 use App\Controllers\PortfolioController;
+use App\Controllers\AdvancedPortfolioController;
 use App\Controllers\FileManagerController;
 use App\Controllers\EditorController;
 use App\Controllers\PreviewController;
@@ -40,6 +41,7 @@ return [
         '/dashboard/websites/show' => [WebsiteController::class, 'show'],
         '/dashboard/websites/edit' => [WebsiteController::class, 'edit'],
         '/dashboard/websites/portfolio' => [PortfolioController::class, 'edit'],
+        '/dashboard/websites/portfolio/advanced' => [AdvancedPortfolioController::class, 'edit'],
         '/dashboard/websites/files' => [FileManagerController::class, 'index'],
         '/dashboard/websites/files/download' => [FileManagerController::class, 'download'],
         '/dashboard/websites/files/export' => [FileManagerController::class, 'exportZip'],
@@ -85,6 +87,10 @@ return [
         '/dashboard/websites' => [WebsiteController::class, 'store'],
         '/dashboard/websites/update' => [WebsiteController::class, 'update'],
         '/dashboard/websites/portfolio/save' => [PortfolioController::class, 'save'],
+        '/dashboard/websites/portfolio/advanced/save' => [AdvancedPortfolioController::class, 'save'],
+        '/dashboard/websites/portfolio/advanced/items/save' => [AdvancedPortfolioController::class, 'saveItem'],
+        '/dashboard/websites/portfolio/advanced/items/toggle' => [AdvancedPortfolioController::class, 'toggleItem'],
+        '/dashboard/websites/portfolio/advanced/items/delete' => [AdvancedPortfolioController::class, 'deleteItem'],
         '/dashboard/websites/portfolio/projects/add' => [PortfolioController::class, 'addProject'],
         '/dashboard/websites/portfolio/projects/delete' => [PortfolioController::class, 'deleteProject'],
         '/dashboard/websites/delete' => [WebsiteController::class, 'delete'],
