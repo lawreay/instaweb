@@ -27,7 +27,7 @@
 | Ten template identifiers | **Wired in code; visual parity partial** | `PortfolioController::TEMPLATES` and `portfolio/public.php` list Classic, Editorial, 3D Motion, Minimal, Noir, Aurora Motion, Studio Canvas, Orbit 3D, Prism, and Archive. Selection and renderer paths exist, but browser proof of all ten is outstanding. |
 | React-powered template family | **Implemented; production verification pending** | `react-portfolio.js` uses React and Framer Motion and has distinct CSS variants. The PHP fallback now remains visible until the React component mounts. It is one shared React renderer with template-specific styling, not ten independent React applications. External CDN loading and each template's visual identity need browser testing. |
 | Draft preview and public publishing lifecycle | **Partial** | Preview/public controller and renderer code exist. Confirm private draft access, published-only public access, unpublish behavior, slug resolution, and the real hosting route in a running environment. |
-| Security controls | **Partially implemented; security sign-off pending** | CSRF, owner-scoped lookups, HTTP/HTTPS URL validation, output escaping, image checks, randomized filenames, and upload script blocking are present in reviewed paths. Public rendering now revalidates stored project URLs before exposing them to PHP or React templates. Adversarial and cross-user tests are not evidenced. |
+| Security controls | **Partially implemented; security sign-off pending** | CSRF, owner-scoped lookups, HTTP/HTTPS URL validation, output escaping, image checks, randomized filenames, and upload script blocking are present in reviewed paths. Public rendering revalidates stored project and structured-section URLs before exposing them to PHP or React templates. Adversarial and cross-user tests are not evidenced. |
 | Reference-file cleanup | **Complete on working branch** | Removed root-level `idea.php` and `ideas2.php` from `feature/portfolio-editor-full-dashboard`; verified both paths return GitHub 404 on that branch. They are not yet removed from `main` until the PR is merged. |
 | Syntax / automated checks | **Latest code change CI passed** | GitHub Actions run 40215882457 completed successfully for code commit `391b77ae64dcbb77555a46423056ad8fafd450fc`; PHP lint, React module syntax, and the static integration guard passed. The checklist-only documentation commit follows that code commit. This is not browser/database runtime verification. |
 | Production readiness | **Not signed off** | Runtime database, browser, hosting, accessibility, performance, and cross-user checks remain release gates. |
@@ -119,7 +119,7 @@ Templates in the current allowlist:
 - [x] The Advanced Editor template selector now renders all ten options from `PortfolioController::TEMPLATES`, avoiding a hard-coded three-template selector.
 - [x] A shared database-backed content model is used rather than requiring a separate portfolio copy per template.
 - [x] The renderer validates unknown template keys and falls back to Classic.
-- [x] Public project URLs are revalidated at render time and only valid HTTP/HTTPS URLs are emitted as links, including for legacy or directly modified database records.
+- [x] Public project and structured-section URLs are revalidated at render time; only valid HTTP/HTTPS URLs are emitted as links, including for legacy or directly modified database records.
 - [x] The 3D script is conditionally loaded for the 3D template rather than every portfolio.
 
 ### Required before sign-off
