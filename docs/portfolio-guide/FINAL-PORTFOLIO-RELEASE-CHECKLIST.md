@@ -147,6 +147,7 @@ Template identifiers:
 - [x] `public/assets/portfolio-template/react-portfolio.js` contains a shared React renderer and Framer Motion effects.
 - [x] `react-portfolio.css` contains template-specific visual variants.
 - [x] Implemented interaction foundations include scroll progress, entrance animation, hover tilt cards, orbit decoration, and reduced-motion handling.
+- [x] React templates now disable nonessential hero, section, and pointer-tilt motion when the operating system requests reduced motion.
 - [x] A standard PHP-rendered version remains in the page as a fallback if React does not initialize.
 
 ### Required before sign-off
@@ -155,7 +156,7 @@ Template identifiers:
 - [ ] Confirm external dependency/CDN failures leave readable content and do not hide both renderers.
 - [ ] Check React mount timing and ensure the fallback is hidden only after successful initialization. A JavaScript error must not leave a blank portfolio.
 - [ ] Check console errors, duplicate IDs, navigation anchors, responsive overflow, and data escaping.
-- [ ] Verify reduced-motion behavior for all motion effects, not only decorative orbit elements.
+- [ ] Verify reduced-motion behavior for all motion effects in a browser with the OS preference both enabled and disabled.
 - [ ] Measure script loading and ensure React/Framer Motion are not loaded for standard PHP/CSS templates.
 - [ ] Decide and document whether the release intentionally depends on external CDNs; test the policy under blocked network conditions.
 - [ ] Ensure the React templates render all content and visibility settings consistently with the standard renderer.
@@ -328,4 +329,4 @@ Features not listed as implemented above must not be advertised as complete. In 
 ## Change log
 
 - **2026-10-25:** Audited the current `feature/portfolio-editor-full-dashboard` branch files and recorded implementation evidence versus unverified runtime behavior. The document intentionally separates code found from features that still need local database, browser, security, and hosting verification.
-- **2026-10-25:** Fixed three verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from the public data model; and React templates no longer hide the PHP fallback before the React component mounts. PHP syntax CI was queued at the time of the check; full browser, database, and security acceptance remains outstanding.
+- **2026-10-25:** Fixed verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from public rendering and the React payload; the PHP fallback stays visible until React mounts; and reduced-motion preferences disable nonessential React motion. The PHP syntax workflow passed for the PHP view changes. The CI workflow was extended to syntax-check the React module with Node.js; that new workflow step must pass. Full browser, database, and security acceptance remains outstanding.
