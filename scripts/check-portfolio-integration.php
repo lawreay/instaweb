@@ -31,6 +31,10 @@ $reactCss = readRequiredFile($root . '/public/assets/portfolio-template/react-po
 $router = readRequiredFile($root . '/app/Core/Router.php');
 $rootHtaccess = readRequiredFile($root . '/.htaccess');
 $websiteModel = readRequiredFile($root . '/app/Models/Website.php');
+$portfolioModel = readRequiredFile($root . '/app/Models/Portfolio.php');
+$publicController = readRequiredFile($root . '/app/Controllers/PortfolioPublicController.php');
+$previewController = readRequiredFile($root . '/app/Controllers/PreviewController.php');
+$publishController = readRequiredFile($root . '/app/Controllers/PublishController.php');
 
 if (!preg_match('/\$availableTemplates\s*=\s*\[(.*?)\];/s', $publicView, $templateMatch)) {
     failCheck('Public renderer does not declare its supported template list.');
@@ -78,4 +82,30 @@ foreach (['portfolio_advanced_items', 'portfolio_advanced_settings', 'portfolio_
     }
 }
 
-echo '[portfolio-check] PASS: template registry, React variants, editor selector, hidden items, public route, root access rules, and advanced-data cleanup are consistent.' . PHP_EOL;
+
+if (!str_contains($websiteModel, "AND w.status = 'published'") || !str_contains($websiteModel, "AND w.template_key = 'portfolio'")) {
+    failCheck('Public slug lookup does not require a published portfolio website.');
+}
+
+if (!str_contains($portfolioModel, "AND w.status = 'published'") || !str_contains($portfolioModel, "AND w.template_key = 'portfolio'")) {
+    failCheck('Public portfolio content lookup does not independently enforce published status and portfolio template.');
+}
+
+if (!str_contains($publicController, 'findPublishedPortfolioBySlug($slug)')
+    || !str_contains($publicController, 'findPublishedForWebsite((int) $website[\'id\'])')) {
+    failCheck('Public portfolio controller is missing its published slug/content checks.');
+}
+
+if (!str_contains($previewController, 'AuthService::check()')
+    || !str_contains($previewController, 'findForUser((int) $this->input(\'id\', 0), $userId)')) {
+    failCheck('Draft preview does not enforce authenticated website ownership.');
+}
+
+if (!str_contains($publishController, "updateStatus((int) $website['id'], $userId, 'published')")
+    || !str_contains($publishController, "updateStatus((int) $website['id'], $userId, 'draft')")
+    || !str_contains($publishController, 'publishPortfolio((int) $website[\'id\']')
+    || !str_contains($publishController, '->unpublish((int) $website[\'id\']')) {
+    failCheck('Publish/unpublish lifecycle does not update status and clean the public directory.');
+}
+
+echo '[portfolio-check] PASS: template registry, React variants, editor selector, hidden items, public route, publication gating, owner-only preview, publish/unpublish wiring, root access rules, and advanced-data cleanup are consistent.' . PHP_EOL;
