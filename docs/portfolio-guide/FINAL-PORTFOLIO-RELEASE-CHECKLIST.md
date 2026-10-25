@@ -2,7 +2,7 @@
 
 **Repository:** `lawreay/instaweb`  
 **Implementation branch reviewed:** `feature/portfolio-editor-full-dashboard`  
-**Reference only:** `lawreay/Custom-portfolios` and the in-repository `ideas2.php` / `idea.php` dashboard reference  
+**Reference only:** `lawreay/Custom-portfolios` (kept unchanged); the root-level `idea.php` and `ideas2.php` files have been removed from InstaWeb  
 **Document purpose:** final implementation checklist, acceptance contract, and honest record of verified work  
 **Review date:** 2026-10-25
 
@@ -28,7 +28,7 @@
 | React-powered template family | **Implemented; production verification pending** | `react-portfolio.js` uses React and Framer Motion and has distinct CSS variants. The PHP fallback now remains visible until the React component mounts. It is one shared React renderer with template-specific styling, not ten independent React applications. External CDN loading and each template's visual identity need browser testing. |
 | Draft preview and public publishing lifecycle | **Partial** | Preview/public controller and renderer code exist. Confirm private draft access, published-only public access, unpublish behavior, slug resolution, and the real hosting route in a running environment. |
 | Security controls | **Partially implemented; security sign-off pending** | CSRF, owner-scoped lookups, URL validation, output escaping, image checks, randomized filenames, and upload script blocking are present in reviewed paths. Adversarial and cross-user tests are not evidenced. |
-| Syntax / automated checks | **CI checks passed; runtime tests outstanding** | GitHub Actions passed PHP syntax checks, the React module syntax check, and the static portfolio integration guard on the latest code commit. No browser/database runtime report exists. |
+| Reference-file cleanup | **Complete on working branch** | Removed root-level `idea.php` and `ideas2.php` from `feature/portfolio-editor-full-dashboard`; verified both paths return GitHub 404 on that branch. They are not yet removed from `main` until the PR is merged. |\n| Syntax / automated checks | **CI checks passed on the previously verified commit; rerun pending after cleanup commits** | GitHub Actions passed PHP syntax checks, the React module syntax check, and the static portfolio integration guard on the earlier implementation commit. The deletion commits should trigger a fresh run. No browser/database runtime report exists. |
 | Production readiness | **Not signed off** | Runtime database, browser, hosting, accessibility, performance, and cross-user checks remain release gates. |
 
 ## Non-negotiable product rules
@@ -56,7 +56,7 @@
 - [x] Portfolio template keys are controlled in server-side code.
 - [x] Portfolio data uses InstaWeb website records and owner-scoped model/controller paths.
 - [x] Added `scripts/check-portfolio-integration.php`, a static guard that compares the controller registry, public renderer allowlist, React template variants, editor selector, hidden-item filtering, public route, and root access rules.
-- [x] The reference dashboard is documented as a feature/UI reference rather than a second application to deploy.
+- [x] Removed root-level `idea.php` and `ideas2.php` from InstaWeb; they are no longer standalone dashboard entry points in the working branch.\n- [x] The separate `Custom-portfolios` repository remains unchanged and is reference-only rather than a second application to deploy.
 - [x] Portfolio guide and integration documentation exist under `docs/`.
 - [x] The separate reference repository is not a target for edits.
 
@@ -255,7 +255,7 @@ Template identifiers:
 - [ ] Check stored/reflected XSS payloads in every text, title, URL, section, project, and social field.
 - [ ] Check URL schemes, malformed URLs, external link targets, and safe `rel` attributes.
 - [ ] Check upload path traversal, double extensions, spoofed MIME, oversized files, and executable content.
-- [ ] Verify the deployed Apache configuration returns 403 for `/idea.php`, `/ideas2.php`, `/api.zip`, repository metadata, and internal documentation paths while `/index.php`, `/p/{slug}`, and public assets still work.
+- [ ] Verify the deployed Apache configuration blocks direct access to `/idea.php`, `/ideas2.php`, `/api.zip`, repository metadata, and internal documentation paths (deleted PHP files may return 404; blocked paths may return 403) while `/index.php`, `/p/{slug}`, and public assets still work.
 - [ ] Confirm public routes never reveal drafts or private account metadata.
 - [ ] Check SQL operations use prepared statements and mutation queries are constrained by website and owner.
 - [ ] Test contrast, keyboard focus, semantic headings, landmarks, labels, alt text, touch targets, and mobile layout.
@@ -334,4 +334,4 @@ Features not listed as implemented above must not be advertised as complete. In 
 ## Change log
 
 - **2026-10-25:** Audited the current `feature/portfolio-editor-full-dashboard` branch files and recorded implementation evidence versus unverified runtime behavior. The document intentionally separates code found from features that still need local database, browser, security, and hosting verification.
-- **2026-10-25:** Fixed verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from public rendering and the React payload; the PHP fallback stays visible until React mounts; reduced-motion preferences disable nonessential React motion; and saved colour/font/hero-layout settings are passed to React templates. Added a static integration guard and extended GitHub Actions to check PHP, JavaScript, and template wiring. The PHP syntax checks, React module syntax check, and static integration guard all passed in GitHub Actions. Root `.htaccess` now blocks the standalone reference dashboards and sensitive project artifacts from direct access. Verify access rules in the actual Apache hosting environment. Full browser, database, and security acceptance remains outstanding.
+- **2026-10-25:** Fixed verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from public rendering and the React payload; the PHP fallback stays visible until React mounts; reduced-motion preferences disable nonessential React motion; and saved colour/font/hero-layout settings are passed to React templates. Added a static integration guard and extended GitHub Actions to check PHP, JavaScript, and template wiring. The PHP syntax checks, React module syntax check, and static integration guard passed in GitHub Actions on the implementation commit. Root `.htaccess` blocks standalone root-level PHP entry points and sensitive project artifacts. Verify access rules in the actual Apache hosting environment. Full browser, database, and security acceptance remains outstanding.\n- **2026-10-25:** Deleted `idea.php` and `ideas2.php` from the InstaWeb working branch in separate commits. Verified both file paths now return 404 on `feature/portfolio-editor-full-dashboard`. The separate `lawreay/Custom-portfolios` repository was not changed. The deletions are in PR #26 and are not present on `main` until that PR is merged. A fresh CI run after the cleanup commits must be checked.
