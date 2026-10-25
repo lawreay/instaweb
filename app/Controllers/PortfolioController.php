@@ -95,6 +95,77 @@ class PortfolioController extends Controller
         $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
     }
 
+    /**
+     * Upload a profile image for the portfolio owned by the current user.
+     * Only raster images are accepted; SVG and executable formats are rejected.
+     */
+    public function uploadAvatar(): void
+    {
+        [$userId, $website, $portfolio] = $this->ownedPortfolio();
+        $websiteId = (int) $website['id'];
+
+        if (!Csrf::validate($this->input('_csrf'))) {
+            Session::flash('error', 'Your session expired. Please try again.');
+            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+        }
+
+        $file = $_FILES['avatar'] ?? null;
+        if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+            || !is_uploaded_file((string) ($file['tmp_name'] ?? ''))
+            || (int) ($file['size'] ?? 0) < 1 || (int) $file['size'] > 3 * 1024 * 1024) {
+            Session::flash('error', 'Choose a profile image smaller than 3 MB.');
+            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+        }
+
+        $tmpPath = (string) $file['tmp_name'];
+        $finfo = new \\finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($tmpPath);
+        $imageInfo = @getimagesize($tmpPath);
+        $allowedTypes = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+        ];
+
+        if (!is_string($mime) || !isset($allowedTypes[$mime]) || $imageInfo === false
+            || ($imageInfo['mime'] ?? '') !== $mime
+            || (int) ($imageInfo[0] ?? 0) > 6000 || (int) ($imageInfo[1] ?? 0) > 6000) {
+            Session::flash('error', 'Use a valid JPEG, PNG, or WebP image up to 6000 × 6000 pixels.');
+            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+        }
+
+        $relativeDirectory = 'uploads/portfolios/' . $websiteId;
+        $targetDirectory = dirname(__DIR__, 2) . '/public/' . $relativeDirectory;
+        if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0755, true) && !is_dir($targetDirectory)) {
+            Session::flash('error', 'The profile image directory could not be created.');
+            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+        }
+
+        $filename = bin2hex(random_bytes(16)) . '.' . $allowedTypes[$mime];
+        $targetPath = $targetDirectory . DIRECTORY_SEPARATOR . $filename;
+        if (!move_uploaded_file($tmpPath, $targetPath)) {
+            Session::flash('error', 'The profile image could not be saved.');
+            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+        }
+
+        $relativePath = $relativeDirectory . '/' . $filename;
+        $saved = (new Portfolio())->updateAvatarForOwner(
+            (int) $portfolio['id'],
+            $websiteId,
+            $userId,
+            $relativePath
+        );
+
+        if (!$saved) {
+            @unlink($targetPath);
+            Session::flash('error', 'The profile image could not be linked to this portfolio.');
+            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+        }
+
+        Session::flash('success', 'Profile image uploaded.');
+        $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+    }
+
     public function addProject(): void
     {
         [$userId, $website, $portfolio] = $this->ownedPortfolio();
