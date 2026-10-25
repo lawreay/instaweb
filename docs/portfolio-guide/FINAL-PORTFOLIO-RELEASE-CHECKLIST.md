@@ -29,7 +29,7 @@
 | Draft preview and public publishing lifecycle | **Partial** | Preview/public controller and renderer code exist. Confirm private draft access, published-only public access, unpublish behavior, slug resolution, and the real hosting route in a running environment. |
 | Security controls | **Partially implemented; security sign-off pending** | CSRF, owner-scoped lookups, HTTP/HTTPS URL validation, output escaping, image checks, randomized filenames, and upload script blocking are present in reviewed paths. Public rendering revalidates stored project and structured-section URLs. Website deletion now explicitly removes advanced portfolio items, settings, and upload records because the legacy MyISAM website table cannot cascade to those InnoDB tables. Adversarial and cross-user tests remain pending. |
 | Reference-file cleanup | **Complete on working branch** | Removed root-level `idea.php` and `ideas2.php` from `feature/portfolio-editor-full-dashboard`; verified both paths return GitHub 404 on that branch. They are not yet removed from `main` until the PR is merged. |
-| Syntax / automated checks | **Latest cleanup change CI pending** | The URL-validation change passed GitHub Actions run 40215937667. A further change now cleans advanced portfolio records when a website is deleted and extends the static integration guard; that new change requires a fresh successful CI run. This is not browser/database runtime verification. |
+| Syntax / automated checks | **Latest known run passed; newest fixes require CI confirmation** | GitHub Actions run [#541](https://github.com/lawreay/instaweb/actions/runs/40225423313) passed PHP syntax, React module syntax, and the static portfolio integration guard on commit `33baca597390daf02dda4c288f8210305b909c1e`. Two subsequent code fixes now align React Contact navigation with actual section visibility and mark authenticated previews `noindex,nofollow`; the new commit chain must pass CI. This is not browser/database runtime verification. |
 | Production readiness | **Not signed off** | Runtime database, browser, hosting, accessibility, performance, and cross-user checks remain release gates. |
 
 ## Non-negotiable product rules
@@ -182,6 +182,8 @@ Template identifiers:
 - [x] Portfolio content remains database-backed and is shared across template variants.
 - [x] Hidden section entries are filtered before both the standard renderer and React template payload are built.
 - [x] The React fallback is hidden only after the React app component mounts, so a failed module import or initial render does not intentionally hide the PHP fallback.
+- [x] Authenticated preview HTML now emits `noindex,nofollow`, while published portfolio pages retain `index,follow`; the integration guard checks this distinction.
+- [x] React Contact navigation now appears only when the Contact section can render (email or at least one social link), preventing a dead `#contact` anchor.
 
 ### Required before sign-off
 
@@ -265,7 +267,7 @@ Template identifiers:
 - [ ] Test contrast, keyboard focus, semantic headings, landmarks, labels, alt text, touch targets, and mobile layout.
 - [ ] Confirm reduced-motion preference disables or substantially reduces all nonessential animation.
 - [ ] Avoid loading Bootstrap, React, Framer Motion, or Three.js when the selected template does not need them where practical.
-- [ ] Check caching and response headers for public and private preview routes.
+- [x] Private draft preview controller sends `private, no-store, no-cache, must-revalidate`, `Pragma: no-cache`, and `Expires: 0`; the shared portfolio HTML emits `noindex,nofollow` for previews. Live HTTP/cache behavior still requires runtime verification.
 - [ ] Review logs/errors so they do not reveal database details, file paths, or private content.
 
 **Acceptance gate:** security checks and accessibility review are recorded with outcomes; no unresolved high-severity issue remains.
@@ -291,6 +293,8 @@ This is the final release gate. Syntax checks alone are not sufficient.
 | Save each design setting | Setting persists and affects intended rendering | **Not verified** |
 | Select all ten templates | Selection persists; correct renderer is used | **Not verified** |
 | Preview while logged out / as another user | Draft remains private | **Not verified** |
+| Draft preview HTML metadata and cache headers | Preview is `noindex,nofollow` and sends private no-store/no-cache headers; public pages remain indexable | **Code/guard implemented; live HTTP test not verified** |
+| React Contact navigation with no email/social links | No Contact nav link is rendered when the Contact section is absent | **Code/guard implemented; browser test not verified** |
 | Publish and open public slug | Correct published website renders dynamically | **Not verified** |
 | Unpublish / republish | Public availability changes correctly without data loss | **Not verified** |
 | Unknown slug/template/missing record | Safe not-found/fallback behavior | **Not verified** |
@@ -348,3 +352,5 @@ Features not listed as implemented above must not be advertised as complete. In 
 - **2026-10-25:** Found and fixed an upload lifecycle issue: replacing a profile avatar previously left the prior image file on disk. `PortfolioController::uploadAvatar()` now resolves and removes the old file only when it is inside the current website's dedicated upload directory. Extended the static integration guard for this cleanup. GitHub Actions run #532 passed PHP syntax, the portfolio integration guard, and React module syntax. Live upload/replacement and filesystem-permission tests remain pending.
 
 - **2026-10-25:** Added private, no-store/no-cache response headers to the owner-only database-backed portfolio draft preview. Static website preview files already used these headers; the portfolio HTML preview now follows the same policy so draft content is not retained by browsers or shared caches. Extended `scripts/check-portfolio-integration.php` to guard this behavior. CI for the new commit has not yet been observed; live HTTP/cache behavior still needs runtime verification.
+
+- **2026-10-25:** Closed two additional audit findings in the InstaWeb branch: React Contact navigation is now conditional on the same email/social-link criteria as the rendered Contact section, and authenticated preview HTML now uses `noindex,nofollow` while published pages stay `index,follow`. Extended the static integration guard for both regressions. The code commits are present; a fresh CI run and browser/HTTP verification are still required.
