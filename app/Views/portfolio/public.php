@@ -75,6 +75,7 @@ foreach ($sectionLabels as $sectionKey => $sectionLabel) {
 $reactPortfolioData = [
     'template' => $template, 'name' => $name, 'headline' => $headline, 'bio' => $bio, 'initials' => $initials ?? strtoupper(substr($name, 0, 1)),
     'avatar' => $avatarUrl, 'email' => $email, 'location' => $location, 'accent' => $accentColor, 'background' => $backgroundColor,
+    'textColor' => $textColor, 'fontFamily' => $fontFamily,
     'showProjects' => $showProjects, 'showContact' => $showContact, 'projects' => $projects, 'sections' => $reactSections,
     'socials' => array_values($safeSocialLinks),
 ];
