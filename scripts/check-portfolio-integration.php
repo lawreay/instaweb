@@ -6,7 +6,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use App\Controllers\PortfolioController;
 
-function failCheck(string $message): never
+function failCheck(string $message): void
 {
     fwrite(STDERR, "[portfolio-check] FAIL: {$message}\n");
     exit(1);
@@ -58,7 +58,7 @@ if (!str_contains($editorView, 'foreach ($templates as $templateKey => $template
     failCheck('Advanced Editor selector is not generated from the server-side template registry.');
 }
 
-if (!str_contains($publicView, "&& !empty($item['is_enabled'])")) {
+if (!str_contains($publicView, '&& !empty($item[\'is_enabled\'])')) {
     failCheck('Public renderer does not filter disabled section entries.');
 }
 
