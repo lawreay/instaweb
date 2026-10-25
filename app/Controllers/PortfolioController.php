@@ -202,6 +202,47 @@ class PortfolioController extends Controller
         $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
     }
 
+    public function saveProject(): void
+    {
+        [$userId, $website, $portfolio] = $this->ownedPortfolio();
+        $websiteId = (int) $website['id'];
+
+        if (!Csrf::validate($this->input('_csrf'))) {
+            Session::flash('error', 'Your session expired. Please try again.');
+            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+        }
+
+        $projectId = (int) $this->input('project_id', 0);
+        $title = trim((string) $this->input('project_title', ''));
+        $summary = trim((string) $this->input('project_summary', ''));
+        $url = trim((string) $this->input('project_url', ''));
+        $sortOrder = max(0, min(9999, (int) $this->input('sort_order', 0)));
+
+        if ($projectId < 1 || $title === '' || strlen($title) > 150 || strlen($summary) > 5000
+            || strlen($url) > 500
+            || ($url !== '' && (!filter_var($url, FILTER_VALIDATE_URL)
+                || !in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true)))) {
+            Session::flash('error', 'Check the project title, description, and HTTP or HTTPS link.');
+            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+        }
+
+        $saved = (new Portfolio())->updateProjectForOwner(
+            $projectId,
+            (int) $portfolio['id'],
+            $websiteId,
+            $userId,
+            [
+                'title' => $title,
+                'summary' => $summary,
+                'project_url' => $url !== '' ? $url : null,
+                'sort_order' => $sortOrder,
+            ]
+        );
+
+        Session::flash($saved ? 'success' : 'error', $saved ? 'Project updated.' : 'Project not found or could not be updated.');
+        $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+    }
+
     public function deleteProject(): void
     {
         [$userId, $website, $portfolio] = $this->ownedPortfolio();
