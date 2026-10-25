@@ -5,6 +5,11 @@ $name = trim((string) ($portfolio['display_name'] ?? 'Portfolio'));
 $headline = trim((string) ($portfolio['headline'] ?? ''));
 $bio = trim((string) ($portfolio['bio'] ?? ''));
 $template = (string) ($portfolio['template_key'] ?? 'classic');
+$availableTemplates = ['classic', 'editorial', '3d', 'minimal', 'noir', 'aurora', 'studio', 'orbit', 'prism', 'archive'];
+$reactTemplates = ['aurora', 'studio', 'orbit', 'prism', 'archive'];
+if (!in_array($template, $availableTemplates, true)) {
+    $template = 'classic';
+}
 $advancedSettings = is_array($advancedSettings ?? null) ? $advancedSettings : [];
 $accentColor = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($advancedSettings['accent_color'] ?? '')) ? $advancedSettings['accent_color'] : '#f97316';
 $backgroundColor = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($advancedSettings['background_color'] ?? '')) ? $advancedSettings['background_color'] : '#ffffff';
@@ -54,6 +59,25 @@ foreach ($socialLabels as $platform => $label) {
         $safeSocialLinks[$platform] = ['label' => $label, 'url' => $url];
     }
 }
+$reactSections = [];
+foreach ($sectionLabels as $sectionKey => $sectionLabel) {
+    if (empty($sectionItems[$sectionKey])) continue;
+    $entries = [];
+    foreach ($sectionItems[$sectionKey] as $item) {
+        $payload = json_decode((string) ($item['payload'] ?? '{}'), true);
+        $payload = is_array($payload) ? $payload : [];
+        $link = trim((string) ($payload['link'] ?? ''));
+        if (!filter_var($link, FILTER_VALIDATE_URL) || !in_array(strtolower((string) parse_url($link, PHP_URL_SCHEME)), ['http', 'https'], true)) $link = '';
+        $entries[] = ['title' => (string) ($item['title'] ?? ''), 'details' => (string) ($payload['details'] ?? ''), 'organisation' => (string) ($payload['organisation'] ?? ''), 'period' => (string) ($payload['period'] ?? ''), 'link' => $link];
+    }
+    $reactSections[] = ['key' => $sectionKey, 'label' => $sectionLabel, 'items' => $entries];
+}
+$reactPortfolioData = [
+    'template' => $template, 'name' => $name, 'headline' => $headline, 'bio' => $bio, 'initials' => $initials ?? strtoupper(substr($name, 0, 1)),
+    'avatar' => $avatarUrl, 'email' => $email, 'location' => $location, 'accent' => $accentColor, 'background' => $backgroundColor,
+    'showProjects' => $showProjects, 'showContact' => $showContact, 'projects' => $projects, 'sections' => $reactSections,
+    'socials' => array_values($safeSocialLinks),
+];
 $initials = strtoupper(substr($name, 0, 1));
 ?>
 <!doctype html>
@@ -64,7 +88,7 @@ $initials = strtoupper(substr($name, 0, 1));
   <title><?= $escape($name) ?><?= $headline !== '' ? ' | ' . $escape($headline) : '' ?></title>
   <meta name="description" content="<?= $escape(substr($bio !== '' ? $bio : $headline, 0, 160)) ?>">
   <meta name="robots" content="index,follow">
-  <meta name="theme-color" content="<?= $template === '3d' ? '#080b0e' : '#f4f0e7' ?>">
+  <meta name="theme-color" content="<?= in_array($template, ['3d', 'noir'], true) ? '#080b0e' : '#f4f0e7' ?>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/styles.css') ?>">
   <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio.css') ?>">
@@ -74,6 +98,13 @@ $initials = strtoupper(substr($name, 0, 1));
     <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-editorial.css') ?>">
   <?php elseif ($template === '3d'): ?>
     <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.css') ?>">
+  <?php elseif ($template === 'minimal'): ?>
+    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-minimal.css') ?>">
+  <?php elseif ($template === 'noir'): ?>
+    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-noir.css') ?>">
+  <?php endif; ?>
+  <?php if (in_array($template, $reactTemplates, true)): ?>
+    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.css') ?>">
   <?php endif; ?>
   <style>
     body{font-family:<?= $escape($fontFamily) ?>;background-color:<?= $escape($backgroundColor) ?>;color:<?= $escape($textColor) ?>;--portfolio-accent:<?= $escape($accentColor) ?>;min-height:100vh;overflow-x:clip}#portfolio-container{overflow:hidden}.portfolio-nav-logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid currentColor;font-weight:800}
@@ -115,7 +146,7 @@ $initials = strtoupper(substr($name, 0, 1));
     @media(max-width:650px){.portfolio-content-section{padding:3.5rem 1.25rem}.portfolio-hero{min-height:auto}}
   </style>
 </head>
-<body class="portfolio-template-<?= $escape($template) ?> portfolio-hero-style-<?= $escape($heroStyle) ?>">
+<body class="portfolio-template-<?= $escape($template) ?> portfolio-hero-style-<?= $escape($heroStyle) ?><?= in_array($template, $reactTemplates, true) ? ' react-portfolio-template' : '' ?>">
   <?php if (!empty($isPreview)): ?>
     <div style="position:relative;z-index:10000;padding:.65rem 1rem;background:#fef3c7;color:#78350f;text-align:center;font:600 13px/1.4 Arial,sans-serif">
       Draft preview · changes are shown from your saved portfolio data.
@@ -143,6 +174,10 @@ $initials = strtoupper(substr($name, 0, 1));
       </div>
     </nav>
   </header>
+
+  <?php if (in_array($template, $reactTemplates, true)): ?>
+    <main id="react-portfolio-root" data-portfolio="<?= $escape(json_encode($reactPortfolioData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) ?: '{}') ?>"></main>
+  <?php endif; ?>
 
   <main id="portfolio-container">
     <section id="home" class="portfolio-hero hero-gradient" aria-labelledby="hero-name">
@@ -278,6 +313,10 @@ $initials = strtoupper(substr($name, 0, 1));
   <?php if ($template === '3d'): ?>
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"}}</script>
     <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.js') ?>"></script>
+  <?php endif; ?>
+  <?php if (in_array($template, $reactTemplates, true)): ?>
+    <script type="importmap">{"imports":{"react":"https://esm.sh/react@18.3.1","react-dom":"https://esm.sh/react-dom@18.3.1","react/jsx-runtime":"https://esm.sh/react@18.3.1/jsx-runtime"}}</script>
+    <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.js') ?>"></script>
   <?php endif; ?>
 </body>
 </html>

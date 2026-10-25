@@ -1,0 +1,22 @@
+/* Minimal: clear type, ample space, and a quiet monochrome page. */
+body.portfolio-template-minimal{background:#fff!important;color:#171717!important}
+body.portfolio-template-minimal .navbar{background:#fff!important;border-bottom:1px solid #e5e5e5!important;box-shadow:none!important}
+body.portfolio-template-minimal .navbar a,body.portfolio-template-minimal .logo-text{color:#171717!important}
+body.portfolio-template-minimal .portfolio-nav-logo{border-radius:50%;border-color:#171717!important}
+body.portfolio-template-minimal .portfolio-hero{min-height:82svh;padding:145px clamp(24px,10vw,160px) 88px!important;background:#fff!important;color:#171717!important}
+body.portfolio-template-minimal .hero-shell{width:100%;max-width:900px;margin:0 auto}
+body.portfolio-template-minimal .hero-copy{max-width:760px}
+body.portfolio-template-minimal .hero-kicker,body.portfolio-template-minimal .hero-eyebrow{color:#525252!important;font:700 11px/1.5 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+body.portfolio-template-minimal .portfolio-hero h1{color:#171717!important;font:700 clamp(3.6rem,9vw,8.2rem)/.9 Arial,Helvetica,sans-serif;letter-spacing:-.085em}
+body.portfolio-template-minimal .hero-role{color:#262626!important;font:600 1.1rem/1.5 Arial,sans-serif}
+body.portfolio-template-minimal .hero-summary{max-width:590px;color:#525252!important;font-size:1.05rem;line-height:1.8}
+body.portfolio-template-minimal .hero-button{border-radius:0;border-color:#171717!important;box-shadow:none!important}
+body.portfolio-template-minimal .hero-button-primary{background:#171717!important;color:#fff!important}
+body.portfolio-template-minimal .hero-button-secondary{color:#171717!important;background:#fff!important}
+body.portfolio-template-minimal .portfolio-content-section{padding-block:7rem!important;background:#fff!important;color:#171717!important}
+body.portfolio-template-minimal .portfolio-content-section:nth-of-type(even){background:#fafafa!important}
+body.portfolio-template-minimal .portfolio-content-section h2{font:700 clamp(2.4rem,5vw,4.6rem)/.95 Arial,Helvetica,sans-serif;letter-spacing:-.07em}
+body.portfolio-template-minimal .portfolio-project-card{padding:1.4rem 0!important;background:transparent!important;border:0!important;border-top:1px solid #d4d4d4!important;border-radius:0!important;box-shadow:none!important}
+body.portfolio-template-minimal .portfolio-project-card h3{font-size:1.35rem}body.portfolio-template-minimal .portfolio-project-card p{color:#525252!important}
+body.portfolio-template-minimal .portfolio-contact{background:#171717!important;color:#fff!important}body.portfolio-template-minimal .portfolio-footer{color:#737373}
+@media(max-width:650px){body.portfolio-template-minimal .portfolio-hero{padding:125px 24px 65px!important}body.portfolio-template-minimal .portfolio-content-section{padding-block:4.5rem!important}}

@@ -14,10 +14,17 @@ use App\Services\AuthService;
  */
 class PortfolioController extends Controller
 {
-    private const TEMPLATES = [
+    public const TEMPLATES = [
         'classic' => 'Classic',
         'editorial' => 'Editorial',
         '3d' => '3D Motion',
+        'minimal' => 'Minimal',
+        'noir' => 'Noir',
+        'aurora' => 'Aurora Motion',
+        'studio' => 'Studio Canvas',
+        'orbit' => 'Orbit 3D',
+        'prism' => 'Prism',
+        'archive' => 'Archive',
     ];
 
     public function edit(): void

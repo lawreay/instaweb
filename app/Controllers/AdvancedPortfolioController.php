@@ -59,6 +59,7 @@ class AdvancedPortfolioController extends Controller
             'settings' => $settings,
             'items' => $model->items((int) $website['id'], $userId),
             'projects' => (new Portfolio())->projects((int) $portfolio['id']),
+            'templates' => PortfolioController::TEMPLATES,
             'sectionLabels' => self::SECTIONS,
             'active' => 'websites',
         ], 'layouts/dashboard');
