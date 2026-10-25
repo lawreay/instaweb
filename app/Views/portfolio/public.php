@@ -43,6 +43,17 @@ if ($avatar !== '' && !str_contains($avatar, '..') && preg_match('#^uploads/[A-Z
 }
 $email = trim((string) ($portfolio['email'] ?? ''));
 $location = trim((string) ($portfolio['location'] ?? ''));
+$socialLinks = json_decode((string) ($portfolio['social_links'] ?? '{}'), true);
+$socialLinks = is_array($socialLinks) ? $socialLinks : [];
+$socialLabels = ['github' => 'GitHub', 'linkedin' => 'LinkedIn', 'instagram' => 'Instagram', 'facebook' => 'Facebook', 'website' => 'Website'];
+$safeSocialLinks = [];
+foreach ($socialLabels as $platform => $label) {
+    $url = trim((string) ($socialLinks[$platform] ?? ''));
+    $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+    if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL) && in_array($scheme, ['http', 'https'], true)) {
+        $safeSocialLinks[$platform] = ['label' => $label, 'url' => $url];
+    }
+}
 $initials = strtoupper(substr($name, 0, 1));
 ?>
 <!doctype html>
@@ -127,7 +138,7 @@ $initials = strtoupper(substr($name, 0, 1));
             <?php if (!empty($sectionItems[$sectionKey])): ?><li><a href="#<?= $escape($sectionKey) ?>"><?= $escape($sectionLabel) ?></a></li><?php endif; ?>
           <?php endforeach; ?>
           <?php if ($showProjects): ?><li><a href="#projects">Projects</a></li><?php endif; ?>
-          <?php if ($showContact && $email !== ''): ?><li><a href="#contact">Contact</a></li><?php endif; ?>
+          <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?><li><a href="#contact">Contact</a></li><?php endif; ?>
         </ul>
       </div>
     </nav>
@@ -232,13 +243,20 @@ $initials = strtoupper(substr($name, 0, 1));
       </div>
     </section><?php endif; ?>
 
-    <?php if ($showContact && $email !== ''): ?>
+    <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?>
       <section id="contact" class="portfolio-content-section portfolio-contact">
         <div class="portfolio-content-inner">
           <p class="hero-eyebrow">Get in touch</p>
           <h2>Have a project in mind?</h2>
           <p class="lead mt-3">Contact <?= $escape($name) ?> to discuss a project or opportunity.</p>
-          <a class="hero-button hero-button-primary mt-3" href="mailto:<?= $escape($email) ?>">Email <?= $escape($name) ?> <span aria-hidden="true">↗</span></a>
+          <?php if ($email !== ''): ?><a class="hero-button hero-button-primary mt-3" href="mailto:<?= $escape($email) ?>">Email <?= $escape($name) ?> <span aria-hidden="true">↗</span></a><?php endif; ?>
+          <?php if ($safeSocialLinks !== []): ?>
+            <nav class="portfolio-social-links mt-4 d-flex flex-wrap gap-3" aria-label="Social profiles">
+              <?php foreach ($safeSocialLinks as $social): ?>
+                <a href="<?= $escape($social['url']) ?>" target="_blank" rel="noopener noreferrer"><?= $escape($social['label']) ?> <span aria-hidden="true">↗</span></a>
+              <?php endforeach; ?>
+            </nav>
+          <?php endif; ?>
         </div>
       </section>
     <?php endif; ?>
