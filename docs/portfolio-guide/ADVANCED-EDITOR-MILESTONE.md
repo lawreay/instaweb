@@ -10,6 +10,7 @@ The root `idea.php` is the functional/UI reference for the original customizable
 - Added section-jump navigation to make the long editor easier to use.
 - Connected the section list to the dynamic public portfolio renderer and public navigation.
 - Kept the existing dedicated Hero/About and Projects editors intact.
+- Added GitHub, LinkedIn, Instagram, Facebook, and personal-website fields to Portfolio Studio; validated and saved HTTP/HTTPS URLs to the existing `social_links` field and rendered safe links on the public portfolio contact section.
 - Continued using InstaWeb's owner-scoped model operations, CSRF protection, and namespaced `portfolio_advanced_*` tables.
 
 ## Existing controls
