@@ -82,8 +82,19 @@ class PublishController extends Controller
 
         try {
             $websiteModel = new Website();
-            (new PublishingService())->unpublish((int) $website['id'], $website['slug']);
-            $websiteModel->updateStatus((int) $website['id'], $userId, 'draft');
+            $publishingService = new PublishingService();
+
+            if (($website['template_key'] ?? '') === 'portfolio') {
+                // Disable the dynamic /p/{slug} route first. If filesystem cleanup
+                // fails, the public controller still rejects the now-draft site.
+                $websiteModel->updateStatus((int) $website['id'], $userId, 'draft');
+                $publishingService->unpublish((int) $website['id'], $website['slug']);
+            } else {
+                // For static sites, remove public files before changing status so
+                // a cleanup failure does not leave a directly served public copy.
+                $publishingService->unpublish((int) $website['id'], $website['slug']);
+                $websiteModel->updateStatus((int) $website['id'], $userId, 'draft');
+            }
             try {
                 (new SitemapGenerator($this->config))->writeToFile();
             } catch (\Throwable $exception) {
