@@ -199,6 +199,40 @@ class Portfolio extends Model
     }
 
     /**
+     * Update a project only through the portfolio and website owned by the current user.
+     */
+    public function updateProjectForOwner(int $projectId, int $portfolioId, int $websiteId, int $userId, array $data): bool
+    {
+        $statement = $this->query(
+            'UPDATE portfolio_projects pp
+             INNER JOIN portfolios p ON p.id = pp.portfolio_id
+             INNER JOIN websites w ON w.id = p.website_id
+             SET pp.title = :title,
+                 pp.summary = :summary,
+                 pp.project_url = :project_url,
+                 pp.sort_order = :sort_order
+             WHERE pp.id = :project_id
+               AND p.id = :portfolio_id
+               AND p.website_id = :website_id
+               AND p.user_id = :user_id
+               AND w.user_id = :website_user_id',
+            [
+                'title' => $data['title'],
+                'summary' => $data['summary'],
+                'project_url' => $data['project_url'],
+                'sort_order' => $data['sort_order'],
+                'project_id' => $projectId,
+                'portfolio_id' => $portfolioId,
+                'website_id' => $websiteId,
+                'user_id' => $userId,
+                'website_user_id' => $userId,
+            ]
+        );
+
+        return $statement->rowCount() > 0;
+    }
+
+    /**
      * Delete a project only through a portfolio owned by the current user.
      */
     public function deleteProjectForOwner(int $projectId, int $portfolioId, int $websiteId, int $userId): bool
