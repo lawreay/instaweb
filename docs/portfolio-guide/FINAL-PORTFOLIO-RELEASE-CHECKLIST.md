@@ -146,6 +146,7 @@ Template identifiers:
 - [x] The public renderer passes portfolio data to a React mount point for the five React keys.
 - [x] `public/assets/portfolio-template/react-portfolio.js` contains a shared React renderer and Framer Motion effects.
 - [x] `react-portfolio.css` contains template-specific visual variants.
+- [x] GitHub Actions now checks the React portfolio module's JavaScript syntax with Node.js; the workflow passed on the implementation branch.
 - [x] Implemented interaction foundations include scroll progress, entrance animation, hover tilt cards, orbit decoration, and reduced-motion handling.
 - [x] React templates now disable nonessential hero, section, and pointer-tilt motion when the operating system requests reduced motion.
 - [x] A standard PHP-rendered version remains in the page as a fallback if React does not initialize.
@@ -329,4 +330,4 @@ Features not listed as implemented above must not be advertised as complete. In 
 ## Change log
 
 - **2026-10-25:** Audited the current `feature/portfolio-editor-full-dashboard` branch files and recorded implementation evidence versus unverified runtime behavior. The document intentionally separates code found from features that still need local database, browser, security, and hosting verification.
-- **2026-10-25:** Fixed verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from public rendering and the React payload; the PHP fallback stays visible until React mounts; and reduced-motion preferences disable nonessential React motion. The PHP syntax workflow passed for the PHP view changes. The CI workflow was extended to syntax-check the React module with Node.js; that new workflow step must pass. Full browser, database, and security acceptance remains outstanding.
+- **2026-10-25:** Fixed verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from public rendering and the React payload; the PHP fallback stays visible until React mounts; and reduced-motion preferences disable nonessential React motion. GitHub Actions passed after adding a Node.js syntax check for the React module. Full browser, database, and security acceptance remains outstanding.
