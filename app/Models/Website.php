@@ -102,6 +102,16 @@ class Website extends Model
             return false;
         }
 
+        // Advanced portfolio tables deliberately have no foreign keys to the
+        // legacy MyISAM websites table. Clean them explicitly after the owned
+        // website row has been deleted, otherwise its editor data becomes orphaned.
+        foreach (['portfolio_advanced_items', 'portfolio_advanced_settings', 'portfolio_advanced_uploads'] as $table) {
+            $deleteAdvanced = $this->database->prepare(
+                "DELETE FROM {$table} WHERE website_id = :website_id AND user_id = :user_id"
+            );
+            $deleteAdvanced->execute(['website_id' => $id, 'user_id' => $userId]);
+        }
+
         $deletePortfolios = $this->database->prepare(
             'DELETE FROM portfolios WHERE website_id = :website_id AND user_id = :user_id'
         );
