@@ -4,6 +4,11 @@ $websiteId = (int) $website['id'];
 $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
 $socialLinks = json_decode((string) ($portfolio['social_links'] ?? '{}'), true);
 $socialLinks = is_array($socialLinks) ? $socialLinks : [];
+$avatarPath = trim((string) ($portfolio['avatar_path'] ?? ''));
+$avatarUrl = $avatarPath !== '' && !str_contains($avatarPath, '..')
+    && preg_match('#^uploads/[A-Za-z0-9_./-]+$#', $avatarPath)
+    ? $baseUrl . '/' . ltrim($avatarPath, '/')
+    : '';
 ?>
 <section class="client-dashboard iw-client-page iw-website-form">
   <div class="client-main">
@@ -73,6 +78,32 @@ $socialLinks = is_array($socialLinks) ? $socialLinks : [];
         </div>
         <div class="col-12">
           <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Save Profile</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="client-card mb-4">
+      <div class="client-card-head">
+        <h2>Profile image</h2>
+        <span>JPEG, PNG, or WebP · max 3 MB</span>
+      </div>
+      <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
+        <?php if ($avatarUrl !== ''): ?>
+          <img src="<?= $escape($avatarUrl) ?>" alt="Current portfolio profile image" width="96" height="120" style="object-fit:cover;border-radius:.75rem;border:1px solid var(--bs-border-color)">
+        <?php else: ?>
+          <div class="d-grid place-items-center rounded-3 border text-secondary" style="width:96px;height:120px">No image</div>
+        <?php endif; ?>
+        <p class="text-secondary mb-0">This image appears in your public portfolio hero. Upload a new image to replace it.</p>
+      </div>
+      <form method="POST" enctype="multipart/form-data" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/avatar') ?>" class="row g-3 align-items-end">
+        <?= \\App\\Core\\Csrf::field() ?>
+        <input type="hidden" name="id" value="<?= $websiteId ?>">
+        <div class="col-12 col-md-8">
+          <label class="form-label" for="avatar">Choose profile image</label>
+          <input class="form-control" id="avatar" name="avatar" type="file" accept="image/jpeg,image/png,image/webp" required>
+        </div>
+        <div class="col-12 col-md-4">
+          <button class="btn btn-primary" type="submit"><i data-lucide="image-up"></i> Upload image</button>
         </div>
       </form>
     </section>
