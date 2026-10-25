@@ -169,6 +169,26 @@ class PortfolioController extends Controller
             $this->redirectTo($this->editorPath($websiteId));
         }
 
+        // Avoid accumulating replaced avatars. Resolve both paths and only
+        // remove the previous file when it belongs to this website's upload folder.
+        $previousAvatar = (string) ($portfolio['avatar_path'] ?? '');
+        if ($previousAvatar !== '' && $previousAvatar !== $relativePath
+            && str_starts_with($previousAvatar, 'uploads/portfolios/' . $websiteId . '/')) {
+            $publicRoot = realpath(dirname(__DIR__, 2) . '/public');
+            $uploadDirectory = $publicRoot === false
+                ? false
+                : realpath($publicRoot . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'portfolios' . DIRECTORY_SEPARATOR . $websiteId);
+            $previousAbsolutePath = $publicRoot === false
+                ? false
+                : realpath($publicRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $previousAvatar));
+
+            if ($uploadDirectory !== false && $previousAbsolutePath !== false
+                && str_starts_with($previousAbsolutePath, rtrim($uploadDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)
+                && is_file($previousAbsolutePath)) {
+                @unlink($previousAbsolutePath);
+            }
+        }
+
         Session::flash('success', 'Profile image uploaded.');
         $this->redirectTo($this->editorPath($websiteId));
     }
