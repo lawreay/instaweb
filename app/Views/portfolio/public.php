@@ -37,7 +37,7 @@ $sectionLabels = [
 $sectionItems = [];
 foreach (($advancedItems ?? []) as $item) {
     $sectionKey = (string) ($item['section_key'] ?? '');
-    if (isset($sectionLabels[$sectionKey])) {
+    if (isset($sectionLabels[$sectionKey]) && !empty($item['is_enabled'])) {
         $sectionItems[$sectionKey][] = $item;
     }
 }
