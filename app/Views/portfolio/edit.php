@@ -2,6 +2,8 @@
 $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
 $websiteId = (int) $website['id'];
 $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
+$socialLinks = json_decode((string) ($portfolio['social_links'] ?? '{}'), true);
+$socialLinks = is_array($socialLinks) ? $socialLinks : [];
 ?>
 <section class="client-dashboard iw-client-page iw-website-form">
   <div class="client-main">
@@ -45,6 +47,20 @@ $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? '')
         <div class="col-12 col-md-6">
           <label class="form-label" for="location">Location</label>
           <input class="form-control" id="location" name="location" maxlength="120" value="<?= $escape($portfolio['location'] ?? '') ?>" placeholder="City, country">
+        </div>
+        <div class="col-12">
+          <div class="border rounded-3 p-3">
+            <h3 class="h5 mb-1">Social links</h3>
+            <p class="text-secondary small">Add full public URLs. Empty fields are omitted from your portfolio.</p>
+            <div class="row g-3">
+              <?php foreach (['github' => 'GitHub', 'linkedin' => 'LinkedIn', 'instagram' => 'Instagram', 'facebook' => 'Facebook', 'website' => 'Personal website'] as $platform => $label): ?>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="social_<?= $escape($platform) ?>"><?= $escape($label) ?></label>
+                  <input class="form-control" id="social_<?= $escape($platform) ?>" name="social_<?= $escape($platform) ?>" type="url" maxlength="500" inputmode="url" placeholder="https://..." value="<?= $escape($socialLinks[$platform] ?? '') ?>">
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
         </div>
         <div class="col-12 col-lg-6">
           <label class="form-label" for="template_key">Portfolio design</label>
