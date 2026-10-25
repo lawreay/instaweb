@@ -108,7 +108,7 @@ if (!str_contains($previewController, "header('Cache-Control: private, no-store,
     failCheck('Owner-only portfolio draft preview does not send private no-cache response headers.');
 }
 
-if (!str_contains($publicView, "!empty($isPreview) ? 'noindex,nofollow' : 'index,follow'")) {
+if (!str_contains($publicView, "!empty(\$isPreview) ? 'noindex,nofollow' : 'index,follow'")) {
     failCheck('Private portfolio preview must be marked noindex,nofollow while published pages remain indexable.');
 }
 
