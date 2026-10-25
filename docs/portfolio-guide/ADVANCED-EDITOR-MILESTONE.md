@@ -12,6 +12,7 @@ The root `idea.php` is the functional/UI reference for the original customizable
 - Kept the existing dedicated Hero/About and Projects editors intact.
 - Added GitHub, LinkedIn, Instagram, Facebook, and personal-website fields to Portfolio Studio; validated and saved HTTP/HTTPS URLs to the existing `social_links` field and rendered safe links on the public portfolio contact section.
 - Added owner-scoped profile image upload for JPEG, PNG, and WebP images (3 MB limit, dimension checks, randomized filenames, and upload-directory script blocking). The existing public renderer uses the saved image path in the hero.
+- Added project editing and display-order controls, with owner-scoped update queries and validation for external project URLs.
 - Continued using InstaWeb's owner-scoped model operations, CSRF protection, and namespaced `portfolio_advanced_*` tables.
 
 ## Existing controls
