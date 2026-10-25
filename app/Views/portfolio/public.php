@@ -59,6 +59,21 @@ foreach ($socialLabels as $platform => $label) {
         $safeSocialLinks[$platform] = ['label' => $label, 'url' => $url];
     }
 }
+
+// Treat persisted project URLs as untrusted too. Older records may predate
+// controller validation, so sanitize links at the public rendering boundary.
+$safeProjects = [];
+foreach (($projects ?? []) as $project) {
+    $project = is_array($project) ? $project : [];
+    $projectUrl = trim((string) ($project['project_url'] ?? ''));
+    $projectScheme = strtolower((string) parse_url($projectUrl, PHP_URL_SCHEME));
+    if ($projectUrl !== '' && (!filter_var($projectUrl, FILTER_VALIDATE_URL)
+        || !in_array($projectScheme, ['http', 'https'], true))) {
+        $project['project_url'] = '';
+    }
+    $safeProjects[] = $project;
+}
+
 $reactSections = [];
 foreach ($sectionLabels as $sectionKey => $sectionLabel) {
     if (empty($sectionItems[$sectionKey])) continue;
@@ -76,7 +91,7 @@ $reactPortfolioData = [
     'template' => $template, 'name' => $name, 'headline' => $headline, 'bio' => $bio, 'initials' => $initials ?? strtoupper(substr($name, 0, 1)),
     'avatar' => $avatarUrl, 'email' => $email, 'location' => $location, 'accent' => $accentColor, 'background' => $backgroundColor,
     'textColor' => $textColor, 'fontFamily' => $fontFamily, 'heroStyle' => $heroStyle,
-    'showProjects' => $showProjects, 'showContact' => $showContact, 'projects' => $projects, 'sections' => $reactSections,
+    'showProjects' => $showProjects, 'showContact' => $showContact, 'projects' => $safeProjects, 'sections' => $reactSections,
     'socials' => array_values($safeSocialLinks),
 ];
 $initials = strtoupper(substr($name, 0, 1));
@@ -266,7 +281,7 @@ $initials = strtoupper(substr($name, 0, 1));
           <div class="portfolio-empty">Projects will appear here as they are added to this portfolio.</div>
         <?php else: ?>
           <div class="portfolio-project-grid mt-4">
-            <?php foreach ($projects as $project): ?>
+            <?php foreach ($safeProjects as $project): ?>
               <article class="portfolio-project-card glass-card">
                 <p class="hero-eyebrow mb-2">PROJECT</p>
                 <h3><?= $escape($project['title'] ?? '') ?></h3>
