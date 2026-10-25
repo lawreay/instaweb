@@ -154,7 +154,8 @@ $avatarUrl = $avatarPath !== '' && !str_contains($avatarPath, '..')
                 <input type="hidden" name="project_id" value="<?= (int) $project['id'] ?>">
                 <button type="submit" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2"></i> Remove</button>
               </form>
-            </div>ch; ?>
+            </div>
+          <?php endforeach; ?>
         </div>
       <?php endif; ?>
 
