@@ -35,6 +35,11 @@ function Section({ id, eyebrow, title, children }) {
 }
 
 function App({ data }) {
+  useEffect(() => {
+    // Hide the PHP fallback only after React has mounted successfully.
+    document.body.classList.add('react-portfolio-ready');
+    return () => document.body.classList.remove('react-portfolio-ready');
+  }, []);
   const progress = useScrollProgress();
   const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const heroChildren = [
@@ -54,6 +59,5 @@ if (mount) {
   try {
     const data = JSON.parse(mount.dataset.portfolio || '{}');
     createRoot(mount).render(h(App, { data }));
-    document.body.classList.add('react-portfolio-ready');
   } catch (error) { console.warn('React portfolio could not start; showing the standard portfolio instead.', error); }
 }
