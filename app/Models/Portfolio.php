@@ -114,7 +114,7 @@ class Portfolio extends Model
                 'email' => $data['email'],
                 'location' => $data['location'],
                 'template_key' => $data['template_key'],
-                'social_links' => json_encode($data['social_links'] ?? new \\stdClass(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'social_links' => json_encode($data['social_links'] ?? new \stdClass(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                 'portfolio_id' => $portfolioId,
                 'website_id' => $websiteId,
                 'user_id' => $userId,
