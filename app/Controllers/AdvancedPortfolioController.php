@@ -28,8 +28,8 @@ class AdvancedPortfolioController extends Controller
     ];
 
     /**
-     * Structured content areas ported from the feature set in the root idea.php
-     * reference dashboard. Hero/About and Projects keep their dedicated editors.
+     * Structured content areas supported by the InstaWeb portfolio editor.
+     * Hero/About and Projects keep their dedicated editors.
      */
     private const SECTIONS = [
         'goals' => 'Goals',
