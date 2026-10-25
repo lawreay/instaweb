@@ -111,10 +111,10 @@ if (!str_contains($publishController, 'updateStatus((int) $website[\'id\'], $use
 $unpublishMethodStart = strpos($publishController, 'public function unpublish(): void');
 $portfolioUnpublishStart = $unpublishMethodStart === false
     ? false
-    : strpos($publishController, "if (($website['template_key'] ?? '') === 'portfolio')", $unpublishMethodStart);
+    : strpos($publishController, 'if (($website[\\'template_key\\'] ?? \\'\\') === \\'portfolio\\')', $unpublishMethodStart);
 $portfolioDraftPosition = $portfolioUnpublishStart === false
     ? false
-    : strpos($publishController, "updateStatus((int) $website['id'], $userId, 'draft')", $portfolioUnpublishStart);
+    : strpos($publishController, 'updateStatus((int) $website[\\'id\\'], $userId, \\'draft\\')', $portfolioUnpublishStart);
 $portfolioCleanupPosition = $portfolioUnpublishStart === false
     ? false
     : strpos($publishController, '$publishingService->unpublish((int) $website[\'id\'], $website[\'slug\']);', $portfolioUnpublishStart);
