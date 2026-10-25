@@ -41,7 +41,7 @@ class PortfolioController extends Controller
 
         if (!Csrf::validate($this->input('_csrf'))) {
             Session::flash('error', 'Your session expired. Please try again.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
+            $this->redirectTo($this->editorPath((int) $website['id']));
         }
 
         $displayName = trim((string) $this->input('display_name', ''));
@@ -60,7 +60,7 @@ class PortfolioController extends Controller
             if (strlen($url) > 500 || filter_var($url, FILTER_VALIDATE_URL) === false
                 || !in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true)) {
                 Session::flash('error', 'Social links must be valid HTTP or HTTPS URLs.');
-                $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
+                $this->redirectTo($this->editorPath((int) $website['id']));
             }
             $socialLinks[$platform] = $url;
         }
@@ -73,7 +73,7 @@ class PortfolioController extends Controller
             || !array_key_exists($templateKey, self::TEMPLATES)
             || ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false)) {
             Session::flash('error', 'Check the profile fields. The name is required, the email must be valid, and the selected template must be available.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
+            $this->redirectTo($this->editorPath((int) $website['id']));
         }
 
         (new Portfolio())->updateProfile(
@@ -92,7 +92,7 @@ class PortfolioController extends Controller
         );
 
         Session::flash('success', 'Portfolio profile saved.');
-        $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
+        $this->redirectTo($this->editorPath((int) $website['id']));
     }
 
     /**
@@ -106,7 +106,7 @@ class PortfolioController extends Controller
 
         if (!Csrf::validate($this->input('_csrf'))) {
             Session::flash('error', 'Your session expired. Please try again.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+            $this->redirectTo($this->editorPath($websiteId));
         }
 
         $file = $_FILES['avatar'] ?? null;
@@ -114,7 +114,7 @@ class PortfolioController extends Controller
             || !is_uploaded_file((string) ($file['tmp_name'] ?? ''))
             || (int) ($file['size'] ?? 0) < 1 || (int) $file['size'] > 3 * 1024 * 1024) {
             Session::flash('error', 'Choose a profile image smaller than 3 MB.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+            $this->redirectTo($this->editorPath($websiteId));
         }
 
         $tmpPath = (string) $file['tmp_name'];
@@ -131,21 +131,21 @@ class PortfolioController extends Controller
             || ($imageInfo['mime'] ?? '') !== $mime
             || (int) ($imageInfo[0] ?? 0) > 6000 || (int) ($imageInfo[1] ?? 0) > 6000) {
             Session::flash('error', 'Use a valid JPEG, PNG, or WebP image up to 6000 × 6000 pixels.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+            $this->redirectTo($this->editorPath($websiteId));
         }
 
         $relativeDirectory = 'uploads/portfolios/' . $websiteId;
         $targetDirectory = dirname(__DIR__, 2) . '/public/' . $relativeDirectory;
         if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0755, true) && !is_dir($targetDirectory)) {
             Session::flash('error', 'The profile image directory could not be created.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+            $this->redirectTo($this->editorPath($websiteId));
         }
 
         $filename = bin2hex(random_bytes(16)) . '.' . $allowedTypes[$mime];
         $targetPath = $targetDirectory . DIRECTORY_SEPARATOR . $filename;
         if (!move_uploaded_file($tmpPath, $targetPath)) {
             Session::flash('error', 'The profile image could not be saved.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+            $this->redirectTo($this->editorPath($websiteId));
         }
 
         $relativePath = $relativeDirectory . '/' . $filename;
@@ -159,11 +159,11 @@ class PortfolioController extends Controller
         if (!$saved) {
             @unlink($targetPath);
             Session::flash('error', 'The profile image could not be linked to this portfolio.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+            $this->redirectTo($this->editorPath($websiteId));
         }
 
         Session::flash('success', 'Profile image uploaded.');
-        $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+        $this->redirectTo($this->editorPath($websiteId));
     }
 
     public function addProject(): void
@@ -172,7 +172,7 @@ class PortfolioController extends Controller
 
         if (!Csrf::validate($this->input('_csrf'))) {
             Session::flash('error', 'Your session expired. Please try again.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
+            $this->redirectTo($this->editorPath((int) $website['id']));
         }
 
         $title = trim((string) $this->input('project_title', ''));
@@ -184,7 +184,7 @@ class PortfolioController extends Controller
             || ($url !== '' && (!filter_var($url, FILTER_VALIDATE_URL)
                 || !in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true)))) {
             Session::flash('error', 'Enter a project title and a valid HTTP or HTTPS project link.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
+            $this->redirectTo($this->editorPath((int) $website['id']));
         }
 
         $added = (new Portfolio())->addProjectForOwner(
@@ -199,7 +199,7 @@ class PortfolioController extends Controller
         );
 
         Session::flash($added ? 'success' : 'error', $added ? 'Project added to your portfolio.' : 'The project could not be added to this portfolio.');
-        $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
+        $this->redirectTo($this->editorPath((int) $website['id']));
     }
 
     public function saveProject(): void
@@ -209,7 +209,7 @@ class PortfolioController extends Controller
 
         if (!Csrf::validate($this->input('_csrf'))) {
             Session::flash('error', 'Your session expired. Please try again.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+            $this->redirectTo($this->editorPath($websiteId));
         }
 
         $projectId = (int) $this->input('project_id', 0);
@@ -223,7 +223,7 @@ class PortfolioController extends Controller
             || ($url !== '' && (!filter_var($url, FILTER_VALIDATE_URL)
                 || !in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true)))) {
             Session::flash('error', 'Check the project title, description, and HTTP or HTTPS link.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+            $this->redirectTo($this->editorPath($websiteId));
         }
 
         $saved = (new Portfolio())->updateProjectForOwner(
@@ -240,7 +240,7 @@ class PortfolioController extends Controller
         );
 
         Session::flash($saved ? 'success' : 'error', $saved ? 'Project updated.' : 'Project not found or could not be updated.');
-        $this->redirectTo('/dashboard/websites/portfolio?id=' . $websiteId);
+        $this->redirectTo($this->editorPath($websiteId));
     }
 
     public function deleteProject(): void
@@ -249,7 +249,7 @@ class PortfolioController extends Controller
 
         if (!Csrf::validate($this->input('_csrf'))) {
             Session::flash('error', 'Your session expired. Please try again.');
-            $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
+            $this->redirectTo($this->editorPath((int) $website['id']));
         }
 
         $deleted = (new Portfolio())->deleteProjectForOwner(
@@ -260,7 +260,7 @@ class PortfolioController extends Controller
         );
 
         Session::flash($deleted ? 'success' : 'error', $deleted ? 'Project removed from your portfolio.' : 'Project not found or you do not have permission to remove it.');
-        $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
+        $this->redirectTo($this->editorPath((int) $website['id']));
     }
 
     /**
@@ -288,5 +288,20 @@ class PortfolioController extends Controller
         }
 
         return [$userId, $website, $portfolio];
+    }
+
+    /** Return submitted Advanced Studio forms to the tab they came from. */
+    private function editorPath(int $websiteId): string
+    {
+        if ((string) $this->input('return_to', '') !== 'advanced') {
+            return '/dashboard/websites/portfolio?id=' . $websiteId;
+        }
+
+        $tab = strtolower(trim((string) $this->input('return_tab', 'profile')));
+        if (!preg_match('/^[a-z-]{1,30}$/', $tab)) {
+            $tab = 'profile';
+        }
+
+        return '/dashboard/websites/portfolio/advanced?id=' . $websiteId . '&tab=' . rawurlencode($tab);
     }
 }

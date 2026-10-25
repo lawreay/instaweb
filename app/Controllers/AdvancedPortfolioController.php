@@ -58,6 +58,7 @@ class AdvancedPortfolioController extends Controller
             'portfolio' => $portfolio,
             'settings' => $settings,
             'items' => $model->items((int) $website['id'], $userId),
+            'projects' => (new Portfolio())->projects((int) $portfolio['id']),
             'sectionLabels' => self::SECTIONS,
             'active' => 'websites',
         ], 'layouts/dashboard');
@@ -199,7 +200,12 @@ class AdvancedPortfolioController extends Controller
 
     private function backToEditor(int $websiteId): void
     {
-        $this->redirectTo('/dashboard/websites/portfolio/advanced?id=' . $websiteId);
+        $tab = strtolower(trim((string) $this->input('tab', 'overview')));
+        if (!preg_match('/^[a-z-]{1,30}$/', $tab)) {
+            $tab = 'overview';
+        }
+
+        $this->redirectTo('/dashboard/websites/portfolio/advanced?id=' . $websiteId . '&tab=' . rawurlencode($tab));
     }
 
     private function ownedPortfolio(): array
