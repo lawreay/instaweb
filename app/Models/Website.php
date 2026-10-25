@@ -104,6 +104,14 @@ class Website extends Model
             return false;
         }
 
+        // Capture the avatar path before deleting the portfolio row so its
+        // generated public file can be removed after the database cleanup succeeds.
+        $avatarStatement = $this->database->prepare(
+            'SELECT avatar_path FROM portfolios WHERE website_id = :website_id AND user_id = :user_id LIMIT 1'
+        );
+        $avatarStatement->execute(['website_id' => $id, 'user_id' => $userId]);
+        $avatarPath = $avatarStatement->fetchColumn();
+
         // Advanced tables deliberately have no foreign keys to legacy MyISAM
         // websites. All cleanup remains scoped to both website and owner.
         foreach (['portfolio_advanced_items', 'portfolio_advanced_settings', 'portfolio_advanced_uploads'] as $table) {
@@ -124,8 +132,29 @@ class Website extends Model
             'DELETE FROM websites WHERE id = :id AND user_id = :user_id'
         );
         $statement->execute(['id' => $id, 'user_id' => $userId]);
+        if ($statement->rowCount() !== 1) {
+            return false;
+        }
 
-        return $statement->rowCount() === 1;
+        // Avatar uploads live under a per-website directory. Only unlink a
+        // stored path inside that exact directory; never trust a DB path as-is.
+        if (is_string($avatarPath) && str_starts_with($avatarPath, 'uploads/portfolios/' . $id . '/')) {
+            $publicRoot = realpath(dirname(__DIR__, 2) . '/public');
+            $uploadDirectory = $publicRoot === false
+                ? false
+                : realpath($publicRoot . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'portfolios' . DIRECTORY_SEPARATOR . $id);
+            $avatarAbsolutePath = $publicRoot === false
+                ? false
+                : realpath($publicRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $avatarPath));
+
+            if ($uploadDirectory !== false && $avatarAbsolutePath !== false
+                && str_starts_with($avatarAbsolutePath, rtrim($uploadDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)
+                && is_file($avatarAbsolutePath)) {
+                @unlink($avatarAbsolutePath);
+            }
+        }
+
+        return true;
     }
 
     /**
