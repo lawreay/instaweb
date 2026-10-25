@@ -124,19 +124,37 @@ $avatarUrl = $avatarPath !== '' && !str_contains($avatarPath, '..')
         <div class="client-mini-list mb-4">
           <?php foreach ($projects as $project): ?>
             <div class="portfolio-project-row">
-              <div>
-                <strong><?= $escape($project['title'] ?? '') ?></strong>
-                <?php if (!empty($project['summary'])): ?><p class="mb-1"><?= nl2br($escape($project['summary'])) ?></p><?php endif; ?>
-                <?php if (!empty($project['project_url'])): ?><a href="<?= $escape($project['project_url']) ?>" target="_blank" rel="noopener noreferrer"><?= $escape($project['project_url']) ?></a><?php endif; ?>
-              </div>
-              <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/projects/delete') ?>" onsubmit="return confirm('Remove this project from your portfolio?');">
+              <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/projects/save') ?>" class="row g-2 flex-grow-1">
+                <?= \App\Core\Csrf::field() ?>
+                <input type="hidden" name="id" value="<?= $websiteId ?>">
+                <input type="hidden" name="project_id" value="<?= (int) $project['id'] ?>">
+                <div class="col-12 col-lg-6">
+                  <label class="form-label small" for="project_title_<?= (int) $project['id'] ?>">Project title</label>
+                  <input class="form-control" id="project_title_<?= (int) $project['id'] ?>" name="project_title" maxlength="150" required value="<?= $escape($project['title'] ?? '') ?>">
+                </div>
+                <div class="col-12 col-lg-6">
+                  <label class="form-label small" for="project_url_<?= (int) $project['id'] ?>">Project link</label>
+                  <input class="form-control" id="project_url_<?= (int) $project['id'] ?>" type="url" name="project_url" maxlength="500" value="<?= $escape($project['project_url'] ?? '') ?>" placeholder="https://...">
+                </div>
+                <div class="col-12">
+                  <label class="form-label small" for="project_summary_<?= (int) $project['id'] ?>">Description</label>
+                  <textarea class="form-control" id="project_summary_<?= (int) $project['id'] ?>" name="project_summary" rows="2" maxlength="5000"><?= $escape($project['summary'] ?? '') ?></textarea>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label small" for="project_order_<?= (int) $project['id'] ?>">Display order</label>
+                  <input class="form-control" id="project_order_<?= (int) $project['id'] ?>" type="number" name="sort_order" min="0" max="9999" value="<?= (int) ($project['sort_order'] ?? 0) ?>">
+                </div>
+                <div class="col-6 d-flex align-items-end">
+                  <button type="submit" class="btn btn-sm btn-primary"><i data-lucide="save"></i> Save project</button>
+                </div>
+              </form>
+              <form class="project-delete-form" method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/projects/delete') ?>" onsubmit="return confirm('Remove this project from your portfolio?');">
                 <?= \App\Core\Csrf::field() ?>
                 <input type="hidden" name="id" value="<?= $websiteId ?>">
                 <input type="hidden" name="project_id" value="<?= (int) $project['id'] ?>">
                 <button type="submit" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2"></i> Remove</button>
               </form>
-            </div>
-          <?php endforeach; ?>
+            </div>ch; ?>
         </div>
       <?php endif; ?>
 
@@ -167,6 +185,7 @@ $avatarUrl = $avatarPath !== '' && !str_contains($avatarPath, '..')
 .portfolio-project-row{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--bs-border-color,#e5e7eb)}
 .portfolio-project-row:last-child{border-bottom:0}
 .portfolio-project-row>div{min-width:0;overflow-wrap:anywhere}
-.portfolio-project-row form{flex:0 0 auto}
-@media(max-width:575px){.portfolio-project-row{flex-direction:column}.portfolio-project-row form{align-self:flex-start}}
+.portfolio-project-row>form:not(.project-delete-form){flex:1 1 100%;min-width:0}
+.portfolio-project-row .project-delete-form{flex:0 0 auto}
+@media(max-width:575px){.portfolio-project-row{flex-direction:column}.portfolio-project-row form{align-self:stretch}.portfolio-project-row .project-delete-form{align-self:flex-start}}
 </style>
