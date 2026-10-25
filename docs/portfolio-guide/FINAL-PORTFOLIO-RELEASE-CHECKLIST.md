@@ -21,11 +21,11 @@
 | Area | Status | Evidence / qualification |
 |---|---|---|
 | InstaWeb-owned portfolio editor and owner checks | **Partial** | Routes/controllers and website-owner lookups exist. Cross-account runtime tests have not been evidenced. |
-| Tabbed Advanced Editor | **Implemented; browser QA pending** | `app/Views/portfolio/advanced.php` has Overview, Profile, Design, section tabs, Projects, and URL tab retention. Mobile/keyboard/browser checks are not evidenced. |
+| Tabbed Advanced Editor | **Implemented; browser QA pending** | `app/Views/portfolio/advanced.php` has Overview, Profile, Design, section tabs, Projects, URL tab retention, and now generates its template selector from the server-side ten-template allowlist. Mobile/keyboard/browser checks are not evidenced. |
 | Profile, social links, avatar, projects | **Implemented; runtime QA pending** | Controller/model/view paths exist. Avatar validation and owner-scoped project updates are present; database and upload behavior still need local verification. |
 | Nine structured content sections | **Implemented; end-to-end QA pending** | Goals, Interests, Challenges, Experience, Education, Skills, News, Partnerships, and CV/Resume have CRUD/visibility UI and controller/model paths. Some source-reference features are not ported. |
 | Ten template identifiers | **Wired in code; visual parity partial** | `PortfolioController::TEMPLATES` and `portfolio/public.php` list Classic, Editorial, 3D Motion, Minimal, Noir, Aurora Motion, Studio Canvas, Orbit 3D, Prism, and Archive. Selection and renderer paths exist, but browser proof of all ten is outstanding. |
-| React-powered template family | **Implemented; production verification pending** | `react-portfolio.js` uses React and Framer Motion and has distinct CSS variants. It is one shared React renderer with template-specific styling, not ten independent React applications. External CDN loading, fallback behavior, and each template's visual identity need browser testing. |
+| React-powered template family | **Implemented; production verification pending** | `react-portfolio.js` uses React and Framer Motion and has distinct CSS variants. The PHP fallback now remains visible until the React component mounts. It is one shared React renderer with template-specific styling, not ten independent React applications. External CDN loading and each template's visual identity need browser testing. |
 | Draft preview and public publishing lifecycle | **Partial** | Preview/public controller and renderer code exist. Confirm private draft access, published-only public access, unpublish behavior, slug resolution, and the real hosting route in a running environment. |
 | Security controls | **Partially implemented; security sign-off pending** | CSRF, owner-scoped lookups, URL validation, output escaping, image checks, randomized filenames, and upload script blocking are present in reviewed paths. Adversarial and cross-user tests are not evidenced. |
 | Syntax / automated checks | **Limited pass evidence** | A PHP syntax workflow passed on a prior branch commit. JavaScript syntax was reported checked, but a current full CI run and browser/database test report were not verified during this review. |
@@ -113,6 +113,7 @@ Templates in the current allowlist:
 ### Existing evidence
 
 - [x] The renderer recognizes these template keys and has conditional CSS/script loading for Editorial, 3D Motion, Minimal, and Noir.
+- [x] The Advanced Editor template selector now renders all ten options from `PortfolioController::TEMPLATES`, avoiding a hard-coded three-template selector.
 - [x] A shared database-backed content model is used rather than requiring a separate portfolio copy per template.
 - [x] The renderer validates unknown template keys and falls back to Classic.
 - [x] The 3D script is conditionally loaded for the 3D template rather than every portfolio.
@@ -172,6 +173,8 @@ Template identifiers:
 - [x] Public renderer maps unknown keys to Classic.
 - [x] Preview/public rendering code exists in the InstaWeb application.
 - [x] Portfolio content remains database-backed and is shared across template variants.
+- [x] Hidden section entries are filtered before both the standard renderer and React template payload are built.
+- [x] The React fallback is hidden only after the React app component mounts, so a failed module import or initial render does not intentionally hide the PHP fallback.
 
 ### Required before sign-off
 
@@ -325,3 +328,4 @@ Features not listed as implemented above must not be advertised as complete. In 
 ## Change log
 
 - **2026-10-25:** Audited the current `feature/portfolio-editor-full-dashboard` branch files and recorded implementation evidence versus unverified runtime behavior. The document intentionally separates code found from features that still need local database, browser, security, and hosting verification.
+- **2026-10-25:** Fixed three verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from the public data model; and React templates no longer hide the PHP fallback before the React component mounts. PHP syntax CI was queued at the time of the check; full browser, database, and security acceptance remains outstanding.
