@@ -30,6 +30,7 @@ $editorView = readRequiredFile($root . '/app/Views/portfolio/advanced.php');
 $reactCss = readRequiredFile($root . '/public/assets/portfolio-template/react-portfolio.css');
 $router = readRequiredFile($root . '/app/Core/Router.php');
 $rootHtaccess = readRequiredFile($root . '/.htaccess');
+$websiteModel = readRequiredFile($root . '/app/Models/Website.php');
 
 if (!preg_match('/\$availableTemplates\s*=\s*\[(.*?)\];/s', $publicView, $templateMatch)) {
     failCheck('Public renderer does not declare its supported template list.');
@@ -71,4 +72,10 @@ if (!str_contains($rootHtaccess, 'RewriteRule ^(?!index\\.php$)[^/]+\\.php$ - [F
     failCheck('Root .htaccess does not block direct access to non-front-controller PHP files.');
 }
 
-echo '[portfolio-check] PASS: template registry, React variants, editor selector, hidden items, public route, and root access rules are consistent.' . PHP_EOL;
+foreach (['portfolio_advanced_items', 'portfolio_advanced_settings', 'portfolio_advanced_uploads'] as $table) {
+    if (!str_contains($websiteModel, $table)) {
+        failCheck("Website deletion does not clean advanced portfolio table '{$table}'.");
+    }
+}
+
+echo '[portfolio-check] PASS: template registry, React variants, editor selector, hidden items, public route, root access rules, and advanced-data cleanup are consistent.' . PHP_EOL;
