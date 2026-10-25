@@ -118,7 +118,7 @@ class PortfolioController extends Controller
         }
 
         $tmpPath = (string) $file['tmp_name'];
-        $finfo = new \\finfo(FILEINFO_MIME_TYPE);
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($tmpPath);
         $imageInfo = @getimagesize($tmpPath);
         $allowedTypes = [
