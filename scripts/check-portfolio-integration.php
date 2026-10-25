@@ -101,8 +101,8 @@ if (!str_contains($previewController, 'AuthService::check()')
     failCheck('Draft preview does not enforce authenticated website ownership.');
 }
 
-if (!str_contains($publishController, "updateStatus((int) $website['id'], $userId, 'published')")
-    || !str_contains($publishController, "updateStatus((int) $website['id'], $userId, 'draft')")
+if (!str_contains($publishController, 'updateStatus((int) $website[\'id\'], $userId, \'published\')')
+    || !str_contains($publishController, 'updateStatus((int) $website[\'id\'], $userId, \'draft\')')
     || !str_contains($publishController, 'publishPortfolio((int) $website[\'id\']')
     || !str_contains($publishController, '->unpublish((int) $website[\'id\']')) {
     failCheck('Publish/unpublish lifecycle does not update status and clean the public directory.');
