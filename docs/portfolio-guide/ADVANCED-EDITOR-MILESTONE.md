@@ -11,6 +11,7 @@ The root `idea.php` is the functional/UI reference for the original customizable
 - Connected the section list to the dynamic public portfolio renderer and public navigation.
 - Kept the existing dedicated Hero/About and Projects editors intact.
 - Added GitHub, LinkedIn, Instagram, Facebook, and personal-website fields to Portfolio Studio; validated and saved HTTP/HTTPS URLs to the existing `social_links` field and rendered safe links on the public portfolio contact section.
+- Added owner-scoped profile image upload for JPEG, PNG, and WebP images (3 MB limit, dimension checks, randomized filenames, and upload-directory script blocking). The existing public renderer uses the saved image path in the hero.
 - Continued using InstaWeb's owner-scoped model operations, CSRF protection, and namespaced `portfolio_advanced_*` tables.
 
 ## Existing controls
@@ -19,7 +20,7 @@ The advanced editor already exposes accent, background, and text colours; typogr
 
 ## Not yet ported from idea.php
 
-Do not consider the full original dashboard integrated yet. Remaining parity work includes profile/avatar/favicon uploads, section background assets, icon selection, richer project metadata and project imagery, popups, bookings/requests/comments, visitor analytics, and direct CV file uploads. These require separate owner-scoped storage and validation rather than copying the original standalone helpers or database configuration.
+Do not consider the full original dashboard integrated yet. Remaining parity work includes favicon uploads, section background assets, icon selection, richer project metadata and project imagery, popups, bookings/requests/comments, visitor analytics, and direct CV file uploads. These require separate owner-scoped storage and validation rather than copying the original standalone helpers or database configuration.
 
 ## Required local verification before merge
 
