@@ -28,7 +28,7 @@
 | React-powered template family | **Implemented; production verification pending** | `react-portfolio.js` uses React and Framer Motion and has distinct CSS variants. The PHP fallback now remains visible until the React component mounts. It is one shared React renderer with template-specific styling, not ten independent React applications. External CDN loading and each template's visual identity need browser testing. |
 | Draft preview and public publishing lifecycle | **Partial** | Preview/public controller and renderer code exist. Confirm private draft access, published-only public access, unpublish behavior, slug resolution, and the real hosting route in a running environment. |
 | Security controls | **Partially implemented; security sign-off pending** | CSRF, owner-scoped lookups, URL validation, output escaping, image checks, randomized filenames, and upload script blocking are present in reviewed paths. Adversarial and cross-user tests are not evidenced. |
-| Syntax / automated checks | **Limited pass evidence** | A PHP syntax workflow passed on a prior branch commit. JavaScript syntax was reported checked, but a current full CI run and browser/database test report were not verified during this review. |
+| Syntax / automated checks | **CI checks implemented; runtime tests outstanding** | GitHub Actions checks PHP syntax, React module syntax, and a static integration guard. The static guard and PHP lint step passed in the current run; the Node syntax step was still running at the time of this update. No browser/database runtime report exists. |
 | Production readiness | **Not signed off** | Runtime database, browser, hosting, accessibility, performance, and cross-user checks remain release gates. |
 
 ## Non-negotiable product rules
@@ -55,6 +55,7 @@
 - [x] Portfolio editor, advanced editor, public renderer, preview, and publishing controllers exist in InstaWeb.
 - [x] Portfolio template keys are controlled in server-side code.
 - [x] Portfolio data uses InstaWeb website records and owner-scoped model/controller paths.
+- [x] Added `scripts/check-portfolio-integration.php`, a static guard that compares the controller registry, public renderer allowlist, React template variants, editor selector, hidden-item filtering, public route, and root access rules.
 - [x] The reference dashboard is documented as a feature/UI reference rather than a second application to deploy.
 - [x] Portfolio guide and integration documentation exist under `docs/`.
 - [x] The separate reference repository is not a target for edits.
@@ -300,7 +301,8 @@ This is the final release gate. Syntax checks alone are not sufficient.
 - [ ] Run all required database migrations against a clean test database and an existing database containing relevant data.
 - [ ] Run PHP syntax checks over all changed PHP files.
 - [ ] Run JavaScript syntax checks for all changed assets.
-- [ ] Run the existing automated test suite and add focused tests for ownership, template allowlisting, publication visibility, and upload validation where infrastructure supports it.
+- [x] Run the new static portfolio integration guard in CI; it verifies template-registry parity, React CSS variants, dynamic route presence, disabled-item filtering, editor selection wiring, and root access rules.
+- [ ] Add runtime tests for ownership, template allowlisting, publication visibility, and upload validation; no PHP unit-test suite is currently configured in this repository.
 - [ ] Execute every row in the test matrix and record the environment, date, result, and evidence.
 - [ ] Inspect browser console and network logs for every template.
 - [ ] Test generic static-site and WordPress flows for regressions.
@@ -332,4 +334,4 @@ Features not listed as implemented above must not be advertised as complete. In 
 ## Change log
 
 - **2026-10-25:** Audited the current `feature/portfolio-editor-full-dashboard` branch files and recorded implementation evidence versus unverified runtime behavior. The document intentionally separates code found from features that still need local database, browser, security, and hosting verification.
-- **2026-10-25:** Fixed verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from public rendering and the React payload; the PHP fallback stays visible until React mounts; reduced-motion preferences disable nonessential React motion; and saved colour/font/hero-layout settings are now passed to React templates. GitHub Actions passed after adding a Node.js syntax check for the React module. Root `.htaccess` now blocks the standalone reference dashboards and sensitive project artifacts from direct access. Verify these access rules in the actual Apache hosting environment. Full browser, database, and security acceptance remains outstanding.
+- **2026-10-25:** Fixed verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from public rendering and the React payload; the PHP fallback stays visible until React mounts; reduced-motion preferences disable nonessential React motion; and saved colour/font/hero-layout settings are passed to React templates. Added a static integration guard and extended GitHub Actions to check PHP, JavaScript, and template wiring. The current workflow's PHP/static integration step passed; the Node syntax step was still running at this document update. Root `.htaccess` now blocks the standalone reference dashboards and sensitive project artifacts from direct access. Verify access rules in the actual Apache hosting environment. Full browser, database, and security acceptance remains outstanding.
