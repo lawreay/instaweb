@@ -254,7 +254,8 @@ $initials = strtoupper(substr($name, 0, 1));
                 $payload = is_array($payload) ? $payload : [];
                 $itemLink = trim((string) ($payload['link'] ?? ''));
                 $itemLinkScheme = strtolower((string) parse_url($itemLink, PHP_URL_SCHEME));
-                if (!in_array($itemLinkScheme, ['http', 'https'], true)) {
+                if ($itemLink !== '' && (!filter_var($itemLink, FILTER_VALIDATE_URL)
+                    || !in_array($itemLinkScheme, ['http', 'https'], true))) {
                     $itemLink = '';
                 }
                 ?>
