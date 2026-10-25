@@ -35,6 +35,7 @@ $portfolioModel = readRequiredFile($root . '/app/Models/Portfolio.php');
 $publicController = readRequiredFile($root . '/app/Controllers/PortfolioPublicController.php');
 $previewController = readRequiredFile($root . '/app/Controllers/PreviewController.php');
 $publishController = readRequiredFile($root . '/app/Controllers/PublishController.php');
+$portfolioController = readRequiredFile($root . '/app/Controllers/PortfolioController.php');
 
 if (!preg_match('/\$availableTemplates\s*=\s*\[(.*?)\];/s', $publicView, $templateMatch)) {
     failCheck('Public renderer does not declare its supported template list.');
@@ -121,6 +122,12 @@ $portfolioCleanupPosition = $portfolioUnpublishStart === false
 
 if ($portfolioDraftPosition === false || $portfolioCleanupPosition === false || $portfolioDraftPosition > $portfolioCleanupPosition) {
     failCheck('Portfolio unpublish must disable the dynamic public route before filesystem cleanup.');
+}
+
+if (!str_contains($portfolioController, '$previousAvatar = (string) ($portfolio[\'avatar_path\'] ?? \'\');')
+    || !str_contains($portfolioController, 'realpath($publicRoot . DIRECTORY_SEPARATOR . str_replace(\'/\', DIRECTORY_SEPARATOR, $previousAvatar))')
+    || !str_contains($portfolioController, 'str_starts_with($previousAbsolutePath, rtrim($uploadDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)')) {
+    failCheck('Avatar replacement must safely remove the previous file only from the owning website upload directory.');
 }
 
 echo '[portfolio-check] PASS: template registry, React variants, editor selector, hidden items, public route, publication gating, owner-only preview, publish/unpublish wiring, root access rules, and advanced-data cleanup are consistent.' . PHP_EOL;
