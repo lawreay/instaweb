@@ -29,7 +29,7 @@
 | Draft preview and public publishing lifecycle | **Partial** | Preview/public controller and renderer code exist. Confirm private draft access, published-only public access, unpublish behavior, slug resolution, and the real hosting route in a running environment. |
 | Security controls | **Partially implemented; security sign-off pending** | CSRF, owner-scoped lookups, HTTP/HTTPS URL validation, output escaping, image checks, randomized filenames, and upload script blocking are present in reviewed paths. Public rendering revalidates stored project and structured-section URLs. Website deletion now explicitly removes advanced portfolio items, settings, and upload records because the legacy MyISAM website table cannot cascade to those InnoDB tables. Adversarial and cross-user tests remain pending. |
 | Reference-file cleanup | **Complete on working branch** | Removed root-level `idea.php` and `ideas2.php` from `feature/portfolio-editor-full-dashboard`; verified both paths return GitHub 404 on that branch. They are not yet removed from `main` until the PR is merged. |
-| Syntax / automated checks | **Latest known run passed; newest fixes require CI confirmation** | GitHub Actions run [#541](https://github.com/lawreay/instaweb/actions/runs/40225423313) passed PHP syntax, React module syntax, and the static portfolio integration guard on commit `33baca597390daf02dda4c288f8210305b909c1e`. Two subsequent code fixes now align React Contact navigation with actual section visibility and mark authenticated previews `noindex,nofollow`; the new commit chain must pass CI. This is not browser/database runtime verification. |
+| Syntax / automated checks | **Passed on latest verified code commit** | GitHub Actions runs [#550](https://github.com/lawreay/instaweb/actions/runs/40226157766) and [#551](https://github.com/lawreay/instaweb/actions/runs/40226161039) passed for commit `a767bcf25151588973819f4a78365cfe32c5cc55`, including PHP lint, React module syntax, and the expanded static integration guard. This is not browser/database runtime verification. |
 | Production readiness | **Not signed off** | Runtime database, browser, hosting, accessibility, performance, and cross-user checks remain release gates. |
 
 ## Non-negotiable product rules
@@ -223,7 +223,8 @@ Template identifiers:
 - [ ] Direct CV/resume file upload with explicit public/private handling.
 - [ ] Popups, bookings/requests/comments, and visitor analytics. These are not release blockers for the core portfolio unless explicitly added to scope, but must not be represented as already integrated.
 - [ ] Independent visibility/order controls for all sections if required by the final UX; current evidence shows item visibility and Projects/Contact controls, not a complete section-layout manager.
-- [ ] Replace/delete avatar behavior and cleanup of orphaned uploaded files.
+- [x] Safe cleanup of the previous avatar after a successful replacement, restricted to the current website's dedicated upload directory.
+- [ ] Explicit avatar removal and broader orphaned-upload cleanup behavior; runtime filesystem tests remain pending.
 - [ ] Upload storage quotas, safe image serving headers, and backup/retention policy.
 
 ### Required before sign-off
@@ -311,6 +312,7 @@ This is the final release gate. Syntax checks alone are not sufficient.
 - [x] Run JavaScript syntax check for the React portfolio module in GitHub Actions.
 - [x] Run the new static portfolio integration guard in CI; it verifies template-registry parity, React CSS variants, dynamic route presence, disabled-item filtering, editor selection wiring, and root access rules.
 - [ ] Add runtime tests for ownership, template allowlisting, publication visibility, and upload validation; no PHP unit-test suite is currently configured in this repository.
+- [x] Re-run CI after the private-preview robots metadata and React Contact-navigation guard changes; GitHub Actions runs #550 and #551 passed on commit `a767bcf25151588973819f4a78365cfe32c5cc55`.
 - [ ] Execute every row in the test matrix and record the environment, date, result, and evidence.
 - [ ] Inspect browser console and network logs for every template.
 - [ ] Test generic static-site and WordPress flows for regressions.
@@ -353,4 +355,4 @@ Features not listed as implemented above must not be advertised as complete. In 
 
 - **2026-10-25:** Added private, no-store/no-cache response headers to the owner-only database-backed portfolio draft preview. Static website preview files already used these headers; the portfolio HTML preview now follows the same policy so draft content is not retained by browsers or shared caches. Extended `scripts/check-portfolio-integration.php` to guard this behavior. CI for the new commit has not yet been observed; live HTTP/cache behavior still needs runtime verification.
 
-- **2026-10-25:** Closed two additional audit findings in the InstaWeb branch: React Contact navigation is now conditional on the same email/social-link criteria as the rendered Contact section, and authenticated preview HTML now uses `noindex,nofollow` while published pages stay `index,follow`. Extended the static integration guard for both regressions. The code commits are present; a fresh CI run and browser/HTTP verification are still required.
+- **2026-10-25:** Closed two additional audit findings in the InstaWeb branch: React Contact navigation is now conditional on the same email/social-link criteria as the rendered Contact section, and authenticated preview HTML now uses `noindex,nofollow` while published pages stay `index,follow`. Extended the static integration guard for both regressions. The code commits are present; a fresh CI run and browser/HTTP verification are still required. The first guard attempt exposed a string-interpolation issue in the test itself; that assertion was corrected, and the full CI workflow then passed in runs [#550](https://github.com/lawreay/instaweb/actions/runs/40226157766) and [#551](https://github.com/lawreay/instaweb/actions/runs/40226161039). Live browser/HTTP verification remains outstanding.
