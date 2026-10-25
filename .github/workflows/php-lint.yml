@@ -30,6 +30,7 @@ jobs:
           set -euo pipefail
           find app -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
           php -l index.php
+          php scripts/check-portfolio-integration.php
 
       - name: Set up Node.js for portfolio module syntax checks
         uses: actions/setup-node@v4
