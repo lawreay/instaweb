@@ -27,7 +27,7 @@ function TiltCard({ children, className = '' }) {
 }
 
 function Navigation({ data }) {
-  const links = [{ id: 'about', label: 'About' }, ...(data.sections || []).map(section => ({ id: section.key, label: section.label })), data.showProjects ? { id: 'projects', label: 'Work' } : null, data.showContact ? { id: 'contact', label: 'Contact' } : null].filter(Boolean);
+  const links = [{ id: 'about', label: 'About' }, ...(data.sections || []).map(section => ({ id: section.key, label: section.label })), data.showProjects ? { id: 'projects', label: 'Work' } : null, (data.showContact && (data.email || (data.socials || []).length)) ? { id: 'contact', label: 'Contact' } : null].filter(Boolean);
   return h('nav', { className: 'rp-nav', 'aria-label': 'Portfolio navigation' }, h('a', { href: '#home', className: 'rp-wordmark' }, data.initials), h('div', { className: 'rp-nav-links' }, links.map(link => h('a', { href: `#${link.id}`, key: link.id }, link.label))));
 }
 
