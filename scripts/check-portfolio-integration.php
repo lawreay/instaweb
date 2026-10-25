@@ -108,4 +108,19 @@ if (!str_contains($publishController, 'updateStatus((int) $website[\'id\'], $use
     failCheck('Publish/unpublish lifecycle does not update status and clean the public directory.');
 }
 
+$unpublishMethodStart = strpos($publishController, 'public function unpublish(): void');
+$portfolioUnpublishStart = $unpublishMethodStart === false
+    ? false
+    : strpos($publishController, "if (($website['template_key'] ?? '') === 'portfolio')", $unpublishMethodStart);
+$portfolioDraftPosition = $portfolioUnpublishStart === false
+    ? false
+    : strpos($publishController, "updateStatus((int) $website['id'], $userId, 'draft')", $portfolioUnpublishStart);
+$portfolioCleanupPosition = $portfolioUnpublishStart === false
+    ? false
+    : strpos($publishController, '$publishingService->unpublish((int) $website[\'id\'], $website[\'slug\']);', $portfolioUnpublishStart);
+
+if ($portfolioDraftPosition === false || $portfolioCleanupPosition === false || $portfolioDraftPosition > $portfolioCleanupPosition) {
+    failCheck('Portfolio unpublish must disable the dynamic public route before filesystem cleanup.');
+}
+
 echo '[portfolio-check] PASS: template registry, React variants, editor selector, hidden items, public route, publication gating, owner-only preview, publish/unpublish wiring, root access rules, and advanced-data cleanup are consistent.' . PHP_EOL;
