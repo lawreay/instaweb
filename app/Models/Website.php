@@ -92,19 +92,20 @@ class Website extends Model
      */
     public function deleteForUser(int $id, int $userId): bool
     {
-        // MyISAM does not cascade deletes into the InnoDB portfolio tables.
-        $statement = $this->database->prepare(
-            'DELETE FROM websites WHERE id = :id AND user_id = :user_id'
+        // Verify ownership before touching any dependent records. The legacy
+        // websites table uses MyISAM, so these deletes cannot share a transaction
+        // with it; clean dependent rows first so a missing migration never leaves
+        // a deleted website with an exception halfway through its cleanup.
+        $ownerCheck = $this->database->prepare(
+            'SELECT id FROM websites WHERE id = :id AND user_id = :user_id LIMIT 1'
         );
-        $statement->execute(['id' => $id, 'user_id' => $userId]);
-
-        if ($statement->rowCount() !== 1) {
+        $ownerCheck->execute(['id' => $id, 'user_id' => $userId]);
+        if (!$ownerCheck->fetchColumn()) {
             return false;
         }
 
-        // Advanced portfolio tables deliberately have no foreign keys to the
-        // legacy MyISAM websites table. Clean them explicitly after the owned
-        // website row has been deleted, otherwise its editor data becomes orphaned.
+        // Advanced tables deliberately have no foreign keys to legacy MyISAM
+        // websites. All cleanup remains scoped to both website and owner.
         foreach (['portfolio_advanced_items', 'portfolio_advanced_settings', 'portfolio_advanced_uploads'] as $table) {
             $deleteAdvanced = $this->database->prepare(
                 "DELETE FROM {$table} WHERE website_id = :website_id AND user_id = :user_id"
@@ -112,12 +113,19 @@ class Website extends Model
             $deleteAdvanced->execute(['website_id' => $id, 'user_id' => $userId]);
         }
 
+        // Delete portfolio rows before the parent website row. portfolio_projects
+        // is removed by its InnoDB foreign-key cascade from portfolios.
         $deletePortfolios = $this->database->prepare(
             'DELETE FROM portfolios WHERE website_id = :website_id AND user_id = :user_id'
         );
         $deletePortfolios->execute(['website_id' => $id, 'user_id' => $userId]);
 
-        return true;
+        $statement = $this->database->prepare(
+            'DELETE FROM websites WHERE id = :id AND user_id = :user_id'
+        );
+        $statement->execute(['id' => $id, 'user_id' => $userId]);
+
+        return $statement->rowCount() === 1;
     }
 
     /**
