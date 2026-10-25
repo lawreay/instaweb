@@ -96,7 +96,7 @@ $avatarUrl = $avatarPath !== '' && !str_contains($avatarPath, '..')
         <p class="text-secondary mb-0">This image appears in your public portfolio hero. Upload a new image to replace it.</p>
       </div>
       <form method="POST" enctype="multipart/form-data" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/avatar') ?>" class="row g-3 align-items-end">
-        <?= \\App\\Core\\Csrf::field() ?>
+        <?= \App\Core\Csrf::field() ?>
         <input type="hidden" name="id" value="<?= $websiteId ?>">
         <div class="col-12 col-md-8">
           <label class="form-label" for="avatar">Choose profile image</label>
