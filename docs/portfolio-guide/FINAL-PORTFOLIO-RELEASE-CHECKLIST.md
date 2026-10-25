@@ -27,9 +27,9 @@
 | Ten template identifiers | **Wired in code; visual parity partial** | `PortfolioController::TEMPLATES` and `portfolio/public.php` list Classic, Editorial, 3D Motion, Minimal, Noir, Aurora Motion, Studio Canvas, Orbit 3D, Prism, and Archive. Selection and renderer paths exist, but browser proof of all ten is outstanding. |
 | React-powered template family | **Implemented; production verification pending** | `react-portfolio.js` uses React and Framer Motion and has distinct CSS variants. The PHP fallback now remains visible until the React component mounts. It is one shared React renderer with template-specific styling, not ten independent React applications. External CDN loading and each template's visual identity need browser testing. |
 | Draft preview and public publishing lifecycle | **Partial** | Preview/public controller and renderer code exist. Confirm private draft access, published-only public access, unpublish behavior, slug resolution, and the real hosting route in a running environment. |
-| Security controls | **Partially implemented; security sign-off pending** | CSRF, owner-scoped lookups, HTTP/HTTPS URL validation, output escaping, image checks, randomized filenames, and upload script blocking are present in reviewed paths. Public rendering revalidates stored project and structured-section URLs before exposing them to PHP or React templates. Adversarial and cross-user tests are not evidenced. |
+| Security controls | **Partially implemented; security sign-off pending** | CSRF, owner-scoped lookups, HTTP/HTTPS URL validation, output escaping, image checks, randomized filenames, and upload script blocking are present in reviewed paths. Public rendering revalidates stored project and structured-section URLs. Website deletion now explicitly removes advanced portfolio items, settings, and upload records because the legacy MyISAM website table cannot cascade to those InnoDB tables. Adversarial and cross-user tests remain pending. |
 | Reference-file cleanup | **Complete on working branch** | Removed root-level `idea.php` and `ideas2.php` from `feature/portfolio-editor-full-dashboard`; verified both paths return GitHub 404 on that branch. They are not yet removed from `main` until the PR is merged. |
-| Syntax / automated checks | **Latest code change CI passed** | GitHub Actions run 40215937667 completed successfully for code commit `c293c468446bb96f0191c098710106a275de14e1`; PHP lint, React module syntax, and the static portfolio integration guard passed. The checklist-only documentation commit follows that code commit. This is not browser/database runtime verification. |
+| Syntax / automated checks | **Latest cleanup change CI pending** | The URL-validation change passed GitHub Actions run 40215937667. A further change now cleans advanced portfolio records when a website is deleted and extends the static integration guard; that new change requires a fresh successful CI run. This is not browser/database runtime verification. |
 | Production readiness | **Not signed off** | Runtime database, browser, hosting, accessibility, performance, and cross-user checks remain release gates. |
 
 ## Non-negotiable product rules
@@ -120,6 +120,7 @@ Templates in the current allowlist:
 - [x] A shared database-backed content model is used rather than requiring a separate portfolio copy per template.
 - [x] The renderer validates unknown template keys and falls back to Classic.
 - [x] Public project and structured-section URLs are revalidated at render time; only valid HTTP/HTTPS URLs are emitted as links, including for legacy or directly modified database records.
+- [x] Website deletion explicitly removes advanced portfolio item, settings, and upload metadata rows because those tables cannot rely on foreign-key cascades from the legacy MyISAM `websites` table.
 - [x] The 3D script is conditionally loaded for the 3D template rather than every portfolio.
 
 ### Required before sign-off
