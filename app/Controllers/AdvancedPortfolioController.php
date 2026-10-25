@@ -130,8 +130,9 @@ class AdvancedPortfolioController extends Controller
             return;
         }
 
-        if ($link !== '' && !filter_var($link, FILTER_VALIDATE_URL)) {
-            Session::flash('error', 'Links must be complete valid URLs, including https://.');
+        if ($link !== '' && (!filter_var($link, FILTER_VALIDATE_URL)
+            || !in_array(strtolower((string) parse_url($link, PHP_URL_SCHEME)), ['http', 'https'], true))) {
+            Session::flash('error', 'Links must be complete HTTP or HTTPS URLs, including https://.');
             $this->backToEditor($websiteId);
             return;
         }
