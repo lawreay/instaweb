@@ -34,6 +34,7 @@ $websiteModel = readRequiredFile($root . '/app/Models/Website.php');
 $portfolioModel = readRequiredFile($root . '/app/Models/Portfolio.php');
 $publicController = readRequiredFile($root . '/app/Controllers/PortfolioPublicController.php');
 $previewController = readRequiredFile($root . '/app/Controllers/PreviewController.php');
+$reactJs = readRequiredFile($root . '/public/assets/portfolio-template/react-portfolio.js');
 $publishController = readRequiredFile($root . '/app/Controllers/PublishController.php');
 $portfolioController = readRequiredFile($root . '/app/Controllers/PortfolioController.php');
 
@@ -105,6 +106,14 @@ if (!str_contains($previewController, 'AuthService::check()')
 if (!str_contains($previewController, "header('Cache-Control: private, no-store, no-cache, must-revalidate')")
     || !str_contains($previewController, "header('Pragma: no-cache')")) {
     failCheck('Owner-only portfolio draft preview does not send private no-cache response headers.');
+}
+
+if (!str_contains($publicView, "!empty($isPreview) ? 'noindex,nofollow' : 'index,follow'")) {
+    failCheck('Private portfolio preview must be marked noindex,nofollow while published pages remain indexable.');
+}
+
+if (!str_contains($reactJs, "(data.showContact && (data.email || (data.socials || []).length)) ? { id: 'contact', label: 'Contact' } : null")) {
+    failCheck('React Contact navigation must only appear when the Contact section can render.');
 }
 
 if (!str_contains($publishController, 'updateStatus((int) $website[\'id\'], $userId, \'published\')')
