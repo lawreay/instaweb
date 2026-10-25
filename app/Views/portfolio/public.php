@@ -103,7 +103,7 @@ $initials = strtoupper(substr($name, 0, 1));
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= $escape($name) ?><?= $headline !== '' ? ' | ' . $escape($headline) : '' ?></title>
   <meta name="description" content="<?= $escape(substr($bio !== '' ? $bio : $headline, 0, 160)) ?>">
-  <meta name="robots" content="index,follow">
+  <meta name="robots" content="<?= !empty($isPreview) ? 'noindex,nofollow' : 'index,follow' ?>">
   <meta name="theme-color" content="<?= in_array($template, ['3d', 'noir'], true) ? '#080b0e' : '#f4f0e7' ?>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/styles.css') ?>">
