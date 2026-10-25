@@ -244,6 +244,7 @@ Template identifiers:
 - [x] Output escaping in reviewed PHP templates.
 - [x] HTTP/HTTPS checks for social/project links in relevant paths.
 - [x] Avatar MIME/image validation, size/dimension limits, randomized filenames, and upload-directory script blocking.
+- [x] Root `.htaccess` now blocks direct execution of root-level PHP reference files other than the front controller, plus repository metadata, internal docs, and archive/database artifacts.
 - [x] React CSS includes a reduced-motion media query and JavaScript checks the reduced-motion preference for orbit decoration.
 
 ### Required before sign-off
@@ -253,6 +254,7 @@ Template identifiers:
 - [ ] Check stored/reflected XSS payloads in every text, title, URL, section, project, and social field.
 - [ ] Check URL schemes, malformed URLs, external link targets, and safe `rel` attributes.
 - [ ] Check upload path traversal, double extensions, spoofed MIME, oversized files, and executable content.
+- [ ] Verify the deployed Apache configuration returns 403 for `/idea.php`, `/ideas2.php`, `/api.zip`, repository metadata, and internal documentation paths while `/index.php`, `/p/{slug}`, and public assets still work.
 - [ ] Confirm public routes never reveal drafts or private account metadata.
 - [ ] Check SQL operations use prepared statements and mutation queries are constrained by website and owner.
 - [ ] Test contrast, keyboard focus, semantic headings, landmarks, labels, alt text, touch targets, and mobile layout.
@@ -330,4 +332,4 @@ Features not listed as implemented above must not be advertised as complete. In 
 ## Change log
 
 - **2026-10-25:** Audited the current `feature/portfolio-editor-full-dashboard` branch files and recorded implementation evidence versus unverified runtime behavior. The document intentionally separates code found from features that still need local database, browser, security, and hosting verification.
-- **2026-10-25:** Fixed verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from public rendering and the React payload; the PHP fallback stays visible until React mounts; and reduced-motion preferences disable nonessential React motion. GitHub Actions passed after adding a Node.js syntax check for the React module. Full browser, database, and security acceptance remains outstanding.
+- **2026-10-25:** Fixed verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from public rendering and the React payload; the PHP fallback stays visible until React mounts; reduced-motion preferences disable nonessential React motion; and saved colour/font/hero-layout settings are now passed to React templates. GitHub Actions passed after adding a Node.js syntax check for the React module. Root `.htaccess` now blocks the standalone reference dashboards and sensitive project artifacts from direct access. Verify these access rules in the actual Apache hosting environment. Full browser, database, and security acceptance remains outstanding.
