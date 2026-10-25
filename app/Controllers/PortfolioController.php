@@ -51,6 +51,20 @@ class PortfolioController extends Controller
         $location = trim((string) $this->input('location', ''));
         $templateKey = trim((string) $this->input('template_key', 'classic'));
 
+        $socialLinks = [];
+        foreach (['github', 'linkedin', 'instagram', 'facebook', 'website'] as $platform) {
+            $url = trim((string) $this->input('social_' . $platform, ''));
+            if ($url === '') {
+                continue;
+            }
+            if (strlen($url) > 500 || filter_var($url, FILTER_VALIDATE_URL) === false
+                || !in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true)) {
+                Session::flash('error', 'Social links must be valid HTTP or HTTPS URLs.');
+                $this->redirectTo('/dashboard/websites/portfolio?id=' . (int) $website['id']);
+            }
+            $socialLinks[$platform] = $url;
+        }
+
         if ($displayName === '' || strlen($displayName) > 120
             || strlen($headline) > 180
             || strlen($bio) > 10000
@@ -73,6 +87,7 @@ class PortfolioController extends Controller
                 'email' => $email !== '' ? $email : null,
                 'location' => $location !== '' ? $location : null,
                 'template_key' => $templateKey,
+                'social_links' => $socialLinks,
             ]
         );
 
