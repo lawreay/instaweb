@@ -102,6 +102,11 @@ if (!str_contains($previewController, 'AuthService::check()')
     failCheck('Draft preview does not enforce authenticated website ownership.');
 }
 
+if (!str_contains($previewController, "header('Cache-Control: private, no-store, no-cache, must-revalidate')")
+    || !str_contains($previewController, "header('Pragma: no-cache')")) {
+    failCheck('Owner-only portfolio draft preview does not send private no-cache response headers.');
+}
+
 if (!str_contains($publishController, 'updateStatus((int) $website[\'id\'], $userId, \'published\')')
     || !str_contains($publishController, 'updateStatus((int) $website[\'id\'], $userId, \'draft\')')
     || !str_contains($publishController, 'publishPortfolio((int) $website[\'id\']')
