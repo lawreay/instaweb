@@ -922,6 +922,7 @@ class AdminController extends Controller
 
         $this->view('admin/portfolio-templates', [
             'title' => 'Portfolio Template Previews',
+            'active' => 'portfolio-templates',
             'templates' => PortfolioController::TEMPLATES,
             'portfolios' => $portfolios,
             'defaults' => $defaults,
