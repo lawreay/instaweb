@@ -112,6 +112,24 @@ if (!str_contains($routes, 'noir-image/upload') || !str_contains($routes, 'noir-
     failCheck('Noir image dashboard routes or public rendering are incomplete.');
 }
 
+$setupView = readRequiredFile($root . '/app/Views/portfolio/edit.php');
+if (!str_contains($setupView, 'name="display_name"')
+    || !str_contains($setupView, 'name="headline"')
+    || !str_contains($setupView, 'portfolio-avatar-preview')
+    || !str_contains($setupView, 'portfolio-template-preview')
+    || !str_contains($setupView, 'Changes save automatically')
+    || !str_contains($setupView, 'template_choice')
+    || !str_contains($routes, "'/dashboard/websites/portfolio/autosave' => [PortfolioController::class, 'autosave']")) {
+    failCheck('Portfolio setup page is missing its basic profile, photo preview, template preview, or autosave wiring.');
+}
+if (str_contains($setupView, 'projects/add') || str_contains($setupView, 'project_title')) {
+    failCheck('Project management must remain in the Advanced Editor, not the setup page.');
+}
+if (!str_contains($portfolioController, 'public function autosave(): void')
+    || !str_contains($portfolioController, 'Csrf::validate($this->input(\'_csrf\'))')) {
+    failCheck('Portfolio setup autosave endpoint must validate the session token.');
+}
+
 if (!str_contains($editorView, 'foreach ($templates as $templateKey => $templateLabel)')) {
     failCheck('Advanced Editor selector is not generated from the server-side template registry.');
 }
