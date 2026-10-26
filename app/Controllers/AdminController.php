@@ -9,6 +9,7 @@ use App\Core\Session;
 use App\Core\Validator;
 use App\Models\AdminRepository;
 use App\Models\LegalPolicy;
+use App\Models\Portfolio;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\User;
