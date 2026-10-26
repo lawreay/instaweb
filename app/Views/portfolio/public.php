@@ -83,7 +83,9 @@ foreach ($sectionLabels as $sectionKey => $sectionLabel) {
         $payload = is_array($payload) ? $payload : [];
         $link = trim((string) ($payload['link'] ?? ''));
         if (!filter_var($link, FILTER_VALIDATE_URL) || !in_array(strtolower((string) parse_url($link, PHP_URL_SCHEME)), ['http', 'https'], true)) $link = '';
-        $entries[] = ['title' => (string) ($item['title'] ?? ''), 'details' => (string) ($payload['details'] ?? ''), 'organisation' => (string) ($payload['organisation'] ?? ''), 'period' => (string) ($payload['period'] ?? ''), 'link' => $link];
+        $cvPath = (string) ($payload['file_path'] ?? '');
+        if ($cvPath !== '' && !preg_match('#^uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/cv/[a-f0-9]{32}\\.(pdf|docx?)$#i', $cvPath)) $cvPath = '';
+        $entries[] = ['title' => (string) ($item['title'] ?? ''), 'details' => (string) ($payload['details'] ?? ''), 'organisation' => (string) ($payload['organisation'] ?? ''), 'period' => (string) ($payload['period'] ?? ''), 'link' => $link, 'fileUrl' => $cvPath !== '' ? '/' . $cvPath : '', 'fileName' => (string) ($payload['file_name'] ?? '')];
     }
     $reactSections[] = ['key' => $sectionKey, 'label' => $sectionLabel, 'items' => $entries];
 }
@@ -265,6 +267,7 @@ $initials = strtoupper(substr($name, 0, 1));
                   <?php if (!empty($payload['period'])): ?><p class="mb-2"><?= $escape($payload['period']) ?></p><?php endif; ?>
                   <?php if (!empty($payload['details'])): ?><p><?= nl2br($escape($payload['details'])) ?></p><?php endif; ?>
                   <?php if ($itemLink !== ''): ?><a href="<?= $escape($itemLink) ?>" target="_blank" rel="noopener noreferrer">Learn more <span aria-hidden="true">↗</span></a><?php endif; ?>
+                  <?php $cvPath = (string) ($payload['file_path'] ?? ''); if ($sectionKey === 'cv' && $cvPath !== '' && preg_match('#^uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/cv/[a-f0-9]{32}\\.(pdf|docx?)$#i', $cvPath)): ?><p><a href="<?= $escape('/' . $cvPath) ?>" download><?= $escape($payload['file_name'] ?? 'Download CV') ?> · Download</a></p><?php endif; ?>
                 </article>
               <?php endforeach; ?>
             </div>
