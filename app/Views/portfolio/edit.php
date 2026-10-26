@@ -20,6 +20,9 @@ $templateDescriptions = [
     'archive' => 'A paper-led creative catalogue.',
 ];
 $currentTemplate = (string) ($portfolio['template_key'] ?? 'classic');
+$ownPreviewUrl = $baseUrl . '/dashboard/websites/preview?id=' . $websiteId;
+$templatePreviewUrls = is_array($templatePreviewUrls ?? null) ? $templatePreviewUrls : [];
+$initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
 ?>
 <style>
 .portfolio-setup{--ps-ink:#17191d;--ps-muted:#6d7480;--ps-line:#e5e7eb;--ps-accent:#f97316;color:var(--ps-ink)}
@@ -136,9 +139,9 @@ $currentTemplate = (string) ($portfolio['template_key'] ?? 'classic');
       </div>
 
       <aside class="ps-panel">
-        <div class="ps-panel-head"><h2>Template preview</h2><a class="small" id="portfolio-preview-open" href="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>" target="_blank" rel="noopener">Open separately ↗</a></div>
-        <iframe class="ps-preview-frame" id="portfolio-template-preview" title="Preview of your selected portfolio template" src="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>" loading="lazy"></iframe>
-        <p class="ps-preview-note">The preview uses your saved portfolio information. Template selection and text changes save automatically.</p>
+        <div class="ps-panel-head"><h2>Template preview</h2><a class="small" id="portfolio-preview-open" href="<?= $escape($initialPreviewUrl) ?>" target="_blank" rel="noopener">Open separately ↗</a></div>
+        <iframe class="ps-preview-frame" id="portfolio-template-preview" title="Preview of your selected portfolio template" src="<?= $escape($initialPreviewUrl) ?>" loading="lazy"></iframe>
+        <p class="ps-preview-note">When an admin has configured a published sample, this panel shows that template example. Otherwise it falls back to your draft. Use Open full preview to inspect your own portfolio.</p>
       </aside>
     </div>
   </div>
@@ -156,7 +159,12 @@ $currentTemplate = (string) ($portfolio['template_key'] ?? 'classic');
   let timer = null;
   let requestNumber = 0;
   let activeObjectUrl = null;
-  const previewUrl = <?= json_encode($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>;
+  const ownPreviewUrl = <?= json_encode($ownPreviewUrl) ?>;
+  const templatePreviewUrls = <?= json_encode($templatePreviewUrls, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+  function selectedPreviewUrl() {
+    const selected = form.querySelector('input[name="template_choice"]:checked');
+    return (selected && templatePreviewUrls[selected.value]) || ownPreviewUrl;
+  }
   function setStatus(message, state) {
     status.textContent = message;
     status.dataset.state = state || '';
@@ -175,8 +183,10 @@ $currentTemplate = (string) ($portfolio['template_key'] ?? 'classic');
       if (!response.ok || !result.ok) throw new Error(result.message || 'Could not save changes.');
       setStatus('All changes saved', 'saved');
       if (selected && preview) {
-        preview.src = previewUrl + '&_preview=' + Date.now();
-        if (previewOpen) previewOpen.href = previewUrl + '&_preview=' + Date.now();
+        const target = selectedPreviewUrl();
+        const separator = target.includes('?') ? '&' : '?';
+        preview.src = target + separator + '_preview=' + Date.now();
+        if (previewOpen) previewOpen.href = target;
       }
     } catch (error) {
       if (currentRequest === requestNumber) setStatus(error.message || 'Save failed. Check your connection.', 'error');
