@@ -2,191 +2,214 @@
 $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
 $websiteId = (int) $website['id'];
 $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
-$socialLinks = json_decode((string) ($portfolio['social_links'] ?? '{}'), true);
-$socialLinks = is_array($socialLinks) ? $socialLinks : [];
 $avatarPath = trim((string) ($portfolio['avatar_path'] ?? ''));
 $avatarUrl = $avatarPath !== '' && !str_contains($avatarPath, '..')
     && preg_match('#^uploads/[A-Za-z0-9_./-]+$#', $avatarPath)
     ? $baseUrl . '/' . ltrim($avatarPath, '/')
     : '';
+$templateDescriptions = [
+    'classic' => 'Clear, adaptable and familiar.',
+    'editorial' => 'Typography-led, like a printed feature.',
+    '3d' => 'Immersive and technical.',
+    'minimal' => 'Quiet, focused and content-first.',
+    'noir' => 'Bold, dark and editorial.',
+    'aurora' => 'Luminous motion and layered colour.',
+    'studio' => 'Warm, creative and tactile.',
+    'orbit' => 'A technical mission-control aesthetic.',
+    'prism' => 'Expressive colour and confident shapes.',
+    'archive' => 'A paper-led creative catalogue.',
+];
+$currentTemplate = (string) ($portfolio['template_key'] ?? 'classic');
 ?>
-<section class="client-dashboard iw-client-page iw-website-form">
+<style>
+.portfolio-setup{--ps-ink:#17191d;--ps-muted:#6d7480;--ps-line:#e5e7eb;--ps-accent:#f97316;color:var(--ps-ink)}
+.portfolio-setup .ps-heading{display:flex;justify-content:space-between;gap:1.5rem;align-items:flex-start;margin-bottom:1.5rem}
+.portfolio-setup .ps-eyebrow{font-size:.72rem;letter-spacing:.15em;font-weight:800;text-transform:uppercase;color:var(--ps-muted);margin:0 0 .55rem}
+.portfolio-setup .ps-heading h1{font-size:clamp(1.8rem,3vw,2.5rem);font-weight:800;letter-spacing:-.04em;margin:0}
+.portfolio-setup .ps-heading p{color:var(--ps-muted);margin:.55rem 0 0;max-width:42rem}
+.portfolio-setup .ps-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.85fr);gap:1.25rem;align-items:start}
+.portfolio-setup .ps-panel{background:var(--bs-body-bg,#fff);border:1px solid var(--ps-line);border-radius:1rem;padding:clamp(1rem,2vw,1.5rem);margin-bottom:1.25rem;min-width:0}
+.portfolio-setup .ps-panel h2{font-size:1.05rem;font-weight:800;margin:0}
+.portfolio-setup .ps-panel-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;margin-bottom:1.2rem}
+.portfolio-setup .ps-field{display:block;margin-bottom:1rem;font-weight:700;font-size:.9rem}
+.portfolio-setup .ps-field input{display:block;width:100%;margin-top:.45rem;border:1px solid #d5d9e0;border-radius:.65rem;padding:.8rem .9rem;font:inherit;font-weight:400;background:var(--bs-body-bg,#fff);color:inherit}
+.portfolio-setup .ps-field input:focus{outline:3px solid #f9731626;border-color:var(--ps-accent)}
+.portfolio-setup .ps-profile-row{display:grid;grid-template-columns:96px minmax(0,1fr);gap:1rem;align-items:center}
+.portfolio-setup .ps-avatar{width:96px;height:112px;object-fit:cover;border-radius:.8rem;background:#f1f3f5;border:1px solid var(--ps-line)}
+.portfolio-setup .ps-avatar-empty{display:grid;place-items:center;color:var(--ps-muted);font-size:.75rem;text-align:center;padding:.5rem}
+.portfolio-setup .ps-upload{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.portfolio-setup .ps-upload input{max-width:100%;font-size:.85rem}
+.portfolio-setup .ps-status{font-size:.8rem;color:var(--ps-muted);min-height:1.2rem}
+.portfolio-setup .ps-status[data-state="saved"]{color:#16804a}
+.portfolio-setup .ps-status[data-state="error"]{color:#b42318}
+.portfolio-setup .ps-template-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.portfolio-setup .ps-template{position:relative;display:block;border:1px solid var(--ps-line);border-radius:.85rem;padding:.6rem;text-align:left;cursor:pointer;background:transparent;color:inherit;transition:border-color .15s,box-shadow .15s}
+.portfolio-setup .ps-template:has(input:checked){border:2px solid var(--ps-accent);padding:calc(.6rem - 1px);box-shadow:0 0 0 3px #f9731617}
+.portfolio-setup .ps-template input{position:absolute;opacity:0;pointer-events:none}
+.portfolio-setup .ps-template:focus-within{outline:3px solid #f9731640}
+.portfolio-setup .ps-mini{height:82px;border-radius:.5rem;overflow:hidden;padding:.65rem;display:flex;gap:.35rem;flex-direction:column;justify-content:center}
+.portfolio-setup .ps-mini span{display:block;height:5px;border-radius:9px;background:currentColor;opacity:.8;width:64%}
+.portfolio-setup .ps-mini span:nth-child(2){width:90%;opacity:.35}
+.portfolio-setup .ps-mini span:nth-child(3){width:44%;opacity:.55}
+.portfolio-setup .ps-mini--classic{background:#f4f5f7;color:#343a40}
+.portfolio-setup .ps-mini--editorial{background:#f1e9dc;color:#4b3325}
+.portfolio-setup .ps-mini--3d{background:#111827;color:#b9c8ff}
+.portfolio-setup .ps-mini--minimal{background:#fff;color:#151515;border:1px solid #eee}
+.portfolio-setup .ps-mini--noir{background:#111;color:#f3eee7}
+.portfolio-setup .ps-mini--aurora{background:linear-gradient(120deg,#101c37,#4b347a);color:#b8ffe8}
+.portfolio-setup .ps-mini--studio{background:#f2e5d4;color:#744b2f}
+.portfolio-setup .ps-mini--orbit{background:#071e2b;color:#71e4f1}
+.portfolio-setup .ps-mini--prism{background:linear-gradient(120deg,#ffe7b2,#f5a3cc);color:#39224f}
+.portfolio-setup .ps-mini--archive{background:#eee7d9;color:#473d2e;border:1px solid #d5c9b4}
+.portfolio-setup .ps-template-name{display:block;font-weight:800;font-size:.88rem;margin:.6rem 0 .2rem}
+.portfolio-setup .ps-template-desc{display:block;color:var(--ps-muted);font-size:.75rem;line-height:1.4}
+.portfolio-setup .ps-preview-frame{width:100%;height:520px;border:1px solid var(--ps-line);border-radius:.8rem;background:#fff}
+.portfolio-setup .ps-preview-note{font-size:.8rem;color:var(--ps-muted);margin:.65rem 0 0}
+.portfolio-setup .ps-actions{display:flex;flex-wrap:wrap;gap:.65rem;margin-top:1rem}
+@media(max-width:1000px){.portfolio-setup .ps-layout{grid-template-columns:1fr}.portfolio-setup .ps-preview-frame{height:440px}}
+@media(max-width:560px){.portfolio-setup .ps-heading{display:block}.portfolio-setup .ps-heading .ps-actions{margin-top:1rem}.portfolio-setup .ps-template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.portfolio-setup .ps-profile-row{grid-template-columns:76px minmax(0,1fr)}.portfolio-setup .ps-avatar{width:76px;height:96px}.portfolio-setup .ps-preview-frame{height:360px}}
+</style>
+<section class="client-dashboard iw-client-page portfolio-setup">
   <div class="client-main">
-    <header class="client-header">
+    <header class="ps-heading">
       <div>
-        <p class="auth-eyebrow">Portfolio Studio</p>
-        <h1>Edit Portfolio</h1>
-        <p>Update the content shown on your portfolio without editing HTML or CSS.</p>
+        <p class="ps-eyebrow">Portfolio Studio / Setup</p>
+        <h1>Set up your portfolio</h1>
+        <p>Add the essentials, choose a visual style, and preview it. Projects and detailed sections belong in the Advanced Editor.</p>
       </div>
-      <div class="d-flex gap-2 flex-wrap">
+      <div class="ps-actions">
         <a class="btn btn-outline-primary" href="<?= $escape($baseUrl . '/dashboard/websites/show?id=' . $websiteId) ?>">Back to Website</a>
         <a class="btn btn-primary" href="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced?id=' . $websiteId) ?>"><i data-lucide="sliders-horizontal"></i> Advanced Editor</a>
-        <a class="btn btn-outline-primary" href="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>"><i data-lucide="eye"></i> Preview Draft</a>
       </div>
     </header>
 
-    <section class="client-card mb-4">
-      <div class="client-card-head">
-        <h2>Profile and design</h2>
-        <span><?= $escape($website['website_name'] ?? 'Portfolio') ?></span>
-      </div>
-      <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/save') ?>" class="row g-4">
-        <?= \App\Core\Csrf::field() ?>
-        <input type="hidden" name="id" value="<?= $websiteId ?>">
-        <div class="col-12 col-lg-6">
-          <label class="form-label" for="display_name">Display name</label>
-          <input class="form-control" id="display_name" name="display_name" maxlength="120" required value="<?= $escape($portfolio['display_name'] ?? '') ?>">
-        </div>
-        <div class="col-12 col-lg-6">
-          <label class="form-label" for="headline">Headline / role</label>
-          <input class="form-control" id="headline" name="headline" maxlength="180" value="<?= $escape($portfolio['headline'] ?? '') ?>" placeholder="Designer, developer, photographer...">
-        </div>
-        <div class="col-12">
-          <label class="form-label" for="bio">About you</label>
-          <textarea class="form-control" id="bio" name="bio" rows="5" maxlength="10000" placeholder="Describe your work, skills, and experience."><?= $escape($portfolio['bio'] ?? '') ?></textarea>
-        </div>
-        <div class="col-12 col-md-6">
-          <label class="form-label" for="email">Public contact email</label>
-          <input class="form-control" id="email" name="email" type="email" maxlength="190" value="<?= $escape($portfolio['email'] ?? '') ?>" placeholder="you@example.com">
-        </div>
-        <div class="col-12 col-md-6">
-          <label class="form-label" for="location">Location</label>
-          <input class="form-control" id="location" name="location" maxlength="120" value="<?= $escape($portfolio['location'] ?? '') ?>" placeholder="City, country">
-        </div>
-        <div class="col-12">
-          <div class="border rounded-3 p-3">
-            <h3 class="h5 mb-1">Social links</h3>
-            <p class="text-secondary small">Add full public URLs. Empty fields are omitted from your portfolio.</p>
-            <div class="row g-3">
-              <?php foreach (['github' => 'GitHub', 'linkedin' => 'LinkedIn', 'instagram' => 'Instagram', 'facebook' => 'Facebook', 'website' => 'Personal website'] as $platform => $label): ?>
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="social_<?= $escape($platform) ?>"><?= $escape($label) ?></label>
-                  <input class="form-control" id="social_<?= $escape($platform) ?>" name="social_<?= $escape($platform) ?>" type="url" maxlength="500" inputmode="url" placeholder="https://..." value="<?= $escape($socialLinks[$platform] ?? '') ?>">
-                </div>
-              <?php endforeach; ?>
+    <div class="ps-layout">
+      <div>
+        <section class="ps-panel">
+          <div class="ps-panel-head"><h2>Basic information</h2><span class="ps-status" id="portfolio-save-status" role="status" aria-live="polite">Changes save automatically</span></div>
+          <form id="portfolio-setup-form" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/autosave') ?>" method="post">
+            <?= \App\Core\Csrf::field() ?>
+            <input type="hidden" name="id" value="<?= $websiteId ?>">
+            <label class="ps-field" for="display_name">Full name
+              <input id="display_name" name="display_name" maxlength="120" required autocomplete="name" value="<?= $escape($portfolio['display_name'] ?? '') ?>" placeholder="Your full name">
+            </label>
+            <label class="ps-field" for="headline">Role / headline
+              <input id="headline" name="headline" maxlength="180" value="<?= $escape($portfolio['headline'] ?? '') ?>" placeholder="e.g. UI Designer and Front-end Developer">
+            </label>
+            <div class="ps-profile-row">
+              <?php if ($avatarUrl !== ''): ?>
+                <img class="ps-avatar" id="portfolio-avatar-preview" src="<?= $escape($avatarUrl) ?>" alt="Portfolio photo preview">
+              <?php else: ?>
+                <div class="ps-avatar ps-avatar-empty" id="portfolio-avatar-empty">Photo preview</div>
+                <img class="ps-avatar" id="portfolio-avatar-preview" src="" alt="Portfolio photo preview" hidden>
+              <?php endif; ?>
+              <div>
+                <strong>Profile photo</strong>
+                <p class="text-secondary small mb-2">JPEG, PNG or WebP, up to 3 MB.</p>
+                <form id="portfolio-avatar-form" method="POST" enctype="multipart/form-data" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/avatar') ?>">
+                  <?= \App\Core\Csrf::field() ?>
+                  <input type="hidden" name="id" value="<?= $websiteId ?>">
+                  <div class="ps-upload"><input id="avatar" name="avatar" type="file" accept="image/jpeg,image/png,image/webp" required><button class="btn btn-outline-primary btn-sm" type="submit">Upload photo</button></div>
+                </form>
+              </div>
             </div>
-          </div>
-        </div>
-        <div class="col-12 col-lg-6">
-          <label class="form-label" for="template_key">Portfolio design</label>
-          <select class="form-select" id="template_key" name="template_key" required>
+          </form>
+        </section>
+
+        <section class="ps-panel">
+          <div class="ps-panel-head"><h2>Choose a template</h2><span class="text-secondary small">10 designs</span></div>
+          <div class="ps-template-grid" role="radiogroup" aria-label="Portfolio templates">
             <?php foreach ($templates as $key => $label): ?>
-              <option value="<?= $escape($key) ?>" <?= (($portfolio['template_key'] ?? 'classic') === $key) ? 'selected' : '' ?>><?= $escape($label) ?></option>
+              <label class="ps-template">
+                <input type="radio" name="template_choice" value="<?= $escape($key) ?>" form="portfolio-setup-form" <?= $currentTemplate === $key ? 'checked' : '' ?>>
+                <span class="ps-mini ps-mini--<?= $escape($key) ?>" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="ps-template-name"><?= $escape(preg_replace('/\s+[—-].*$/u', '', $label)) ?></span>
+                <span class="ps-template-desc"><?= $escape($templateDescriptions[$key] ?? 'A distinctive portfolio design.') ?></span>
+              </label>
             <?php endforeach; ?>
-          </select>
-          <small class="text-secondary d-block mt-2">Your content stays in the database when you switch designs.</small>
-        </div>
-        <div class="col-12">
-          <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Save Profile</button>
-        </div>
-      </form>
-    </section>
-
-    <section class="client-card mb-4">
-      <div class="client-card-head">
-        <h2>Profile image</h2>
-        <span>JPEG, PNG, or WebP · max 3 MB</span>
-      </div>
-      <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
-        <?php if ($avatarUrl !== ''): ?>
-          <img src="<?= $escape($avatarUrl) ?>" alt="Current portfolio profile image" width="96" height="120" style="object-fit:cover;border-radius:.75rem;border:1px solid var(--bs-border-color)">
-        <?php else: ?>
-          <div class="d-grid place-items-center rounded-3 border text-secondary" style="width:96px;height:120px">No image</div>
-        <?php endif; ?>
-        <p class="text-secondary mb-0">This image appears in your public portfolio hero. Upload a new image to replace it.</p>
-      </div>
-      <form method="POST" enctype="multipart/form-data" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/avatar') ?>" class="row g-3 align-items-end">
-        <?= \App\Core\Csrf::field() ?>
-        <input type="hidden" name="id" value="<?= $websiteId ?>">
-        <div class="col-12 col-md-8">
-          <label class="form-label" for="avatar">Choose profile image</label>
-          <input class="form-control" id="avatar" name="avatar" type="file" accept="image/jpeg,image/png,image/webp" required>
-        </div>
-        <div class="col-12 col-md-4">
-          <button class="btn btn-primary" type="submit"><i data-lucide="image-up"></i> Upload image</button>
-        </div>
-      </form>
-    </section>
-
-    <section class="client-card">
-      <div class="client-card-head">
-        <h2>Projects</h2>
-        <span><?= count($projects) ?> saved</span>
+          </div>
+          <div class="ps-actions">
+            <a class="btn btn-outline-primary" href="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced?id=' . $websiteId) ?>">Edit projects and content</a>
+            <a class="btn btn-primary" href="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>" target="_blank" rel="noopener">Open full preview</a>
+          </div>
+        </section>
       </div>
 
-      <?php if ($projects === []): ?>
-        <div class="client-empty">
-          <i data-lucide="briefcase-business"></i>
-          <strong>No projects added yet</strong>
-          <p>Add projects to show visitors examples of your work.</p>
-        </div>
-      <?php else: ?>
-        <div class="client-mini-list mb-4">
-          <?php foreach ($projects as $project): ?>
-            <div class="portfolio-project-row">
-              <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/projects/save') ?>" class="row g-2 flex-grow-1">
-                <?= \App\Core\Csrf::field() ?>
-                <input type="hidden" name="id" value="<?= $websiteId ?>">
-                <input type="hidden" name="project_id" value="<?= (int) $project['id'] ?>">
-                <div class="col-12 col-lg-6">
-                  <label class="form-label small" for="project_title_<?= (int) $project['id'] ?>">Project title</label>
-                  <input class="form-control" id="project_title_<?= (int) $project['id'] ?>" name="project_title" maxlength="150" required value="<?= $escape($project['title'] ?? '') ?>">
-                </div>
-                <div class="col-12 col-lg-6">
-                  <label class="form-label small" for="project_url_<?= (int) $project['id'] ?>">Project link</label>
-                  <input class="form-control" id="project_url_<?= (int) $project['id'] ?>" type="url" name="project_url" maxlength="500" value="<?= $escape($project['project_url'] ?? '') ?>" placeholder="https://...">
-                </div>
-                <div class="col-12">
-                  <label class="form-label small" for="project_summary_<?= (int) $project['id'] ?>">Description</label>
-                  <textarea class="form-control" id="project_summary_<?= (int) $project['id'] ?>" name="project_summary" rows="2" maxlength="5000"><?= $escape($project['summary'] ?? '') ?></textarea>
-                </div>
-                <div class="col-6 col-md-3">
-                  <label class="form-label small" for="project_order_<?= (int) $project['id'] ?>">Display order</label>
-                  <input class="form-control" id="project_order_<?= (int) $project['id'] ?>" type="number" name="sort_order" min="0" max="9999" value="<?= (int) ($project['sort_order'] ?? 0) ?>">
-                </div>
-                <div class="col-6 d-flex align-items-end">
-                  <button type="submit" class="btn btn-sm btn-primary"><i data-lucide="save"></i> Save project</button>
-                </div>
-              </form>
-              <form class="project-delete-form" method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/projects/delete') ?>" onsubmit="return confirm('Remove this project from your portfolio?');">
-                <?= \App\Core\Csrf::field() ?>
-                <input type="hidden" name="id" value="<?= $websiteId ?>">
-                <input type="hidden" name="project_id" value="<?= (int) $project['id'] ?>">
-                <button type="submit" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2"></i> Remove</button>
-              </form>
-            </div>
-          <?php endforeach; ?>
-        </div>
-      <?php endif; ?>
-
-      <h3 class="h5 mt-4">Add a project</h3>
-      <form method="POST" action="<?= $escape($baseUrl . '/dashboard/websites/portfolio/projects/add') ?>" class="row g-3">
-        <?= \App\Core\Csrf::field() ?>
-        <input type="hidden" name="id" value="<?= $websiteId ?>">
-        <div class="col-12 col-lg-6">
-          <label class="form-label" for="project_title">Project title</label>
-          <input class="form-control" id="project_title" name="project_title" maxlength="150" required>
-        </div>
-        <div class="col-12 col-lg-6">
-          <label class="form-label" for="project_url">Project link (optional)</label>
-          <input class="form-control" id="project_url" name="project_url" type="url" maxlength="500" placeholder="https://example.com">
-        </div>
-        <div class="col-12">
-          <label class="form-label" for="project_summary">Short description</label>
-          <textarea class="form-control" id="project_summary" name="project_summary" rows="3" maxlength="5000"></textarea>
-        </div>
-        <div class="col-12">
-          <button class="btn btn-primary" type="submit"><i data-lucide="plus"></i> Add Project</button>
-        </div>
-      </form>
-    </section>
+      <aside class="ps-panel">
+        <div class="ps-panel-head"><h2>Template preview</h2><a class="small" id="portfolio-preview-open" href="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>" target="_blank" rel="noopener">Open separately ↗</a></div>
+        <iframe class="ps-preview-frame" id="portfolio-template-preview" title="Preview of your selected portfolio template" src="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>" loading="lazy"></iframe>
+        <p class="ps-preview-note">The preview uses your saved portfolio information. Template selection and text changes save automatically.</p>
+      </aside>
+    </div>
   </div>
 </section>
-<style>
-.portfolio-project-row{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--bs-border-color,#e5e7eb)}
-.portfolio-project-row:last-child{border-bottom:0}
-.portfolio-project-row>div{min-width:0;overflow-wrap:anywhere}
-.portfolio-project-row>form:not(.project-delete-form){flex:1 1 100%;min-width:0}
-.portfolio-project-row .project-delete-form{flex:0 0 auto}
-@media(max-width:575px){.portfolio-project-row{flex-direction:column}.portfolio-project-row form{align-self:stretch}.portfolio-project-row .project-delete-form{align-self:flex-start}}
-</style>
+<script>
+(function () {
+  const form = document.getElementById('portfolio-setup-form');
+  if (!form) return;
+  const status = document.getElementById('portfolio-save-status');
+  const preview = document.getElementById('portfolio-template-preview');
+  const previewOpen = document.getElementById('portfolio-preview-open');
+  const avatarInput = document.getElementById('avatar');
+  const avatarPreview = document.getElementById('portfolio-avatar-preview');
+  const avatarEmpty = document.getElementById('portfolio-avatar-empty');
+  let timer = null;
+  let requestNumber = 0;
+  let activeObjectUrl = null;
+  const previewUrl = <?= json_encode($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>;
+  function setStatus(message, state) {
+    status.textContent = message;
+    status.dataset.state = state || '';
+  }
+  async function saveSetup() {
+    if (!form.reportValidity()) return;
+    const currentRequest = ++requestNumber;
+    setStatus('Saving…', 'saving');
+    try {
+      const body = new FormData(form);
+      const selected = form.querySelector('input[name="template_choice"]:checked');
+      if (selected) body.set('template_key', selected.value);
+      const response = await fetch(form.action, { method: 'POST', body, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+      const result = await response.json();
+      if (currentRequest !== requestNumber) return;
+      if (!response.ok || !result.ok) throw new Error(result.message || 'Could not save changes.');
+      setStatus('All changes saved', 'saved');
+      if (selected && preview) {
+        preview.src = previewUrl + '&_preview=' + Date.now();
+        if (previewOpen) previewOpen.href = previewUrl + '&_preview=' + Date.now();
+      }
+    } catch (error) {
+      if (currentRequest === requestNumber) setStatus(error.message || 'Save failed. Check your connection.', 'error');
+    }
+  }
+  form.querySelectorAll('#display_name, #headline').forEach(input => {
+    input.addEventListener('input', () => {
+      setStatus('Unsaved changes…', '');
+      clearTimeout(timer);
+      timer = setTimeout(saveSetup, 650);
+    });
+    input.addEventListener('blur', () => { clearTimeout(timer); saveSetup(); });
+  });
+  form.querySelectorAll('input[name="template_choice"]').forEach(input => input.addEventListener('change', saveSetup));
+  if (avatarInput) avatarInput.addEventListener('change', () => {
+    const file = avatarInput.files && avatarInput.files[0];
+    if (!file) return;
+    if (activeObjectUrl) URL.revokeObjectURL(activeObjectUrl);
+    activeObjectUrl = URL.createObjectURL(file);
+    avatarPreview.src = activeObjectUrl;
+    avatarPreview.hidden = false;
+    if (avatarEmpty) avatarEmpty.hidden = true;
+  });
+  const avatarForm = document.getElementById('portfolio-avatar-form');
+  if (avatarForm) avatarForm.addEventListener('submit', event => {
+    const file = avatarInput && avatarInput.files && avatarInput.files[0];
+    if (!file) { event.preventDefault(); return; }
+    if (file.size > 3 * 1024 * 1024) {
+      event.preventDefault();
+      setStatus('Photo must be smaller than 3 MB.', 'error');
+      return;
+    }
+    setStatus('Uploading photo…', 'saving');
+  });
+})();
+</script>
