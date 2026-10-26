@@ -42,6 +42,53 @@ class PortfolioController extends Controller
         ], 'layouts/dashboard');
     }
 
+    /**
+     * Lightweight autosave for the portfolio setup page. Projects and detailed
+     * portfolio sections remain exclusive to the Advanced Editor.
+     */
+    public function autosave(): void
+    {
+        [$userId, $website, $portfolio] = $this->ownedPortfolio();
+
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
+
+        if (!Csrf::validate($this->input('_csrf'))) {
+            http_response_code(419);
+            echo json_encode(['ok' => false, 'message' => 'Your session expired. Refresh and try again.']);
+            return;
+        }
+
+        $displayName = trim((string) $this->input('display_name', (string) ($portfolio['display_name'] ?? '')));
+        $headline = trim((string) $this->input('headline', (string) ($portfolio['headline'] ?? '')));
+        $templateKey = trim((string) $this->input('template_key', (string) ($portfolio['template_key'] ?? 'classic')));
+
+        if ($displayName === '' || mb_strlen($displayName) > 120 || mb_strlen($headline) > 180
+            || !array_key_exists($templateKey, self::TEMPLATES)) {
+            http_response_code(422);
+            echo json_encode(['ok' => false, 'message' => 'Enter a full name and choose an available template.']);
+            return;
+        }
+
+        $socialLinks = json_decode((string) ($portfolio['social_links'] ?? '{}'), true);
+        (new Portfolio())->updateProfile(
+            (int) $portfolio['id'],
+            (int) $website['id'],
+            $userId,
+            [
+                'display_name' => $displayName,
+                'headline' => $headline,
+                'bio' => (string) ($portfolio['bio'] ?? ''),
+                'email' => ($portfolio['email'] ?? '') !== '' ? $portfolio['email'] : null,
+                'location' => ($portfolio['location'] ?? '') !== '' ? $portfolio['location'] : null,
+                'template_key' => $templateKey,
+                'social_links' => is_array($socialLinks) ? $socialLinks : [],
+            ]
+        );
+
+        echo json_encode(['ok' => true, 'message' => 'All changes saved', 'template_key' => $templateKey]);
+    }
+
     public function save(): void
     {
         [$userId, $website, $portfolio] = $this->ownedPortfolio();
