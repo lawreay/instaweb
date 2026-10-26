@@ -192,11 +192,23 @@ class AdvancedPortfolioController extends Controller
                     'application/pdf' => 'pdf',
                     'application/msword' => 'doc',
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
-                    'application/zip' => 'docx',
                 ];
                 $extension = is_string($mime) ? ($allowedTypes[$mime] ?? null) : null;
-                if ($extension === null) {
-                    Session::flash('error', 'The CV file type is not supported. Upload PDF, DOC, or DOCX.');
+                $originalExtension = strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
+                if ($extension === null && $mime === 'application/zip' && $originalExtension === 'docx'
+                    && class_exists('\\\\ZipArchive')) {
+                    $zip = new \\\\ZipArchive();
+                    if ($zip->open($tmpPath) === true) {
+                        $isDocx = $zip->locateName('[Content_Types].xml') !== false
+                            && $zip->locateName('word/document.xml') !== false;
+                        $zip->close();
+                        if ($isDocx) {
+                            $extension = 'docx';
+                        }
+                    }
+                }
+                if ($extension === null || $originalExtension !== $extension) {
+                    Session::flash('error', 'The CV file type is not supported. Upload a valid PDF, DOC, or DOCX file.');
                     $this->backToEditor($websiteId);
                     return;
                 }
