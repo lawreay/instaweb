@@ -156,6 +156,86 @@ class AdvancedPortfolioController extends Controller
             }
             $payload[$field] = $value;
         }
+        if ($section === 'cv') {
+            $existingItem = null;
+            if ($itemId > 0) {
+                foreach ((new AdvancedPortfolio())->items($websiteId, $userId) as $candidate) {
+                    if ((int) ($candidate['id'] ?? 0) === $itemId && ($candidate['section_key'] ?? '') === 'cv') {
+                        $existingItem = $candidate;
+                        break;
+                    }
+                }
+                if ($existingItem === null) {
+                    Session::flash('error', 'The CV entry could not be found for this website.');
+                    $this->backToEditor($websiteId);
+                    return;
+                }
+                $existingPayload = json_decode((string) ($existingItem['payload'] ?? '{}'), true);
+                if (is_array($existingPayload) && isset($existingPayload['file_path'])) {
+                    $payload['file_path'] = (string) $existingPayload['file_path'];
+                    $payload['file_name'] = (string) ($existingPayload['file_name'] ?? '');
+                }
+            }
+            $file = $_FILES['cv_file'] ?? null;
+            if (is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                if ((int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+                    || !is_uploaded_file((string) ($file['tmp_name'] ?? ''))
+                    || (int) ($file['size'] ?? 0) < 1 || (int) $file['size'] > 5 * 1024 * 1024) {
+                    Session::flash('error', 'Choose a PDF, DOC, or DOCX file smaller than 5 MB.');
+                    $this->backToEditor($websiteId);
+                    return;
+                }
+                $tmpPath = (string) $file['tmp_name'];
+                $finfo = new \\finfo(FILEINFO_MIME_TYPE);
+                $mime = $finfo->file($tmpPath);
+                $allowedTypes = [
+                    'application/pdf' => 'pdf',
+                    'application/msword' => 'doc',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                    'application/zip' => 'docx',
+                ];
+                $extension = is_string($mime) ? ($allowedTypes[$mime] ?? null) : null;
+                if ($extension === null) {
+                    Session::flash('error', 'The CV file type is not supported. Upload PDF, DOC, or DOCX.');
+                    $this->backToEditor($websiteId);
+                    return;
+                }
+                $relativeDirectory = 'uploads/portfolios/' . $websiteId . '/cv';
+                $targetDirectory = dirname(__DIR__, 2) . '/public/' . $relativeDirectory;
+                if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0755, true) && !is_dir($targetDirectory)) {
+                    Session::flash('error', 'The CV upload directory could not be created.');
+                    $this->backToEditor($websiteId);
+                    return;
+                }
+                $filename = bin2hex(random_bytes(16)) . '.' . $extension;
+                $targetPath = $targetDirectory . DIRECTORY_SEPARATOR . $filename;
+                if (!move_uploaded_file($tmpPath, $targetPath)) {
+                    Session::flash('error', 'The CV file could not be saved.');
+                    $this->backToEditor($websiteId);
+                    return;
+                }
+                $payload['file_path'] = $relativeDirectory . '/' . $filename;
+                $originalName = basename((string) ($file['name'] ?? ('CV.' . $extension)));
+                $payload['file_name'] = mb_substr($originalName, 0, 190);
+                if (isset($existingPayload['file_path'])) {
+                    $oldPath = (string) $existingPayload['file_path'];
+                    $prefix = 'uploads/portfolios/' . $websiteId . '/cv/';
+                    if (str_starts_with($oldPath, $prefix)) {
+                        $oldAbsolute = realpath(dirname(__DIR__, 2) . '/public/' . str_replace('/', DIRECTORY_SEPARATOR, $oldPath));
+                        $safeDirectory = realpath($targetDirectory);
+                        if ($oldAbsolute !== false && $safeDirectory !== false
+                            && str_starts_with($oldAbsolute, rtrim($safeDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)
+                            && is_file($oldAbsolute)) {
+                            @unlink($oldAbsolute);
+                        }
+                    }
+                }
+            } elseif (empty($payload['file_path']) && $itemId === 0) {
+                Session::flash('error', 'Choose a CV file to upload.');
+                $this->backToEditor($websiteId);
+                return;
+            }
+        }
         if (in_array($section, ['education', 'experience', 'partnerships'], true)) {
             $start = trim((string) ($payload['start_date'] ?? ''));
             $end = trim((string) ($payload['end_date'] ?? ''));
