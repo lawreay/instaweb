@@ -181,6 +181,13 @@ class AdvancedPortfolioController extends Controller
         if (isset($payload['year']) && $payload['year'] !== '') {
             $payload['period'] = $payload['year'];
         }
+        if (isset($payload['published_date']) && $payload['published_date'] !== '') {
+            // The shared public renderer displays period; map the news date there until templates support a dedicated date field.
+            $payload['period'] = $payload['published_date'];
+        }
+        if (!empty($payload['current']) && in_array($section, ['education', 'experience'], true)) {
+            $payload['period'] = trim((string) ($payload['start_date'] ?? '') . (!empty($payload['start_date']) ? ' – ' : '') . 'Present');
+        }
                 (new AdvancedPortfolio())->saveItem(
             $websiteId,
             $userId,
