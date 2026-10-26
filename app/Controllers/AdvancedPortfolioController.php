@@ -166,10 +166,13 @@ class AdvancedPortfolioController extends Controller
             $payload['organisation'] = $payload['organisation'];
         }
         if (isset($payload['field_of_study']) && $payload['field_of_study'] !== '') {
-            $payload['details'] = trim(($payload['field_of_study'] . ($payload['details'] !== '' ? "\n" . $payload['details'] : '')));
+            $existingDetails = trim((string) ($payload['details'] ?? ''));
+            $payload['details'] = trim($payload['field_of_study'] . ($existingDetails !== '' ? "\n" . $existingDetails : ''));
         }
         if (isset($payload['category']) && $payload['category'] !== '') {
-            $payload['details'] = 'Category: ' . $payload['category'];
+            $existingDetails = trim((string) ($payload['details'] ?? ''));
+            $categoryLine = 'Category: ' . $payload['category'];
+            $payload['details'] = $existingDetails === '' ? $categoryLine : $existingDetails . "\n" . $categoryLine;
         }
         if (isset($payload['proficiency']) && $payload['proficiency'] !== '') {
             $existingDetails = trim((string) ($payload['details'] ?? ''));
@@ -188,7 +191,7 @@ class AdvancedPortfolioController extends Controller
         if (!empty($payload['current']) && in_array($section, ['education', 'experience'], true)) {
             $payload['period'] = trim((string) ($payload['start_date'] ?? '') . (!empty($payload['start_date']) ? ' – ' : '') . 'Present');
         }
-                (new AdvancedPortfolio())->saveItem(
+        (new AdvancedPortfolio())->saveItem(
             $websiteId,
             $userId,
             $section,
