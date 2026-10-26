@@ -115,36 +115,72 @@ class AdvancedPortfolioController extends Controller
 
         $section = trim((string) $this->input('section_key', ''));
         $title = trim((string) $this->input('title', ''));
-        $details = trim((string) $this->input('details', ''));
-        $organisation = trim((string) $this->input('organisation', ''));
-        $period = trim((string) $this->input('period', ''));
-        $link = trim((string) $this->input('link', ''));
         $sortOrder = max(0, min(9999, (int) $this->input('sort_order', 0)));
         $itemId = (int) $this->input('item_id', 0);
-
-        if (!isset(self::SECTIONS[$section]) || $title === '' || mb_strlen($title) > 190
-            || mb_strlen($details) > 5000 || mb_strlen($organisation) > 190
-            || mb_strlen($period) > 100 || mb_strlen($link) > 500) {
-            Session::flash('error', 'Check the section and required title. Some fields may be too long.');
-            $this->backToEditor($websiteId);
-            return;
-        }
-
-        if ($link !== '' && (!filter_var($link, FILTER_VALIDATE_URL)
-            || !in_array(strtolower((string) parse_url($link, PHP_URL_SCHEME)), ['http', 'https'], true))) {
-            Session::flash('error', 'Links must be complete HTTP or HTTPS URLs, including https://.');
-            $this->backToEditor($websiteId);
-            return;
-        }
-
-        $payload = [
-            'details' => $details,
-            'organisation' => $organisation,
-            'period' => $period,
-            'link' => $link,
+        $fieldRules = [
+            'goals' => ['details'],
+            'interests' => ['details'],
+            'challenges' => ['details', 'outcome'],
+            'experience' => ['organisation', 'details', 'start_date', 'end_date', 'current'],
+            'education' => ['organisation', 'field_of_study', 'details', 'start_date', 'end_date', 'current'],
+            'skills' => ['category', 'proficiency'],
+            'news' => ['details', 'link', 'published_date'],
+            'partnerships' => ['details', 'link', 'start_date', 'end_date'],
+            'cv' => ['details', 'year'],
         ];
-
-        (new AdvancedPortfolio())->saveItem(
+        $requiredFields = ['education' => ['organisation'], 'experience' => ['organisation'], 'news' => ['details']];
+        if (!isset(self::SECTIONS[$section]) || $title === '' || mb_strlen($title) > 190) {
+            Session::flash('error', 'Enter a valid title for this portfolio entry.');
+            $this->backToEditor($websiteId);
+            return;
+        }
+        $payload = [];
+        foreach ($fieldRules[$section] as $field) {
+            $value = $field === 'current' ? ((string) $this->input($field, '0') === '1' ? '1' : '0') : trim((string) $this->input($field, ''));
+            $maxLength = in_array($field, ['details'], true) ? 5000 : (in_array($field, ['link'], true) ? 500 : 190);
+            if (mb_strlen($value) > $maxLength) {
+                Session::flash('error', 'One or more fields are too long. Please shorten the content and try again.');
+                $this->backToEditor($websiteId);
+                return;
+            }
+            if (in_array($field, $requiredFields[$section] ?? [], true) && $value === '') {
+                Session::flash('error', 'Complete the required fields for ' . self::SECTIONS[$section] . '.');
+                $this->backToEditor($websiteId);
+                return;
+            }
+            if ($field === 'link' && $value !== '' && (!filter_var($value, FILTER_VALIDATE_URL)
+                || !in_array(strtolower((string) parse_url($value, PHP_URL_SCHEME)), ['http', 'https'], true))) {
+                Session::flash('error', 'Links must be complete HTTP or HTTPS URLs, including https://.');
+                $this->backToEditor($websiteId);
+                return;
+            }
+            $payload[$field] = $value;
+        }
+        if (in_array($section, ['education', 'experience', 'partnerships'], true)) {
+            $start = trim((string) ($payload['start_date'] ?? ''));
+            $end = trim((string) ($payload['end_date'] ?? ''));
+            $payload['period'] = trim($start . ($end !== '' ? ' – ' . $end : ($start !== '' && !empty($payload['current']) ? ' – Present' : '')));
+        }
+        if (isset($payload['organisation']) && $payload['organisation'] !== '') {
+            // Keep the existing public renderer compatible while preserving section-specific fields.
+            $payload['organisation'] = $payload['organisation'];
+        }
+        if (isset($payload['field_of_study']) && $payload['field_of_study'] !== '') {
+            $payload['details'] = trim(($payload['field_of_study'] . ($payload['details'] !== '' ? "\n" . $payload['details'] : '')));
+        }
+        if (isset($payload['category']) && $payload['category'] !== '') {
+            $payload['details'] = 'Category: ' . $payload['category'];
+        }
+        if (isset($payload['proficiency']) && $payload['proficiency'] !== '') {
+            $payload['details'] = trim(($payload['details'] ?? '') . ($payload['details'] ?? '') === '' ? 'Proficiency: ' . $payload['proficiency'] : ' · Proficiency: ' . $payload['proficiency']);
+        }
+        if (isset($payload['outcome']) && $payload['outcome'] !== '') {
+            $payload['details'] = trim(($payload['details'] ?? '') . "\nOutcome: " . $payload['outcome']);
+        }
+        if (isset($payload['year']) && $payload['year'] !== '') {
+            $payload['period'] = $payload['year'];
+        }
+                (new AdvancedPortfolio())->saveItem(
             $websiteId,
             $userId,
             $section,
