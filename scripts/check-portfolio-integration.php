@@ -144,4 +144,16 @@ if (!str_contains($portfolioController, '$previousAvatar = (string) ($portfolio[
     failCheck('Avatar replacement must safely remove the previous file only from the owning website upload directory.');
 }
 
+if (!str_contains($editorView, "'interests' => [['title','Interest',true],['details','Short explanation (optional)',false,'textarea']]")) {
+    failCheck('Interests editor must not require organisation, period, or link fields.');
+}
+if (!str_contains($editorView, "'skills' => [['title','Skill name',true],['category','Category (optional)',false],['proficiency','Proficiency (optional)',false,'select'")) {
+    failCheck('Skills editor must use skill-specific fields rather than the generic content form.');
+}
+if (!str_contains($portfolioController, "'interests' => ['details']") || !str_contains($portfolioController, "'skills' => ['category', 'proficiency']")) {
+    failCheck('Portfolio controller must validate section-specific content fields.');
+}
+if (!str_contains($editorView, "'cv' => [['title','Document title',true]")) {
+    failCheck('CV section must not present organisation, period, and link as generic required concepts.');
+}
 echo '[portfolio-check] PASS: template registry, React variants, editor selector, hidden items, public route, publication gating, owner-only preview, publish/unpublish wiring, root access rules, and advanced-data cleanup are consistent.' . PHP_EOL;
