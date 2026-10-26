@@ -6,7 +6,9 @@ Header always set X-Frame-Options "SAMEORIGIN"
 Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
 <FilesMatch "\.(?:php|phtml|phar)$">
-	Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+	# Let PHP retain stricter route-specific policies (for example, the
+	# private preview response) while still protecting ordinary PHP routes.
+	Header setifempty Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
 </FilesMatch>
 
 <FilesMatch "\.(?:css|js|png|jpg|jpeg|gif|webp|svg|ico|woff2?)$">

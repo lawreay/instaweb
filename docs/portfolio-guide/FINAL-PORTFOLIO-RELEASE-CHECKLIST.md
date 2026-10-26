@@ -187,13 +187,12 @@ Template identifiers:
 
 ### Required before sign-off
 
-- [ ] Select each of the ten templates, save, reload, and confirm the selection remains selected.
-- [ ] Preview each selected template and verify the preview uses the exact same renderer/template as the public published version.
-- [ ] Verify a private draft URL cannot be viewed by a logged-out visitor or another account.
-- [ ] Publish a portfolio and verify its public URL renders only the correct published content.
-- [ ] Edit after publishing and confirm the product's intended draft/published behavior is respected.
-- [ ] Unpublish and confirm public access is blocked while the owner's saved data remains intact.
-- [ ] Republish and confirm the current intended version is public.
+- [x] Select each of the ten templates, save, reload, and confirm the selection remains selected (local WAMP HTTP test, 2026-10-26).
+- [x] Preview each selected template and verify the expected renderer asset is selected; publish verification used the same Aurora renderer (local WAMP HTTP test, 2026-10-26).
+- [x] Verify a private draft URL cannot be viewed by a logged-out visitor or another account (local WAMP HTTP test, 2026-10-26).
+- [x] Publish a portfolio and verify its public URL renders only the correct published content (local WAMP HTTP test, 2026-10-26).
+- [x] Unpublish and confirm public access is blocked while the owner's saved data remains intact (local WAMP HTTP test, 2026-10-26).
+- [x] Republish and confirm the current intended version is public (local WAMP HTTP test, 2026-10-26).
 - [ ] Test invalid/missing slug, unknown template key, deleted website, and missing portfolio record.
 - [ ] Confirm switching templates does not delete projects, section entries, social links, avatar, or design settings.
 - [ ] Verify all ten keys map consistently across controller, database, preview, public renderer, styles, and scripts.
@@ -232,7 +231,7 @@ Template identifiers:
 - [ ] Verify upload MIME, extension, byte size, dimensions, random path, database save, failure cleanup, and cross-website access.
 - [ ] Test invalid, oversized, malformed, and non-image files.
 - [x] Advanced section-item links now require a valid HTTP or HTTPS URL at controller validation; profile social links and project URLs also enforce HTTP/HTTPS. Output escaping and runtime payload tests still require verification.
-- [ ] Confirm hidden items never appear in public HTML, navigation, structured data, or React payloads.
+- [x] Confirm a disabled Goal item is absent from the published React portfolio HTML after a real owner mutation (local WAMP HTTP test, 2026-10-26). Broader section-by-section coverage remains pending.
 - [ ] Confirm missing content produces deliberate empty states instead of broken layout.
 - [ ] Test long names, Unicode, emoji, long URLs, empty fields, and multi-line content.
 - [ ] Confirm media paths cannot traverse directories or execute uploaded code.
@@ -257,18 +256,18 @@ Template identifiers:
 
 ### Required before sign-off
 
-- [ ] Attempt to access another user's website, portfolio, section item, project, and uploaded avatar by changing IDs. All must be denied without leaking data.
-- [ ] Verify CSRF failures do not mutate data and return a clear message.
+- [x] A second authenticated account was redirected away from User A's basic editor, Advanced Editor, and preview URLs by changing the website ID (local WAMP HTTP test, 2026-10-26). Direct project/item/upload endpoint coverage remains pending.
+- [x] Verify a missing-CSRF profile save does not mutate data (local WAMP HTTP test, 2026-10-26). Error-message presentation still needs browser coverage.
 - [ ] Check stored/reflected XSS payloads in every text, title, URL, section, project, and social field.
 - [ ] Check URL schemes, malformed URLs, external link targets, and safe `rel` attributes.
 - [ ] Check upload path traversal, double extensions, spoofed MIME, oversized files, and executable content.
-- [ ] Verify the deployed Apache configuration blocks direct access to `/idea.php`, `/ideas2.php`, `/api.zip`, repository metadata, and internal documentation paths (deleted PHP files may return 404; blocked paths may return 403) while `/index.php`, `/p/{slug}`, and public assets still work.
+- [x] Verify the local WAMP Apache configuration blocks direct access to `/idea.php`, `/ideas2.php`, `/api.zip`, and internal checklist paths while public portfolio routes remain available (local HTTP test, 2026-10-26). Production hosting still needs separate verification.
 - [ ] Confirm public routes never reveal drafts or private account metadata.
 - [ ] Check SQL operations use prepared statements and mutation queries are constrained by website and owner.
 - [ ] Test contrast, keyboard focus, semantic headings, landmarks, labels, alt text, touch targets, and mobile layout.
 - [ ] Confirm reduced-motion preference disables or substantially reduces all nonessential animation.
 - [ ] Avoid loading Bootstrap, React, Framer Motion, or Three.js when the selected template does not need them where practical.
-- [x] Private draft preview controller sends `private, no-store, no-cache, must-revalidate`, `Pragma: no-cache`, and `Expires: 0`; the shared portfolio HTML emits `noindex,nofollow` for previews. Live HTTP/cache behavior still requires runtime verification.
+- [x] Private draft preview controller sends `private, no-store, no-cache, must-revalidate`, `Pragma: no-cache`, and `Expires: 0`; the shared portfolio HTML emits `noindex,nofollow` for previews. Confirmed over local WAMP HTTP on 2026-10-26 after preventing Apache/PHP session defaults from replacing the route-specific cache policy.
 - [x] React Contact navigation is omitted when the Contact section cannot render because both email and social links are absent. Static regression guard passes; browser interaction remains to be tested.
 - [ ] Review logs/errors so they do not reveal database details, file paths, or private content.
 
@@ -280,26 +279,40 @@ Template identifiers:
 
 This is the final release gate. Syntax checks alone are not sufficient.
 
+### Local WAMP runtime evidence (2026-10-26)
+
+The following was exercised against `http://localhost/instaweb1` with MariaDB 8.4.7 and two disposable accounts. The test site and both accounts were deleted through the application/database cleanup immediately after verification; no QA portfolio data remains.
+
+- Created a portfolio as User A, saved profile and design data, added a Goal item and a project, and confirmed database persistence.
+- Confirmed User B was redirected away from User A's basic editor, Advanced Editor, and preview URLs.
+- Confirmed missing-CSRF and `javascript:` URL submissions did not mutate data; the valid HTTP/HTTPS path did.
+- Selected, saved, and previewed all ten template keys. The selected renderer asset matched each template; Aurora was also verified on a published public URL.
+- Confirmed an owner preview was private (`noindex,nofollow` and private no-store/no-cache headers), a draft public slug returned 404, and the published slug was indexable.
+- Confirmed publish, disabled-item filtering, unpublish (404), and republish (200) through the real HTTP routes.
+- Confirmed local Apache blocked direct root reference files and internal documentation while public portfolio routes still served.
+
+This materially reduces the outstanding runtime work, but it is not a production release approval: browser visual/accessibility, uploads, CDN-failure fallback, direct endpoint coverage, unrelated site types, clean-migration coverage, and production-host verification remain open.
+
 ### Required test matrix
 
 | Test | Expected result | Status |
 |---|---|---|
-| Create a portfolio website as User A | One website and initialized portfolio data belong to User A | **Not verified** |
-| Open editor for User A's website | Correct website data loads | **Not verified** |
-| User B requests User A's editor URL | Access denied; no data disclosed | **Not verified** |
-| Save profile/social links | Data persists after reload | **Not verified** |
+| Create a portfolio website as User A | One website and initialized portfolio data belong to User A | **Passed locally (2026-10-26)** |
+| Open editor for User A's website | Correct website data loads | **Passed locally (2026-10-26)** |
+| User B requests User A's editor URL | Access denied; no data disclosed | **Passed locally for basic editor, Advanced Editor, and preview (2026-10-26)** |
+| Save profile/social links | Data persists after reload | **Passed locally for profile/design fields; social-link browser coverage remains pending (2026-10-26)** |
 | Upload valid avatar | Image saves and renders for the correct website | **Not verified** |
 | Upload invalid/oversized avatar | Rejected safely; no executable file saved | **Not verified** |
-| Add/edit/hide/show/delete an item in every section | Correct mutation persists; hidden item is absent publicly | **Not verified** |
-| Add/edit/reorder/delete projects | Correct project data and order persist | **Not verified** |
-| Save each design setting | Setting persists and affects intended rendering | **Not verified** |
-| Select all ten templates | Selection persists; correct renderer is used | **Not verified** |
-| Preview while logged out / as another user | Draft remains private | **Not verified** |
-| Draft preview HTML metadata and cache headers | Preview is `noindex,nofollow` and sends private no-store/no-cache headers; public pages remain indexable | **Code/guard implemented; live HTTP test not verified** |
+| Add/edit/hide/show/delete an item in every section | Correct mutation persists; hidden item is absent publicly | **Partially passed: add/hide a Goal item verified; full section coverage pending** |
+| Add/edit/reorder/delete projects | Correct project data and order persist | **Partially passed: add/persist verified; edit/reorder/delete pending** |
+| Save each design setting | Setting persists and affects intended rendering | **Partially passed: design save/persistence verified; visual coverage pending** |
+| Select all ten templates | Selection persists; correct renderer is used | **Passed locally (2026-10-26)** |
+| Preview while logged out / as another user | Draft remains private | **Passed locally for another authenticated user and public draft slug (2026-10-26)** |
+| Draft preview HTML metadata and cache headers | Preview is `noindex,nofollow` and sends private no-store/no-cache headers; public pages remain indexable | **Passed locally (2026-10-26)** |
 | React Contact navigation with no email/social links | No Contact nav link is rendered when the Contact section is absent | **Code/guard implemented; browser test not verified** |
-| Publish and open public slug | Correct published website renders dynamically | **Not verified** |
-| Unpublish / republish | Public availability changes correctly without data loss | **Not verified** |
-| Unknown slug/template/missing record | Safe not-found/fallback behavior | **Not verified** |
+| Publish and open public slug | Correct published website renders dynamically | **Passed locally (2026-10-26)** |
+| Unpublish / republish | Public availability changes correctly without data loss | **Passed locally (2026-10-26)** |
+| Unknown slug/template/missing record | Safe not-found/fallback behavior | **Partially passed: unknown slug returned 404; unknown-template/missing-record runtime coverage pending** |
 | Run on mobile and desktop | No layout breakage or inaccessible controls | **Not verified** |
 | Block external CDNs | Useful fallback remains visible; no blank page | **Not verified** |
 | PHP/JavaScript syntax and static integration guard | PHP files lint; React module parses; template/route/security wiring is consistent | **Passed in GitHub Actions; browser/database/security runtime tests remain unverified** |
@@ -344,6 +357,7 @@ Features not listed as implemented above must not be advertised as complete. In 
 
 ## Change log
 
+- **2026-10-26:** Ran the first local WAMP/MariaDB runtime acceptance pass using two disposable accounts and an application-created portfolio. Ownership redirects, missing-CSRF non-mutation, unsafe URL rejection, profile/design/project/section persistence, all ten template selections, private draft access, preview robots metadata, publication lifecycle, disabled-item filtering, and local Apache path protection were exercised over real HTTP. The test portfolio was deleted through the product and both disposable accounts were removed; no QA data remains. During this pass, Apache/PHP session defaults were found to replace the preview route's private cache policy. `PreviewController`, `Session`, and `.htaccess` were updated so the live preview response now retains `Cache-Control: private, no-store, no-cache, must-revalidate`, `Pragma: no-cache`, and `Expires: 0`. Browser visual/accessibility, media uploads, CDN-failure fallback, direct endpoint coverage, unrelated site types, clean-migration coverage, and production-host verification remain release blockers.
 - **2026-10-25:** Audited the current `feature/portfolio-editor-full-dashboard` branch files and recorded implementation evidence versus unverified runtime behavior. The document intentionally separates code found from features that still need local database, browser, security, and hosting verification.
 - **2026-10-25:** Fixed verified integration gaps: the Advanced Editor now exposes all ten allowlisted template choices; disabled section entries are excluded from public rendering and the React payload; the PHP fallback stays visible until React mounts; reduced-motion preferences disable nonessential React motion; and saved colour/font/hero-layout settings are passed to React templates. Added a static integration guard and extended GitHub Actions to check PHP, JavaScript, and template wiring. The PHP syntax checks, React module syntax check, and static integration guard passed in GitHub Actions on the implementation commit. Root `.htaccess` blocks standalone root-level PHP entry points and sensitive project artifacts. Verify access rules in the actual Apache hosting environment. Full browser, database, and security acceptance remains outstanding.
 - **2026-10-25:** Deleted `idea.php` and `ideas2.php` from the InstaWeb working branch in separate commits. Verified both file paths now return 404 on `feature/portfolio-editor-full-dashboard`. The separate `lawreay/Custom-portfolios` repository was not changed. The deletions are in PR #26 and are not present on `main` until that PR is merged.

@@ -36,6 +36,9 @@ class PreviewController extends Controller
             // Portfolio previews contain private draft data. Keep browsers and shared
             // proxies from retaining a response that is only available to the owner.
             header('Content-Type: text/html; charset=UTF-8');
+            // PHP's session cache limiter can set Cache-Control before this action.
+            // Remove that generic header so the privacy directive is unambiguous.
+            header_remove('Cache-Control');
             header('Cache-Control: private, no-store, no-cache, must-revalidate');
             header('Pragma: no-cache');
             header('Expires: 0');
@@ -98,6 +101,7 @@ class PreviewController extends Controller
 
         header('Content-Type: ' . ($contentTypes[$extension] ?? $file['mime']));
         header('X-Content-Type-Options: nosniff');
+        header_remove('Cache-Control');
         header('Cache-Control: private, no-store, no-cache, must-revalidate');
         header('Pragma: no-cache');
         header('Expires: 0');

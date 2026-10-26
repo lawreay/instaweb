@@ -18,6 +18,10 @@ class Session
 
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
+        // App::sendSecurityHeaders() owns cache policy.  PHP's default session
+        // cache limiter emits a second Cache-Control header at shutdown and can
+        // replace stricter route-specific policies, such as private previews.
+        session_cache_limiter('');
         session_set_cookie_params([
             'path' => '/',
             'httponly' => true,
