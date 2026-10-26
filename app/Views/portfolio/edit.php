@@ -66,11 +66,13 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
 .portfolio-setup .ps-mini--archive{background:#eee7d9;color:#473d2e;border:1px solid #d5c9b4}
 .portfolio-setup .ps-template-name{display:block;font-weight:800;font-size:.88rem;margin:.6rem 0 .2rem}
 .portfolio-setup .ps-template-desc{display:block;color:var(--ps-muted);font-size:.75rem;line-height:1.4}
-.portfolio-setup .ps-preview-frame{width:100%;height:520px;border:1px solid var(--ps-line);border-radius:.8rem;background:#fff}
+.portfolio-setup .ps-preview-stage{width:100%;overflow:hidden;border:1px solid var(--ps-line);border-radius:.8rem;background:#e9edf2;position:relative;}
+.portfolio-setup .ps-preview-frame{display:block;width:1440px;height:900px;max-width:none;border:0;border-radius:0;background:#fff;transform:scale(var(--ps-preview-scale, .3));transform-origin:top left;}
+.portfolio-setup .ps-preview-stage-label{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.5rem .7rem;background:#f5f6f8;border-bottom:1px solid var(--ps-line);font-size:.72rem;color:var(--ps-muted);}
 .portfolio-setup .ps-preview-note{font-size:.8rem;color:var(--ps-muted);margin:.65rem 0 0}
 .portfolio-setup .ps-actions{display:flex;flex-wrap:wrap;gap:.65rem;margin-top:1rem}
-@media(max-width:1000px){.portfolio-setup .ps-layout{grid-template-columns:1fr}.portfolio-setup .ps-preview-frame{height:440px}}
-@media(max-width:560px){.portfolio-setup .ps-heading{display:block}.portfolio-setup .ps-heading .ps-actions{margin-top:1rem}.portfolio-setup .ps-template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.portfolio-setup .ps-profile-row{grid-template-columns:76px minmax(0,1fr)}.portfolio-setup .ps-avatar{width:76px;height:96px}.portfolio-setup .ps-preview-frame{height:360px}}
+@media(max-width:1000px){.portfolio-setup .ps-layout{grid-template-columns:1fr}}
+@media(max-width:560px){.portfolio-setup .ps-heading{display:block}.portfolio-setup .ps-heading .ps-actions{margin-top:1rem}.portfolio-setup .ps-template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.portfolio-setup .ps-profile-row{grid-template-columns:76px minmax(0,1fr)}.portfolio-setup .ps-avatar{width:76px;height:96px}}
 </style>
 <section class="client-dashboard iw-client-page portfolio-setup">
   <div class="client-main">
@@ -140,7 +142,10 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
 
       <aside class="ps-panel">
         <div class="ps-panel-head"><h2>Template preview</h2><a class="small" id="portfolio-preview-open" href="<?= $escape($initialPreviewUrl) ?>" target="_blank" rel="noopener">Open separately ↗</a></div>
-        <iframe class="ps-preview-frame" id="portfolio-template-preview" title="Preview of your selected portfolio template" src="<?= $escape($initialPreviewUrl) ?>" loading="lazy"></iframe>
+        <div class="ps-preview-stage" id="portfolio-preview-stage">
+          <div class="ps-preview-stage-label"><span>Desktop view</span><span>1440 px viewport · scaled to fit</span></div>
+          <iframe class="ps-preview-frame" id="portfolio-template-preview" title="Desktop preview of your selected portfolio template" src="<?= $escape($initialPreviewUrl) ?>" loading="lazy"></iframe>
+        </div>
         <p class="ps-preview-note">When an admin has configured a published sample, this panel shows that template example. Otherwise it falls back to your draft. Use Open full preview to inspect your own portfolio.</p>
       </aside>
     </div>
@@ -153,6 +158,25 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
   const status = document.getElementById('portfolio-save-status');
   const preview = document.getElementById('portfolio-template-preview');
   const previewOpen = document.getElementById('portfolio-preview-open');
+  const previewStage = document.getElementById('portfolio-preview-stage');
+  const previewFrame = document.getElementById('portfolio-template-preview');
+  const desktopViewportWidth = 1440;
+  const desktopViewportHeight = 900;
+  function fitDesktopPreview() {
+    if (!previewStage || !previewFrame) return;
+    const availableWidth = previewStage.clientWidth;
+    const scale = availableWidth / desktopViewportWidth;
+    previewFrame.style.setProperty('--ps-preview-scale', String(scale));
+    previewFrame.style.width = desktopViewportWidth + 'px';
+    previewFrame.style.height = desktopViewportHeight + 'px';
+    previewStage.style.height = (desktopViewportHeight * scale + 34) + 'px';
+  }
+  fitDesktopPreview();
+  if (previewStage && 'ResizeObserver' in window) {
+    new ResizeObserver(fitDesktopPreview).observe(previewStage);
+  } else {
+    window.addEventListener('resize', fitDesktopPreview);
+  }
   const avatarInput = document.getElementById('avatar');
   const avatarPreview = document.getElementById('portfolio-avatar-preview');
   const avatarEmpty = document.getElementById('portfolio-avatar-empty');
