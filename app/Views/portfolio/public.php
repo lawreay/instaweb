@@ -9,6 +9,10 @@ $availableTemplates = ['classic', 'editorial', '3d', 'minimal', 'noir', 'aurora'
 $reactTemplates = ['aurora', 'studio', 'orbit', 'prism', 'archive'];
 $noirStylesheetPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/portfolio-noir.css';
 $noirStylesheetVersion = is_file($noirStylesheetPath) ? (string) filemtime($noirStylesheetPath) : '1';
+$reactStylesheetPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/react-portfolio.css';
+$reactStylesheetVersion = is_file($reactStylesheetPath) ? (string) filemtime($reactStylesheetPath) : '1';
+$reactScriptPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/react-portfolio.js';
+$reactScriptVersion = is_file($reactScriptPath) ? (string) filemtime($reactScriptPath) : '1';
 if (!in_array($template, $availableTemplates, true)) {
     $template = 'classic';
 }
@@ -142,12 +146,12 @@ $initials = strtoupper(substr($name, 0, 1));
     <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-minimal.css') ?>">
   <?php endif; ?>
   <?php if (in_array($template, $reactTemplates, true)): ?>
-    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.css') ?>">
+    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.css?v=' . $reactStylesheetVersion) ?>">
   <?php endif; ?>
   <style>
     body{font-family:<?= $escape($fontFamily) ?>;background-color:<?= $escape($backgroundColor) ?>;color:<?= $escape($textColor) ?>;--portfolio-accent:<?= $escape($accentColor) ?>;min-height:100vh;overflow-x:clip}#portfolio-container{overflow:hidden}.portfolio-nav-logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid currentColor;font-weight:800}
-    .portfolio-avatar{display:grid;place-items:center;overflow:hidden;width:100%;aspect-ratio:4/5;background:linear-gradient(135deg,#d97706,#172b3a);color:#fff;font-size:clamp(4rem,12vw,8rem);font-weight:800}
-    .portfolio-avatar img{width:100%;height:100%;object-fit:cover}.portfolio-content-section{padding:5rem clamp(1.25rem,6vw,6rem)}
+    .portfolio-avatar{display:grid;place-items:center;overflow:hidden;width:100%;aspect-ratio:4/5;background:transparent;color:var(--portfolio-accent);font-size:clamp(4rem,12vw,8rem);font-weight:800}
+    .portfolio-avatar img{width:100%;height:100%;object-fit:cover;object-position:63% center;background:transparent}.hero-photo-frame{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.portfolio-content-section{padding:5rem clamp(1.25rem,6vw,6rem)}
     .portfolio-content-inner{max-width:1120px;margin:0 auto}.portfolio-content-section h2{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.04em}
     .portfolio-project-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:1.2rem}
     .portfolio-project-card{height:100%;padding:1.6rem;border:1px solid rgba(100,116,139,.25);background:rgba(255,255,255,.78);box-shadow:0 14px 35px rgba(15,23,42,.06)}
@@ -456,8 +460,7 @@ $initials = strtoupper(substr($name, 0, 1));
     <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.js') ?>"></script>
   <?php endif; ?>
   <?php if (in_array($template, $reactTemplates, true)): ?>
-    <script type="importmap">{"imports":{"react":"https://esm.sh/react@18.3.1","react-dom":"https://esm.sh/react-dom@18.3.1","react/jsx-runtime":"https://esm.sh/react@18.3.1/jsx-runtime"}}</script>
-    <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.js') ?>"></script>
+    <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.js?v=' . $reactScriptVersion) ?>"></script>
   <?php endif; ?>
 </body>
 </html>

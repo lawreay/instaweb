@@ -64,6 +64,31 @@ foreach ($expectedReact as $key) {
     }
 }
 
+if (str_contains($reactJs, 'https://esm.sh') || preg_match('/^import\s/m', $reactJs)) {
+    failCheck('Interactive portfolio templates must not rely on remote JavaScript modules.');
+}
+
+if (!str_contains($reactJs, 'function AuroraApp')
+    || !str_contains($reactJs, 'function AuroraArt')
+    || !str_contains($reactCss, '.am-hero')
+    || !str_contains($reactCss, '.am-section-body')) {
+    failCheck('Aurora Motion does not have its dedicated React renderer and graphics system.');
+}
+
+$dedicatedReactTemplates = [
+    'studio' => ['StudioApp', '.rs-rail', '.rs-projects'],
+    'orbit' => ['OrbitApp', '.ro-console', '.ro-route'],
+    'prism' => ['PrismApp', '.rpz-hero', '.rpz-items'],
+    'archive' => ['ArchiveApp', '.ra-masthead', '.ra-catalogue'],
+];
+foreach ($dedicatedReactTemplates as $template => [$renderer, $firstSelector, $secondSelector]) {
+    if (!str_contains($reactJs, 'function ' . $renderer)
+        || !str_contains($reactCss, $firstSelector)
+        || !str_contains($reactCss, $secondSelector)) {
+        failCheck(ucfirst($template) . ' does not have its dedicated renderer and layout system.');
+    }
+}
+
 if (!str_contains($publicView, 'if ($template === \'noir\')')
     || !str_contains($publicView, 'class="noir-hero')
     || !str_contains($publicView, 'class="noir-project-grid')) {
