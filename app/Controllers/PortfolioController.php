@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Core\Csrf;
 use App\Core\Session;
 use App\Models\Portfolio;
+use App\Models\Setting;
 use App\Models\Website;
 use App\Services\AuthService;
 
@@ -30,11 +31,26 @@ class PortfolioController extends Controller
     public function edit(): void
     {
         [$userId, $website, $portfolio] = $this->ownedPortfolio();
+        $settings = (new Setting())->all();
+        $templatePreviewUrls = [];
+        $portfolioModel = new Portfolio();
+        foreach (array_keys(self::TEMPLATES) as $templateKey) {
+            $defaultPortfolioId = (int) ($settings['portfolio_template_default_' . $templateKey] ?? 0);
+            if ($defaultPortfolioId < 1) {
+                continue;
+            }
+            $sample = $portfolioModel->findPublishedTemplatePreview($defaultPortfolioId, $templateKey);
+            if ($sample && !empty($sample['slug'])) {
+                $templatePreviewUrls[$templateKey] = rtrim((string) ($this->config['base_url'] ?? ''), '/') . '/p/' . rawurlencode((string) $sample['slug']);
+            }
+        }
+
         $this->view('portfolio/edit', [
             'title' => 'Edit Portfolio',
             'website' => $website,
             'portfolio' => $portfolio,
             'templates' => self::TEMPLATES,
+            'templatePreviewUrls' => $templatePreviewUrls,
             'active' => 'websites',
         ], 'layouts/dashboard');
     }
