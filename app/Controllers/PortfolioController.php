@@ -224,7 +224,7 @@ class PortfolioController extends Controller
 
         // Generate square PNG favicon variants from the uploaded source when GD supports it.
         // The portfolio remains usable on hosts without GD; the public page then falls back to its WebP avatar.
-        $this->generateAvatarFaviconPngs($tmpPath, $mime, $targetDirectory);
+        $this->generateAvatarFaviconPngs($tmpPath, $mime, $targetDirectory, pathinfo($filename, PATHINFO_FILENAME));
 
         $relativePath = $relativeDirectory . '/' . $filename;
         $saved = (new Portfolio())->updateAvatarForOwner(
@@ -257,6 +257,13 @@ class PortfolioController extends Controller
                 && str_starts_with($previousAbsolutePath, rtrim($uploadDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)
                 && is_file($previousAbsolutePath)) {
                 @unlink($previousAbsolutePath);
+                $previousStem = pathinfo($previousAbsolutePath, PATHINFO_FILENAME);
+                foreach ([32, 180, 192] as $iconSize) {
+                    $previousIcon = $uploadDirectory . DIRECTORY_SEPARATOR . $previousStem . '-favicon-' . $iconSize . '.png';
+                    if (is_file($previousIcon)) {
+                        @unlink($previousIcon);
+                    }
+                }
             }
         }
 
@@ -336,7 +343,7 @@ class PortfolioController extends Controller
      * Create centered square PNG icons for browser tabs and mobile home-screen shortcuts.
      * Existing files are replaced only after a new upload has been validated and converted.
      */
-    private function generateAvatarFaviconPngs(string $sourcePath, string $mime, string $targetDirectory): void
+    private function generateAvatarFaviconPngs(string $sourcePath, string $mime, string $targetDirectory, string $avatarStem): void
     {
         if (!function_exists('imagecreatetruecolor') || !function_exists('imagecopyresampled')
             || !function_exists('imagepng')) {
@@ -371,7 +378,7 @@ class PortfolioController extends Controller
             imagefill($icon, 0, 0, $transparent);
 
             if (imagecopyresampled($icon, $source, 0, 0, $sourceX, $sourceY, $size, $size, $side, $side)) {
-                $path = $targetDirectory . DIRECTORY_SEPARATOR . 'avatar-favicon-' . $size . '.png';
+                $path = $targetDirectory . DIRECTORY_SEPARATOR . $avatarStem . '-favicon-' . $size . '.png';
                 @imagepng($icon, $path, 9);
             }
             imagedestroy($icon);
