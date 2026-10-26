@@ -31,6 +31,11 @@ $reactCss = readRequiredFile($root . '/public/assets/portfolio-template/react-po
 $router = readRequiredFile($root . '/app/Core/Router.php');
 $rootHtaccess = readRequiredFile($root . '/.htaccess');
 $websiteModel = readRequiredFile($root . '/app/Models/Website.php');
+$websiteController = readRequiredFile($root . '/app/Controllers/WebsiteController.php');
+$adminRepository = readRequiredFile($root . '/app/Models/AdminRepository.php');
+$adminWebsitesView = readRequiredFile($root . '/app/Views/admin/websites.php');
+$websiteListView = readRequiredFile($root . '/app/Views/websites/index.php');
+$seedScript = readRequiredFile($root . '/scripts/seed-default-admin-portfolio.php');
 $portfolioModel = readRequiredFile($root . '/app/Models/Portfolio.php');
 $publicController = readRequiredFile($root . '/app/Controllers/PortfolioPublicController.php');
 $previewController = readRequiredFile($root . '/app/Controllers/PreviewController.php');
@@ -168,6 +173,16 @@ foreach (['portfolio_advanced_items', 'portfolio_advanced_settings', 'portfolio_
     if (!str_contains($websiteModel, $table)) {
         failCheck("Website deletion does not clean advanced portfolio table '{$table}'.");
     }
+}
+
+if (!str_contains($websiteModel, 'is_system_template')
+    || !str_contains($websiteModel, 'function isSystemTemplate')
+    || !str_contains($websiteController, 'This protected default portfolio cannot be deleted.')
+    || !str_contains($adminRepository, 'DELETE FROM websites WHERE id = :id AND is_system_template = 0')
+    || !str_contains($adminWebsitesView, 'Protected system portfolio')
+    || !str_contains($websiteListView, 'Default template')
+    || !str_contains($seedScript, "'john-doe-bba-accounting'")) {
+    failCheck('Protected John Doe default portfolio wiring is incomplete.');
 }
 
 

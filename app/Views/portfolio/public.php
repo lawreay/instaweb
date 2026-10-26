@@ -77,6 +77,12 @@ foreach (($projects ?? []) as $project) {
         || !in_array($projectScheme, ['http', 'https'], true))) {
         $project['project_url'] = '';
     }
+    $projectImage = trim((string) ($project['image_path'] ?? ''));
+    if (preg_match('#^assets/portfolio-template/demo/john-doe/[a-z0-9-]+\.jpg$#i', $projectImage)) {
+        $project['image_url'] = $baseUrl . '/' . $projectImage;
+    } else {
+        $project['image_url'] = '';
+    }
     $safeProjects[] = $project;
 }
 
@@ -154,7 +160,7 @@ $initials = strtoupper(substr($name, 0, 1));
     .portfolio-avatar img{width:100%;height:100%;object-fit:cover;object-position:63% center;background:transparent}.hero-photo-frame{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.portfolio-content-section{padding:5rem clamp(1.25rem,6vw,6rem)}
     .portfolio-content-inner{max-width:1120px;margin:0 auto}.portfolio-content-section h2{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.04em}
     .portfolio-project-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:1.2rem}
-    .portfolio-project-card{height:100%;padding:1.6rem;border:1px solid rgba(100,116,139,.25);background:rgba(255,255,255,.78);box-shadow:0 14px 35px rgba(15,23,42,.06)}
+    .portfolio-project-card{height:100%;padding:1.6rem;border:1px solid rgba(100,116,139,.25);background:rgba(255,255,255,.78);box-shadow:0 14px 35px rgba(15,23,42,.06)}.portfolio-project-image{display:block;width:calc(100% + 3.2rem);height:11rem;object-fit:cover;margin:-1.6rem -1.6rem 1.3rem;border-bottom:1px solid rgba(100,116,139,.18)}
     .portfolio-project-card h3{font-size:1.25rem;font-weight:750}.portfolio-project-card p{white-space:pre-line;color:#475569}
     .portfolio-project-card a{display:inline-flex;margin-top:1rem;color:#b45309;font-weight:700;text-decoration:none}
     .portfolio-about{background:#f8fafc;color:#172b3a}.portfolio-contact{background:#172b3a;color:#f8fafc}
@@ -411,6 +417,7 @@ $initials = strtoupper(substr($name, 0, 1));
           <div class="portfolio-project-grid mt-4">
             <?php foreach ($safeProjects as $project): ?>
               <article class="portfolio-project-card glass-card">
+                <?php if (!empty($project['image_url'])): ?><img class="portfolio-project-image" src="<?= $escape($project['image_url']) ?>" alt="" loading="lazy" decoding="async"><?php endif; ?>
                 <p class="hero-eyebrow mb-2">PROJECT</p>
                 <h3><?= $escape($project['title'] ?? '') ?></h3>
                 <?php if (!empty($project['summary'])): ?><p><?= nl2br($escape($project['summary'])) ?></p><?php endif; ?>
