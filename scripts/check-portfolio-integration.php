@@ -63,6 +63,18 @@ foreach ($expectedReact as $key) {
     }
 }
 
+if (!str_contains($publicView, "if (\$template === 'noir')")
+    || !str_contains($publicView, 'class="noir-hero')
+    || !str_contains($publicView, 'class="noir-project-grid"')) {
+    failCheck('Noir does not have its dedicated renderer path.');
+}
+
+foreach (['.noir-hero', '.noir-project-grid', '.noir-timeline', '.noir-skills', '@media (prefers-reduced-motion: reduce)'] as $noirSelector) {
+    if (!str_contains($reactCss . readRequiredFile($root . '/public/assets/portfolio-template/portfolio-noir.css'), $noirSelector)) {
+        failCheck("Noir redesign is missing '{$noirSelector}'.");
+    }
+}
+
 if (!str_contains($editorView, 'foreach ($templates as $templateKey => $templateLabel)')) {
     failCheck('Advanced Editor selector is not generated from the server-side template registry.');
 }

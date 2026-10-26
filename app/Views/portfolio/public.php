@@ -171,6 +171,81 @@ $initials = strtoupper(substr($name, 0, 1));
       <a href="<?= $escape($baseUrl . '/dashboard/websites/portfolio?id=' . (int) $website['id']) ?>" style="margin-left:.6rem;color:#78350f;text-decoration:underline">Back to Portfolio Studio</a>
     </div>
   <?php endif; ?>
+  <?php if ($template === 'noir'): ?>
+    <header class="noir-site-header">
+      <a class="noir-wordmark" href="#home" aria-label="<?= $escape($name) ?> home"><span><?= $escape($initials) ?></span><strong><?= $escape($name) ?></strong></a>
+      <nav class="noir-nav" aria-label="Portfolio navigation">
+        <a href="#about">About</a>
+        <?php if (!empty($sectionItems['experience'])): ?><a href="#experience">Experience</a><?php endif; ?>
+        <?php if ($showProjects): ?><a href="#projects">Work</a><?php endif; ?>
+        <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?><a href="#contact">Contact</a><?php endif; ?>
+      </nav>
+    </header>
+
+    <main class="noir-page">
+      <section id="home" class="noir-hero<?= $avatarUrl === '' ? ' noir-hero--without-photo' : '' ?>" aria-labelledby="noir-hero-name">
+        <div class="noir-hero-copy">
+          <p class="noir-overline">Independent developer<?= $location !== '' ? ' / ' . $escape($location) : '' ?></p>
+          <h1 id="noir-hero-name"><?= $escape($name) ?></h1>
+          <?php if ($headline !== ''): ?><p class="noir-role"><?= $escape($headline) ?></p><?php endif; ?>
+          <p class="noir-intro"><?= nl2br($escape($bio !== '' ? $bio : 'Practical digital systems, selected work, and ways to get in touch.')) ?></p>
+          <div class="noir-actions">
+            <?php if ($showProjects): ?><a class="noir-button noir-button--solid" href="#projects">View my work <span aria-hidden="true">&darr;</span></a><?php endif; ?>
+            <a class="noir-button noir-button--quiet" href="#about">About me <span aria-hidden="true">&rarr;</span></a>
+          </div>
+          <dl class="noir-hero-facts">
+            <div><dt>Based in</dt><dd><?= $escape($location !== '' ? $location : 'Available remotely') ?></dd></div>
+            <div><dt>Selected work</dt><dd><?= count($safeProjects) ?> projects</dd></div>
+          </dl>
+        </div>
+        <?php if ($avatarUrl !== ''): ?>
+          <figure class="noir-portrait">
+            <img src="<?= $escape($avatarUrl) ?>" alt="<?= $escape($name) ?>">
+            <figcaption><span>Portfolio</span><span><?= date('Y') ?></span></figcaption>
+          </figure>
+        <?php endif; ?>
+      </section>
+
+      <section id="about" class="noir-about" aria-labelledby="noir-about-title">
+        <p class="noir-overline">01 / About</p>
+        <div><h2 id="noir-about-title">Useful things.<br>Built to last.</h2></div>
+        <div class="noir-about-copy"><p><?= nl2br($escape($bio !== '' ? $bio : 'More information about ' . $name . ' will be added here.')) ?></p><?php if ($email !== ''): ?><a href="mailto:<?= $escape($email) ?>">Start a conversation <span aria-hidden="true">&nearr;</span></a><?php endif; ?></div>
+      </section>
+
+      <?php foreach ($sectionLabels as $sectionKey => $sectionLabel): ?>
+        <?php if (empty($sectionItems[$sectionKey])) continue; ?>
+        <section id="<?= $escape($sectionKey) ?>" class="noir-section noir-section--<?= $escape($sectionKey) ?>" aria-labelledby="noir-<?= $escape($sectionKey) ?>-title">
+          <header class="noir-section-heading"><p class="noir-overline">Portfolio / <?= $escape(str_pad((string) (array_search($sectionKey, array_keys($sectionLabels), true) + 2), 2, '0', STR_PAD_LEFT)) ?></p><h2 id="noir-<?= $escape($sectionKey) ?>-title"><?= $escape($sectionLabel) ?></h2></header>
+          <?php if ($sectionKey === 'experience'): ?>
+            <ol class="noir-timeline">
+              <?php foreach ($sectionItems[$sectionKey] as $index => $item): $payload = json_decode((string) ($item['payload'] ?? '{}'), true); $payload = is_array($payload) ? $payload : []; ?>
+                <li><span class="noir-item-number"><?= $escape(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span><article><div class="noir-item-meta"><span><?= $escape($payload['organisation'] ?? '') ?></span><span><?= $escape($payload['period'] ?? '') ?></span></div><h3><?= $escape($item['title'] ?? '') ?></h3><?php if (!empty($payload['details'])): ?><p><?= nl2br($escape($payload['details'])) ?></p><?php endif; ?></article></li>
+              <?php endforeach; ?>
+            </ol>
+          <?php elseif ($sectionKey === 'skills'): ?>
+            <ul class="noir-skills" role="list">
+              <?php foreach ($sectionItems[$sectionKey] as $index => $item): $payload = json_decode((string) ($item['payload'] ?? '{}'), true); $payload = is_array($payload) ? $payload : []; ?>
+                <li><span><?= $escape(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span><div><h3><?= $escape($item['title'] ?? '') ?></h3><?php if (!empty($payload['details'])): ?><p><?= nl2br($escape($payload['details'])) ?></p><?php endif; ?></div><small><?= $escape($payload['proficiency'] ?? $payload['category'] ?? '') ?></small></li>
+              <?php endforeach; ?>
+            </ul>
+          <?php else: ?>
+            <div class="noir-editorial-list">
+              <?php foreach ($sectionItems[$sectionKey] as $index => $item): $payload = json_decode((string) ($item['payload'] ?? '{}'), true); $payload = is_array($payload) ? $payload : []; $itemLink = trim((string) ($payload['link'] ?? '')); $itemScheme = strtolower((string) parse_url($itemLink, PHP_URL_SCHEME)); if (!filter_var($itemLink, FILTER_VALIDATE_URL) || !in_array($itemScheme, ['http', 'https'], true)) $itemLink = ''; ?>
+                <article><span><?= $escape(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span><div><h3><?= $escape($item['title'] ?? '') ?></h3><?php if (!empty($payload['organisation']) || !empty($payload['period'])): ?><p class="noir-item-meta"><?= $escape(trim((string) ($payload['organisation'] ?? '') . (!empty($payload['organisation']) && !empty($payload['period']) ? ' / ' : '') . (string) ($payload['period'] ?? ''))) ?></p><?php endif; ?><?php if (!empty($payload['details'])): ?><p><?= nl2br($escape($payload['details'])) ?></p><?php endif; ?></div><?php if ($itemLink !== ''): ?><a href="<?= $escape($itemLink) ?>" target="_blank" rel="noopener noreferrer">Open <span aria-hidden="true">&nearr;</span></a><?php endif; ?></article>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
+        </section>
+      <?php endforeach; ?>
+
+      <?php if ($showProjects): ?><section id="projects" class="noir-projects" aria-labelledby="noir-projects-title">
+        <header class="noir-section-heading"><p class="noir-overline">Selected work / 07</p><h2 id="noir-projects-title">Projects with a job to do.</h2><p>A selection of systems, platforms, and useful digital tools.</p></header>
+        <?php if ($safeProjects === []): ?><p class="noir-empty">Projects will appear here as they are added to this portfolio.</p><?php else: ?><div class="noir-project-grid"><?php foreach ($safeProjects as $index => $project): ?><article class="noir-project"><span class="noir-project-index"><?= $escape(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span><div><h3><?= $escape($project['title'] ?? '') ?></h3><?php if (!empty($project['summary'])): ?><p><?= nl2br($escape($project['summary'])) ?></p><?php endif; ?></div><?php if (!empty($project['project_url'])): ?><a href="<?= $escape($project['project_url']) ?>" target="_blank" rel="noopener noreferrer">View project <span aria-hidden="true">&nearr;</span></a><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?>
+      </section><?php endif; ?>
+
+      <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?><section id="contact" class="noir-contact" aria-labelledby="noir-contact-title"><p class="noir-overline">Contact / 08</p><h2 id="noir-contact-title">Have a problem<br>to solve?</h2><div><?php if ($email !== ''): ?><a class="noir-contact-email" href="mailto:<?= $escape($email) ?>"><?= $escape($email) ?></a><?php endif; ?><nav aria-label="Social profiles"><?php foreach ($safeSocialLinks as $social): ?><a href="<?= $escape($social['url']) ?>" target="_blank" rel="noopener noreferrer"><?= $escape($social['label']) ?> <span aria-hidden="true">&nearr;</span></a><?php endforeach; ?></nav></div></section><?php endif; ?>
+    </main>
+  <?php else: ?>
   <header class="navbar">
     <nav>
       <div class="nav-container">
@@ -316,6 +391,7 @@ $initials = strtoupper(substr($name, 0, 1));
       </section>
     <?php endif; ?>
   </main>
+  <?php endif; ?>
 
   <footer class="portfolio-footer">© <?= date('Y') ?> <?= $escape($name) ?><?= $location !== '' ? ' · ' . $escape($location) : '' ?></footer>
   <script>
