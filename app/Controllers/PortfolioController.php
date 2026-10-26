@@ -253,6 +253,13 @@ class PortfolioController extends Controller
             }
         }
 
+        if (strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest') {
+            header('Content-Type: application/json; charset=utf-8');
+            header('Cache-Control: no-store');
+            echo json_encode(['ok' => true, 'message' => 'Profile photo saved.', 'avatar_url' => rtrim((string) ($this->config['base_url'] ?? ''), '/') . '/' . $relativePath]);
+            return;
+        }
+
         Session::flash('success', 'Profile image uploaded.');
         $this->redirectTo($this->editorPath($websiteId));
     }
