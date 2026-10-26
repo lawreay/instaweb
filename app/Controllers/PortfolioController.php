@@ -189,7 +189,7 @@ class PortfolioController extends Controller
         }
 
         $tmpPath = (string) $file['tmp_name'];
-        $finfo = new \\finfo(FILEINFO_MIME_TYPE);
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($tmpPath);
         $imageInfo = @getimagesize($tmpPath);
         $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -221,6 +221,10 @@ class PortfolioController extends Controller
             $this->avatarUploadFailure($websiteId, 'The converted profile image could not be saved.');
             return;
         }
+
+        // Generate square PNG favicon variants from the uploaded source when GD supports it.
+        // The portfolio remains usable on hosts without GD; the public page then falls back to its WebP avatar.
+        $this->generateAvatarFaviconPngs($tmpPath, $mime, $targetDirectory);
 
         $relativePath = $relativeDirectory . '/' . $filename;
         $saved = (new Portfolio())->updateAvatarForOwner(
@@ -273,9 +277,9 @@ class PortfolioController extends Controller
      */
     private function convertAvatarToWebp(string $sourcePath, string $mime, string $targetPath): bool
     {
-        if (class_exists(\\Imagick::class)) {
+        if (class_exists(\Imagick::class)) {
             try {
-                $image = new \\Imagick($sourcePath);
+                $image = new \Imagick($sourcePath);
                 if (method_exists($image, 'autoOrient')) {
                     $image->autoOrient();
                 } elseif (method_exists($image, 'autoOrientImage')) {
@@ -292,7 +296,7 @@ class PortfolioController extends Controller
                     return true;
                 }
                 @unlink($targetPath);
-            } catch (\\Throwable $exception) {
+            } catch (\Throwable $exception) {
                 @unlink($targetPath);
             }
         }
@@ -326,6 +330,54 @@ class PortfolioController extends Controller
         }
 
         return true;
+    }
+
+    /**
+     * Create centered square PNG icons for browser tabs and mobile home-screen shortcuts.
+     * Existing files are replaced only after a new upload has been validated and converted.
+     */
+    private function generateAvatarFaviconPngs(string $sourcePath, string $mime, string $targetDirectory): void
+    {
+        if (!function_exists('imagecreatetruecolor') || !function_exists('imagecopyresampled')
+            || !function_exists('imagepng')) {
+            return;
+        }
+
+        $source = match ($mime) {
+            'image/jpeg' => function_exists('imagecreatefromjpeg') ? @imagecreatefromjpeg($sourcePath) : false,
+            'image/png' => function_exists('imagecreatefrompng') ? @imagecreatefrompng($sourcePath) : false,
+            'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($sourcePath) : false,
+            default => false,
+        };
+        if ($source === false) {
+            return;
+        }
+
+        $width = imagesx($source);
+        $height = imagesy($source);
+        $side = min($width, $height);
+        $sourceX = (int) floor(($width - $side) / 2);
+        $sourceY = (int) floor(($height - $side) / 2);
+
+        foreach ([32, 180, 192] as $size) {
+            $icon = imagecreatetruecolor($size, $size);
+            if ($icon === false) {
+                continue;
+            }
+
+            imagealphablending($icon, false);
+            imagesavealpha($icon, true);
+            $transparent = imagecolorallocatealpha($icon, 0, 0, 0, 127);
+            imagefill($icon, 0, 0, $transparent);
+
+            if (imagecopyresampled($icon, $source, 0, 0, $sourceX, $sourceY, $size, $size, $side, $side)) {
+                $path = $targetDirectory . DIRECTORY_SEPARATOR . 'avatar-favicon-' . $size . '.png';
+                @imagepng($icon, $path, 9);
+            }
+            imagedestroy($icon);
+        }
+
+        imagedestroy($source);
     }
 
     /** Return upload errors as JSON for the setup page's asynchronous uploader. */
