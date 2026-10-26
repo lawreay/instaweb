@@ -47,8 +47,8 @@ $baseUrl = rtrim((string) (($app ?? [])['base_url'] ?? ''), '/');
               <?php if ($selected): ?>
                 <p class="small text-secondary mt-2 mb-2">Selected sample: <?= $escape($selected['display_name']) ?> / <?= $escape($selected['website_name']) ?>.</p>
                 <div class="d-flex flex-wrap gap-2">
-                  <a class="btn btn-sm btn-outline-primary" href="<?= $escape($baseUrl . '/dashboard/websites/portfolio?id=' . (int) $selected['id']) ?>">Edit setup</a>
-                  <a class="btn btn-sm btn-outline-primary" href="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced?id=' . (int) $selected['id']) ?>">Edit sample content</a>
+                  <a class="btn btn-sm btn-outline-primary" href="<?= $escape($baseUrl . '/dashboard/websites/portfolio?id=' . (int) $selected['website_id']) ?>">Edit setup</a>
+                  <a class="btn btn-sm btn-outline-primary" href="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced?id=' . (int) $selected['website_id']) ?>">Edit sample content</a>
                   <?php if (($selected['status'] ?? '') === 'published' && !empty($selected['slug'])): ?>
                     <a class="btn btn-sm btn-outline-secondary" href="<?= $escape($baseUrl . '/p/' . rawurlencode((string) $selected['slug'])) ?>" target="_blank" rel="noopener">View sample</a>
                   <?php endif; ?>
