@@ -15,16 +15,16 @@ use App\Services\AuthService;
 class PortfolioController extends Controller
 {
     public const TEMPLATES = [
-        'classic' => 'Classic',
-        'editorial' => 'Editorial',
-        '3d' => '3D Motion',
-        'minimal' => 'Minimal',
-        'noir' => 'Noir',
-        'aurora' => 'Aurora Motion',
-        'studio' => 'Studio Canvas',
-        'orbit' => 'Orbit 3D',
-        'prism' => 'Prism',
-        'archive' => 'Archive',
+        'classic' => 'Classic — clear and adaptable',
+        'editorial' => 'Editorial — print-inspired showcase',
+        '3d' => '3D Motion — immersive and technical',
+        'minimal' => 'Minimal — calm, content-first',
+        'noir' => 'Noir — bold dark portfolio',
+        'aurora' => 'Aurora Motion — luminous and animated',
+        'studio' => 'Studio Canvas — warm creative practice',
+        'orbit' => 'Orbit 3D — mission-control interface',
+        'prism' => 'Prism — colourful and expressive',
+        'archive' => 'Archive — paper-led catalogue',
     ];
 
     public function edit(): void

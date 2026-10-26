@@ -151,4 +151,77 @@ class AdvancedPortfolio extends Model
             'user_id' => $userId,
         ]);
     }
+
+    /** Return Noir section-image overrides belonging to one portfolio owner. */
+    public function noirSectionImages(int $websiteId, int $userId): array
+    {
+        $statement = $this->query(
+            "SELECT storage_key, original_name, mime_type, file_size
+             FROM portfolio_advanced_uploads
+             WHERE website_id = :website_id AND user_id = :user_id
+               AND storage_key LIKE :prefix",
+            ['website_id' => $websiteId, 'user_id' => $userId, 'prefix' => 'uploads/portfolios/' . $websiteId . '/noir/section-%']
+        );
+
+        return $statement->fetchAll();
+    }
+
+    public function noirSectionImage(int $websiteId, int $userId, string $sectionKey): ?array
+    {
+        $statement = $this->query(
+            'SELECT storage_key, original_name, mime_type, file_size
+             FROM portfolio_advanced_uploads
+             WHERE website_id = :website_id AND user_id = :user_id AND storage_key LIKE :prefix
+             LIMIT 1',
+            ['website_id' => $websiteId, 'user_id' => $userId, 'prefix' => 'uploads/portfolios/' . $websiteId . '/noir/section-' . $sectionKey . '-%']
+        );
+        $upload = $statement->fetch();
+
+        return $upload ?: null;
+    }
+
+    public function saveNoirSectionImage(int $websiteId, int $userId, string $sectionKey, string $path, string $originalName, string $mimeType, int $fileSize): void
+    {
+        $statement = $this->database->prepare(
+            'INSERT INTO portfolio_advanced_uploads
+                (website_id, user_id, storage_key, original_name, mime_type, file_size)
+             SELECT w.id, w.user_id, :storage_key, :original_name, :mime_type, :file_size
+             FROM websites w WHERE w.id = :website_id AND w.user_id = :user_id
+             ON DUPLICATE KEY UPDATE
+                user_id = VALUES(user_id), original_name = VALUES(original_name),
+                mime_type = VALUES(mime_type), file_size = VALUES(file_size)'
+        );
+        $statement->execute([
+            'storage_key' => $path,
+            'original_name' => $originalName,
+            'mime_type' => $mimeType,
+            'file_size' => $fileSize,
+            'website_id' => $websiteId,
+            'user_id' => $userId,
+        ]);
+    }
+
+    public function deleteNoirSectionImage(int $websiteId, int $userId, string $sectionKey): ?array
+    {
+        $upload = $this->noirSectionImage($websiteId, $userId, $sectionKey);
+        if ($upload === null) {
+            return null;
+        }
+        $statement = $this->database->prepare(
+            'DELETE FROM portfolio_advanced_uploads
+             WHERE website_id = :website_id AND user_id = :user_id AND storage_key = :storage_key'
+        );
+        $statement->execute(['website_id' => $websiteId, 'user_id' => $userId, 'storage_key' => $upload['storage_key']]);
+
+        return $statement->rowCount() === 1 ? $upload : null;
+    }
+
+    public function deleteUploadPath(int $websiteId, int $userId, string $path): void
+    {
+        $statement = $this->database->prepare(
+            'DELETE FROM portfolio_advanced_uploads
+             WHERE website_id = :website_id AND user_id = :user_id AND storage_key = :storage_key'
+        );
+        $statement->execute(['website_id' => $websiteId, 'user_id' => $userId, 'storage_key' => $path]);
+    }
 }

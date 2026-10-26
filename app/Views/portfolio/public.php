@@ -7,6 +7,12 @@ $bio = trim((string) ($portfolio['bio'] ?? ''));
 $template = (string) ($portfolio['template_key'] ?? 'classic');
 $availableTemplates = ['classic', 'editorial', '3d', 'minimal', 'noir', 'aurora', 'studio', 'orbit', 'prism', 'archive'];
 $reactTemplates = ['aurora', 'studio', 'orbit', 'prism', 'archive'];
+$noirStylesheetPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/portfolio-noir.css';
+$noirStylesheetVersion = is_file($noirStylesheetPath) ? (string) filemtime($noirStylesheetPath) : '1';
+$reactStylesheetPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/react-portfolio.css';
+$reactStylesheetVersion = is_file($reactStylesheetPath) ? (string) filemtime($reactStylesheetPath) : '1';
+$reactScriptPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/react-portfolio.js';
+$reactScriptVersion = is_file($reactScriptPath) ? (string) filemtime($reactScriptPath) : '1';
 if (!in_array($template, $availableTemplates, true)) {
     $template = 'classic';
 }
@@ -74,6 +80,26 @@ foreach (($projects ?? []) as $project) {
     $safeProjects[] = $project;
 }
 
+// Noir uses local editorial visuals by default. A portfolio owner may safely
+// replace a section image from the Advanced Editor; the override is accepted
+// only from that website's dedicated Noir upload directory.
+$noirImageAssets = [
+    'goals' => 'ideas.svg', 'interests' => 'ideas.svg', 'challenges' => 'ideas.svg',
+    'experience' => 'journey.svg', 'education' => 'journey.svg', 'skills' => 'practice.svg',
+    'news' => 'work.svg', 'partnerships' => 'work.svg', 'cv' => 'practice.svg', 'projects' => 'work.svg',
+];
+$noirImageUrls = [];
+foreach ($noirImageAssets as $sectionKey => $filename) {
+    $noirImageUrls[$sectionKey] = $baseUrl . '/assets/portfolio-template/noir-images/' . $filename;
+}
+foreach (($noirSectionImages ?? []) as $upload) {
+    $path = (string) ($upload['storage_key'] ?? '');
+    if (preg_match('#^uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/noir/section-([a-z]+)-[a-f0-9]{32}\.(jpg|png|webp)$#i', $path, $matches)
+        && array_key_exists($matches[1], $noirImageUrls)) {
+        $noirImageUrls[$matches[1]] = $baseUrl . '/' . $path;
+    }
+}
+
 $reactSections = [];
 foreach ($sectionLabels as $sectionKey => $sectionLabel) {
     if (empty($sectionItems[$sectionKey])) continue;
@@ -118,16 +144,14 @@ $initials = strtoupper(substr($name, 0, 1));
     <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.css') ?>">
   <?php elseif ($template === 'minimal'): ?>
     <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-minimal.css') ?>">
-  <?php elseif ($template === 'noir'): ?>
-    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-noir.css') ?>">
   <?php endif; ?>
   <?php if (in_array($template, $reactTemplates, true)): ?>
-    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.css') ?>">
+    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.css?v=' . $reactStylesheetVersion) ?>">
   <?php endif; ?>
   <style>
     body{font-family:<?= $escape($fontFamily) ?>;background-color:<?= $escape($backgroundColor) ?>;color:<?= $escape($textColor) ?>;--portfolio-accent:<?= $escape($accentColor) ?>;min-height:100vh;overflow-x:clip}#portfolio-container{overflow:hidden}.portfolio-nav-logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid currentColor;font-weight:800}
-    .portfolio-avatar{display:grid;place-items:center;overflow:hidden;width:100%;aspect-ratio:4/5;background:linear-gradient(135deg,#d97706,#172b3a);color:#fff;font-size:clamp(4rem,12vw,8rem);font-weight:800}
-    .portfolio-avatar img{width:100%;height:100%;object-fit:cover}.portfolio-content-section{padding:5rem clamp(1.25rem,6vw,6rem)}
+    .portfolio-avatar{display:grid;place-items:center;overflow:hidden;width:100%;aspect-ratio:4/5;background:transparent;color:var(--portfolio-accent);font-size:clamp(4rem,12vw,8rem);font-weight:800}
+    .portfolio-avatar img{width:100%;height:100%;object-fit:cover;object-position:63% center;background:transparent}.hero-photo-frame{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}.portfolio-content-section{padding:5rem clamp(1.25rem,6vw,6rem)}
     .portfolio-content-inner{max-width:1120px;margin:0 auto}.portfolio-content-section h2{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.04em}
     .portfolio-project-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:1.2rem}
     .portfolio-project-card{height:100%;padding:1.6rem;border:1px solid rgba(100,116,139,.25);background:rgba(255,255,255,.78);box-shadow:0 14px 35px rgba(15,23,42,.06)}
@@ -163,6 +187,9 @@ $initials = strtoupper(substr($name, 0, 1));
     body.portfolio-template-classic .portfolio-hero{background:linear-gradient(135deg,<?= $escape($backgroundColor) ?> 0%,#e2e8f0 55%,<?= $escape($backgroundColor) ?> 100%)}
     @media(max-width:650px){.portfolio-content-section{padding:3.5rem 1.25rem}.portfolio-hero{min-height:auto}}
   </style>
+  <?php if ($template === 'noir'): ?>
+    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-noir.css?v=' . $noirStylesheetVersion) ?>">
+  <?php endif; ?>
 </head>
 <body class="portfolio-template-<?= $escape($template) ?> portfolio-hero-style-<?= $escape($heroStyle) ?><?= in_array($template, $reactTemplates, true) ? ' react-portfolio-template' : '' ?>">
   <?php if (!empty($isPreview)): ?>
@@ -171,6 +198,103 @@ $initials = strtoupper(substr($name, 0, 1));
       <a href="<?= $escape($baseUrl . '/dashboard/websites/portfolio?id=' . (int) $website['id']) ?>" style="margin-left:.6rem;color:#78350f;text-decoration:underline">Back to Portfolio Studio</a>
     </div>
   <?php endif; ?>
+  <?php if ($template === 'noir'): ?>
+    <header class="noir-site-header">
+      <a class="noir-wordmark" href="#home" aria-label="<?= $escape($name) ?> home"><span><?= $escape($initials) ?></span><strong><?= $escape($name) ?></strong></a>
+      <nav class="noir-nav" aria-label="Portfolio navigation">
+        <a href="#about">About</a>
+        <?php if (!empty($sectionItems['experience'])): ?><a href="#experience">Experience</a><?php endif; ?>
+        <?php if ($showProjects): ?><a href="#projects">Work</a><?php endif; ?>
+        <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?><a href="#contact">Contact</a><?php endif; ?>
+      </nav>
+    </header>
+
+    <main class="noir-page">
+      <section id="home" class="noir-hero<?= $avatarUrl === '' ? ' noir-hero--without-photo' : '' ?>" aria-labelledby="noir-hero-name">
+        <div class="noir-hero-copy">
+          <p class="noir-overline">Independent developer<?= $location !== '' ? ' / ' . $escape($location) : '' ?></p>
+          <h1 id="noir-hero-name"><?= $escape($name) ?></h1>
+          <?php if ($headline !== ''): ?><p class="noir-role"><?= $escape($headline) ?></p><?php endif; ?>
+          <p class="noir-intro"><?= nl2br($escape($bio !== '' ? $bio : 'Practical digital systems, selected work, and ways to get in touch.')) ?></p>
+          <div class="noir-actions">
+            <?php if ($showProjects): ?><a class="noir-button noir-button--solid" href="#projects">View my work <span aria-hidden="true">&darr;</span></a><?php endif; ?>
+            <a class="noir-button noir-button--quiet" href="#about">About me <span aria-hidden="true">&rarr;</span></a>
+          </div>
+          <dl class="noir-hero-facts">
+            <div><dt>Based in</dt><dd><?= $escape($location !== '' ? $location : 'Available remotely') ?></dd></div>
+            <div><dt>Selected work</dt><dd><?= count($safeProjects) ?> projects</dd></div>
+          </dl>
+        </div>
+        <?php if ($avatarUrl !== ''): ?>
+          <figure class="noir-portrait">
+            <img src="<?= $escape($avatarUrl) ?>" alt="<?= $escape($name) ?>">
+            <figcaption><span>Portfolio</span><span><?= date('Y') ?></span></figcaption>
+          </figure>
+        <?php endif; ?>
+      </section>
+
+      <section class="noir-impact" aria-labelledby="noir-impact-title">
+        <p class="noir-overline">Selected impact</p>
+        <h2 id="noir-impact-title">Evidence, not noise.</h2>
+        <dl>
+          <div><dt><?= count($safeProjects) ?></dt><dd>systems and platforms</dd></div>
+          <div><dt><?= count($sectionItems['experience'] ?? []) ?></dt><dd>active professional roles</dd></div>
+          <div><dt><?= count($sectionItems['skills'] ?? []) ?></dt><dd>technical practice areas</dd></div>
+        </dl>
+      </section>
+
+      <section id="about" class="noir-about" aria-labelledby="noir-about-title">
+        <p class="noir-overline">01 / About</p>
+        <div><h2 id="noir-about-title">Useful things.<br>Built to last.</h2></div>
+        <div class="noir-about-copy"><p><?= nl2br($escape($bio !== '' ? $bio : 'More information about ' . $name . ' will be added here.')) ?></p><?php if ($email !== ''): ?><a href="mailto:<?= $escape($email) ?>">Start a conversation <span aria-hidden="true">&nearr;</span></a><?php endif; ?></div>
+      </section>
+
+      <?php foreach ($sectionLabels as $sectionKey => $sectionLabel): ?>
+        <?php if (empty($sectionItems[$sectionKey])) continue; ?>
+        <section id="<?= $escape($sectionKey) ?>" class="noir-section noir-section--<?= $escape($sectionKey) ?>" aria-labelledby="noir-<?= $escape($sectionKey) ?>-title">
+          <header class="noir-section-heading"><p class="noir-overline">Portfolio / <?= $escape(str_pad((string) (array_search($sectionKey, array_keys($sectionLabels), true) + 2), 2, '0', STR_PAD_LEFT)) ?></p><h2 id="noir-<?= $escape($sectionKey) ?>-title"><?= $escape($sectionLabel) ?></h2></header>
+          <figure class="noir-section-image"><img src="<?= $escape($noirImageUrls[$sectionKey] ?? $noirImageUrls['projects']) ?>" alt="" loading="lazy" decoding="async"></figure>
+          <?php if ($sectionKey === 'experience'): ?>
+            <ol class="noir-timeline">
+              <?php foreach ($sectionItems[$sectionKey] as $index => $item): $payload = json_decode((string) ($item['payload'] ?? '{}'), true); $payload = is_array($payload) ? $payload : []; ?>
+                <li><span class="noir-item-number"><?= $escape(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span><article><div class="noir-item-meta"><span><?= $escape($payload['organisation'] ?? '') ?></span><span><?= $escape($payload['period'] ?? '') ?></span></div><h3><?= $escape($item['title'] ?? '') ?></h3><?php if (!empty($payload['details'])): ?><p><?= nl2br($escape($payload['details'])) ?></p><?php endif; ?></article></li>
+              <?php endforeach; ?>
+            </ol>
+          <?php elseif ($sectionKey === 'skills'): ?>
+            <ul class="noir-skills" role="list">
+              <?php foreach ($sectionItems[$sectionKey] as $index => $item): $payload = json_decode((string) ($item['payload'] ?? '{}'), true); $payload = is_array($payload) ? $payload : []; ?>
+                <li><span><?= $escape(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span><div><h3><?= $escape($item['title'] ?? '') ?></h3><?php if (!empty($payload['details'])): ?><p><?= nl2br($escape($payload['details'])) ?></p><?php endif; ?></div><small><?= $escape($payload['proficiency'] ?? $payload['category'] ?? '') ?></small></li>
+              <?php endforeach; ?>
+            </ul>
+          <?php else: ?>
+            <div class="noir-editorial-list">
+              <?php foreach ($sectionItems[$sectionKey] as $index => $item): $payload = json_decode((string) ($item['payload'] ?? '{}'), true); $payload = is_array($payload) ? $payload : []; $itemLink = trim((string) ($payload['link'] ?? '')); $itemScheme = strtolower((string) parse_url($itemLink, PHP_URL_SCHEME)); if (!filter_var($itemLink, FILTER_VALIDATE_URL) || !in_array($itemScheme, ['http', 'https'], true)) $itemLink = ''; ?>
+                <article><span><?= $escape(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span><div><h3><?= $escape($item['title'] ?? '') ?></h3><?php if (!empty($payload['organisation']) || !empty($payload['period'])): ?><p class="noir-item-meta"><?= $escape(trim((string) ($payload['organisation'] ?? '') . (!empty($payload['organisation']) && !empty($payload['period']) ? ' / ' : '') . (string) ($payload['period'] ?? ''))) ?></p><?php endif; ?><?php if (!empty($payload['details'])): ?><p><?= nl2br($escape($payload['details'])) ?></p><?php endif; ?></div><?php if ($itemLink !== ''): ?><a href="<?= $escape($itemLink) ?>" target="_blank" rel="noopener noreferrer">Open <span aria-hidden="true">&nearr;</span></a><?php endif; ?></article>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
+        </section>
+      <?php endforeach; ?>
+
+      <?php if ($showProjects): ?><section id="projects" class="noir-projects" aria-labelledby="noir-projects-title">
+        <header class="noir-section-heading"><p class="noir-overline">Selected work / 07</p><h2 id="noir-projects-title">Projects with a job to do.</h2><p>A selection of systems, platforms, and useful digital tools.</p></header>
+        <figure class="noir-section-image noir-section-image--projects"><img src="<?= $escape($noirImageUrls['projects']) ?>" alt="" loading="lazy" decoding="async"></figure>
+        <?php if ($safeProjects === []): ?>
+          <p class="noir-empty">Projects will appear here as they are added to this portfolio.</p>
+        <?php else: ?>
+          <?php $featuredProjects = array_slice($safeProjects, 0, 4); $otherProjects = array_slice($safeProjects, 4); ?>
+          <div class="noir-project-stack">
+            <div class="noir-project-grid noir-project-grid--featured">
+              <?php foreach ($featuredProjects as $index => $project): ?><article class="noir-project noir-project--featured"><span class="noir-project-index"><?= $escape(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)) ?></span><div><h3><?= $escape($project['title'] ?? '') ?></h3><?php if (!empty($project['summary'])): ?><p><?= nl2br($escape($project['summary'])) ?></p><?php endif; ?></div><?php if (!empty($project['project_url'])): ?><a href="<?= $escape($project['project_url']) ?>" target="_blank" rel="noopener noreferrer">View project <span aria-hidden="true">&nearr;</span></a><?php endif; ?></article><?php endforeach; ?>
+            </div>
+            <?php if ($otherProjects !== []): ?><div class="noir-other-projects"><p class="noir-overline">Other projects</p><div class="noir-project-grid noir-project-grid--archive"><?php foreach ($otherProjects as $index => $project): ?><article class="noir-project noir-project--archive"><span class="noir-project-index"><?= $escape(str_pad((string) ($index + 5), 2, '0', STR_PAD_LEFT)) ?></span><div><h3><?= $escape($project['title'] ?? '') ?></h3><?php if (!empty($project['summary'])): ?><p><?= nl2br($escape($project['summary'])) ?></p><?php endif; ?></div><?php if (!empty($project['project_url'])): ?><a href="<?= $escape($project['project_url']) ?>" target="_blank" rel="noopener noreferrer">View project <span aria-hidden="true">&nearr;</span></a><?php endif; ?></article><?php endforeach; ?></div></div><?php endif; ?>
+          </div>
+        <?php endif; ?>
+      </section><?php endif; ?>
+
+      <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?><section id="contact" class="noir-contact" aria-labelledby="noir-contact-title"><p class="noir-overline">Contact / 08</p><h2 id="noir-contact-title">Let’s build something useful together.</h2><div><p>Need a website, system, learning platform, automation solution, or technical support? Start with a conversation.</p><?php if ($email !== ''): ?><a class="noir-contact-email" href="mailto:<?= $escape($email) ?>">Email <?= $escape($name) ?> <span aria-hidden="true">&nearr;</span></a><?php endif; ?><nav aria-label="Social profiles"><?php foreach ($safeSocialLinks as $social): ?><a href="<?= $escape($social['url']) ?>" target="_blank" rel="noopener noreferrer"><?= $escape($social['label']) ?> <span aria-hidden="true">&nearr;</span></a><?php endforeach; ?></nav></div></section><?php endif; ?>
+    </main>
+  <?php else: ?>
   <header class="navbar">
     <nav>
       <div class="nav-container">
@@ -316,6 +440,7 @@ $initials = strtoupper(substr($name, 0, 1));
       </section>
     <?php endif; ?>
   </main>
+  <?php endif; ?>
 
   <footer class="portfolio-footer">© <?= date('Y') ?> <?= $escape($name) ?><?= $location !== '' ? ' · ' . $escape($location) : '' ?></footer>
   <script>
@@ -335,8 +460,7 @@ $initials = strtoupper(substr($name, 0, 1));
     <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.js') ?>"></script>
   <?php endif; ?>
   <?php if (in_array($template, $reactTemplates, true)): ?>
-    <script type="importmap">{"imports":{"react":"https://esm.sh/react@18.3.1","react-dom":"https://esm.sh/react-dom@18.3.1","react/jsx-runtime":"https://esm.sh/react@18.3.1/jsx-runtime"}}</script>
-    <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.js') ?>"></script>
+    <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.js?v=' . $reactScriptVersion) ?>"></script>
   <?php endif; ?>
 </body>
 </html>

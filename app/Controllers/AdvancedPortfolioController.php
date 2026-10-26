@@ -58,6 +58,7 @@ class AdvancedPortfolioController extends Controller
             'portfolio' => $portfolio,
             'settings' => $settings,
             'items' => $model->items((int) $website['id'], $userId),
+            'noirSectionImages' => $model->noirSectionImages((int) $website['id'], $userId),
             'projects' => (new Portfolio())->projects((int) $portfolio['id']),
             'templates' => PortfolioController::TEMPLATES,
             'sectionLabels' => self::SECTIONS,
@@ -335,6 +336,121 @@ class AdvancedPortfolioController extends Controller
             Session::flash('success', 'Portfolio item deleted.');
         }
         $this->backToEditor($websiteId);
+    }
+
+    /** Upload a Noir-only override for a section's default editorial image. */
+    public function uploadNoirSectionImage(): void
+    {
+        [$userId, $website, $portfolio] = $this->ownedPortfolio();
+        $websiteId = (int) $website['id'];
+        if (!$this->validCsrf($websiteId)) {
+            return;
+        }
+        if (($portfolio['template_key'] ?? '') !== 'noir') {
+            Session::flash('error', 'Section images are available while the Noir template is selected.');
+            $this->backToEditor($websiteId);
+            return;
+        }
+
+        $sectionKey = trim((string) $this->input('section_key', ''));
+        $allowedSections = array_merge(array_keys(self::SECTIONS), ['projects']);
+        if (!in_array($sectionKey, $allowedSections, true)) {
+            Session::flash('error', 'Choose a valid Noir portfolio section.');
+            $this->backToEditor($websiteId);
+            return;
+        }
+
+        $file = $_FILES['noir_image'] ?? null;
+        if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+            || !is_uploaded_file((string) ($file['tmp_name'] ?? ''))
+            || (int) ($file['size'] ?? 0) < 1 || (int) ($file['size'] ?? 0) > 5 * 1024 * 1024) {
+            Session::flash('error', 'Choose a JPEG, PNG, or WebP image smaller than 5 MB.');
+            $this->backToEditor($websiteId);
+            return;
+        }
+
+        $tmpPath = (string) $file['tmp_name'];
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($tmpPath);
+        $dimensions = @getimagesize($tmpPath);
+        $allowedTypes = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        if (!is_string($mime) || !isset($allowedTypes[$mime]) || $dimensions === false
+            || ($dimensions['mime'] ?? '') !== $mime || (int) ($dimensions[0] ?? 0) > 6000 || (int) ($dimensions[1] ?? 0) > 6000) {
+            Session::flash('error', 'Use a valid JPEG, PNG, or WebP image up to 6000 × 6000 pixels.');
+            $this->backToEditor($websiteId);
+            return;
+        }
+
+        $relativeDirectory = 'uploads/portfolios/' . $websiteId . '/noir';
+        $directory = dirname(__DIR__, 2) . '/public/' . $relativeDirectory;
+        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+            Session::flash('error', 'The Noir image directory could not be created.');
+            $this->backToEditor($websiteId);
+            return;
+        }
+        $relativePath = $relativeDirectory . '/section-' . $sectionKey . '-' . bin2hex(random_bytes(16)) . '.' . $allowedTypes[$mime];
+        $targetPath = dirname(__DIR__, 2) . '/public/' . $relativePath;
+        if (!move_uploaded_file($tmpPath, $targetPath)) {
+            Session::flash('error', 'The Noir section image could not be saved.');
+            $this->backToEditor($websiteId);
+            return;
+        }
+
+        $model = new AdvancedPortfolio();
+        $previous = $model->noirSectionImage($websiteId, $userId, $sectionKey);
+        try {
+            $model->saveNoirSectionImage($websiteId, $userId, $sectionKey, $relativePath, mb_substr(basename((string) ($file['name'] ?? 'image.' . $allowedTypes[$mime])), 0, 255), $mime, (int) $file['size']);
+            if (is_array($previous) && !empty($previous['storage_key']) && $previous['storage_key'] !== $relativePath) {
+                $model->deleteUploadPath($websiteId, $userId, (string) $previous['storage_key']);
+                $this->deleteNoirImageFile((string) $previous['storage_key'], $websiteId);
+            }
+        } catch (\Throwable) {
+            @unlink($targetPath);
+            Session::flash('error', 'The Noir section image could not be linked to this portfolio.');
+            $this->backToEditor($websiteId);
+            return;
+        }
+
+        Session::flash('success', 'Noir section image saved.');
+        $this->backToEditor($websiteId);
+    }
+
+    public function removeNoirSectionImage(): void
+    {
+        [$userId, $website, $portfolio] = $this->ownedPortfolio();
+        $websiteId = (int) $website['id'];
+        if (!$this->validCsrf($websiteId)) {
+            return;
+        }
+        if (($portfolio['template_key'] ?? '') !== 'noir') {
+            $this->backToEditor($websiteId);
+            return;
+        }
+        $sectionKey = trim((string) $this->input('section_key', ''));
+        if (!in_array($sectionKey, array_merge(array_keys(self::SECTIONS), ['projects']), true)) {
+            Session::flash('error', 'Choose a valid Noir portfolio section.');
+            $this->backToEditor($websiteId);
+            return;
+        }
+        $upload = (new AdvancedPortfolio())->deleteNoirSectionImage($websiteId, $userId, $sectionKey);
+        if ($upload !== null) {
+            $this->deleteNoirImageFile((string) $upload['storage_key'], $websiteId);
+            Session::flash('success', 'Custom Noir image removed. The default visual will be used again.');
+        }
+        $this->backToEditor($websiteId);
+    }
+
+    private function deleteNoirImageFile(string $relativePath, int $websiteId): void
+    {
+        $prefix = 'uploads/portfolios/' . $websiteId . '/noir/section-';
+        if (!str_starts_with($relativePath, $prefix)) {
+            return;
+        }
+        $publicRoot = realpath(dirname(__DIR__, 2) . '/public');
+        $directory = $publicRoot === false ? false : realpath($publicRoot . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'portfolios' . DIRECTORY_SEPARATOR . $websiteId . DIRECTORY_SEPARATOR . 'noir');
+        $path = $publicRoot === false ? false : realpath($publicRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath));
+        if ($directory !== false && $path !== false && str_starts_with($path, rtrim($directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR) && is_file($path)) {
+            @unlink($path);
+        }
     }
 
     private function validCsrf(int $websiteId): bool

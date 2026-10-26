@@ -38,6 +38,7 @@ $reactJs = readRequiredFile($root . '/public/assets/portfolio-template/react-por
 $publishController = readRequiredFile($root . '/app/Controllers/PublishController.php');
 $portfolioController = readRequiredFile($root . '/app/Controllers/PortfolioController.php');
 $advancedPortfolioController = readRequiredFile($root . '/app/Controllers/AdvancedPortfolioController.php');
+$routes = readRequiredFile($root . '/app/Config/routes.php');
 
 if (!preg_match('/\$availableTemplates\s*=\s*\[(.*?)\];/s', $publicView, $templateMatch)) {
     failCheck('Public renderer does not declare its supported template list.');
@@ -61,6 +62,54 @@ foreach ($expectedReact as $key) {
     if (!str_contains($reactCss, '.rp--' . $key)) {
         failCheck("Missing CSS variant for React template '{$key}'.");
     }
+}
+
+if (str_contains($reactJs, 'https://esm.sh') || preg_match('/^import\s/m', $reactJs)) {
+    failCheck('Interactive portfolio templates must not rely on remote JavaScript modules.');
+}
+
+if (!str_contains($reactJs, 'function AuroraApp')
+    || !str_contains($reactJs, 'function AuroraArt')
+    || !str_contains($reactCss, '.am-hero')
+    || !str_contains($reactCss, '.am-section-body')) {
+    failCheck('Aurora Motion does not have its dedicated React renderer and graphics system.');
+}
+
+$dedicatedReactTemplates = [
+    'studio' => ['StudioApp', '.rs-rail', '.rs-projects'],
+    'orbit' => ['OrbitApp', '.ro-console', '.ro-route'],
+    'prism' => ['PrismApp', '.rpz-hero', '.rpz-items'],
+    'archive' => ['ArchiveApp', '.ra-masthead', '.ra-catalogue'],
+];
+foreach ($dedicatedReactTemplates as $template => [$renderer, $firstSelector, $secondSelector]) {
+    if (!str_contains($reactJs, 'function ' . $renderer)
+        || !str_contains($reactCss, $firstSelector)
+        || !str_contains($reactCss, $secondSelector)) {
+        failCheck(ucfirst($template) . ' does not have its dedicated renderer and layout system.');
+    }
+}
+
+if (!str_contains($publicView, 'if ($template === \'noir\')')
+    || !str_contains($publicView, 'class="noir-hero')
+    || !str_contains($publicView, 'class="noir-project-grid')) {
+    failCheck('Noir does not have its dedicated renderer path.');
+}
+
+foreach (['.noir-hero', '.noir-project-grid', '.noir-timeline', '.noir-skills', '@media (prefers-reduced-motion: reduce)'] as $noirSelector) {
+    if (!str_contains($reactCss . readRequiredFile($root . '/public/assets/portfolio-template/portfolio-noir.css'), $noirSelector)) {
+        failCheck("Noir redesign is missing '{$noirSelector}'.");
+    }
+}
+
+foreach (['uploadNoirSectionImage', 'removeNoirSectionImage', 'noirSectionImages', 'noirSectionImage'] as $noirImageWiring) {
+    if (!str_contains($advancedPortfolioController . $portfolioModel, $noirImageWiring)) {
+        failCheck("Noir section-image support is missing '{$noirImageWiring}'.");
+    }
+}
+if (!str_contains($routes, 'noir-image/upload') || !str_contains($routes, 'noir-image/remove')
+    || !str_contains($editorView, 'data-ap-tab-panel="noir-images"')
+    || !str_contains($publicView, '$noirImageUrls')) {
+    failCheck('Noir image dashboard routes or public rendering are incomplete.');
 }
 
 if (!str_contains($editorView, 'foreach ($templates as $templateKey => $templateLabel)')) {
