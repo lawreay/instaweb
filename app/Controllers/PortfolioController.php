@@ -30,13 +30,10 @@ class PortfolioController extends Controller
     public function edit(): void
     {
         [$userId, $website, $portfolio] = $this->ownedPortfolio();
-        $model = new Portfolio();
-
         $this->view('portfolio/edit', [
             'title' => 'Edit Portfolio',
             'website' => $website,
             'portfolio' => $portfolio,
-            'projects' => $model->projects((int) $portfolio['id']),
             'templates' => self::TEMPLATES,
             'active' => 'websites',
         ], 'layouts/dashboard');
