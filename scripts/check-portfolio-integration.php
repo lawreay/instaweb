@@ -37,6 +37,7 @@ $previewController = readRequiredFile($root . '/app/Controllers/PreviewControlle
 $reactJs = readRequiredFile($root . '/public/assets/portfolio-template/react-portfolio.js');
 $publishController = readRequiredFile($root . '/app/Controllers/PublishController.php');
 $portfolioController = readRequiredFile($root . '/app/Controllers/PortfolioController.php');
+$advancedPortfolioController = readRequiredFile($root . '/app/Controllers/AdvancedPortfolioController.php');
 
 if (!preg_match('/\$availableTemplates\s*=\s*\[(.*?)\];/s', $publicView, $templateMatch)) {
     failCheck('Public renderer does not declare its supported template list.');
@@ -150,7 +151,7 @@ if (!str_contains($editorView, "'interests' => [['title','Interest',true],['deta
 if (!str_contains($editorView, "'skills' => [['title','Skill name',true],['category','Category (optional)',false],['proficiency','Proficiency (optional)',false,'select'")) {
     failCheck('Skills editor must use skill-specific fields rather than the generic content form.');
 }
-if (!str_contains($portfolioController, "'interests' => ['details']") || !str_contains($portfolioController, "'skills' => ['category', 'proficiency']")) {
+if (!str_contains($advancedPortfolioController, "'interests' => ['details']") || !str_contains($advancedPortfolioController, "'skills' => ['category', 'proficiency']")) {
     failCheck('Portfolio controller must validate section-specific content fields.');
 }
 if (!str_contains($editorView, "'cv' => [['title','Document title',true]")) {
