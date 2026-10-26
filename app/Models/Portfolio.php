@@ -126,6 +126,31 @@ class Portfolio extends Model
     }
 
     /**
+     * Save a template choice from the Advanced Editor without requiring the
+     * profile form to resubmit unrelated contact and biography fields.
+     */
+    public function updateTemplateForOwner(int $websiteId, int $userId, string $templateKey): bool
+    {
+        $statement = $this->query(
+            'UPDATE portfolios p
+             INNER JOIN websites w ON w.id = p.website_id
+             SET p.template_key = :template_key,
+                 p.updated_at = CURRENT_TIMESTAMP
+             WHERE p.website_id = :website_id
+               AND p.user_id = :user_id
+               AND w.user_id = :website_user_id',
+            [
+                'template_key' => $templateKey,
+                'website_id' => $websiteId,
+                'user_id' => $userId,
+                'website_user_id' => $userId,
+            ]
+        );
+
+        return $statement->rowCount() > 0;
+    }
+
+    /**
      * Update the profile image only for the authenticated owner's portfolio.
      */
     public function updateAvatarForOwner(int $portfolioId, int $websiteId, int $userId, string $avatarPath): bool

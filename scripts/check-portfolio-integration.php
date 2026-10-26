@@ -67,6 +67,11 @@ if (!str_contains($editorView, 'foreach ($templates as $templateKey => $template
     failCheck('Advanced Editor selector is not generated from the server-side template registry.');
 }
 
+if (!str_contains($advancedPortfolioController, 'updateTemplateForOwner((int) $website[\'id\'], $userId, $templateKey)')
+    || !str_contains($portfolioModel, 'function updateTemplateForOwner')) {
+    failCheck('Advanced Editor template selection is not persisted through an owner-scoped portfolio update.');
+}
+
 if (!str_contains($publicView, '&& !empty($item[\'is_enabled\'])')) {
     failCheck('Public renderer does not filter disabled section entries.');
 }

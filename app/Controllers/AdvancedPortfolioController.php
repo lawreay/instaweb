@@ -67,7 +67,7 @@ class AdvancedPortfolioController extends Controller
 
     public function save(): void
     {
-        [$userId, $website] = $this->ownedPortfolio();
+        [$userId, $website, $portfolio] = $this->ownedPortfolio();
         if (!$this->validCsrf((int) $website['id'])) {
             return;
         }
@@ -100,7 +100,15 @@ class AdvancedPortfolioController extends Controller
             return;
         }
 
+        $templateKey = trim((string) $this->input('template_key', (string) ($portfolio['template_key'] ?? 'classic')));
+        if (!array_key_exists($templateKey, PortfolioController::TEMPLATES)) {
+            Session::flash('error', 'Choose one of the available portfolio templates.');
+            $this->backToEditor((int) $website['id']);
+            return;
+        }
+
         (new AdvancedPortfolio())->saveSettings((int) $website['id'], $userId, $settings);
+        (new Portfolio())->updateTemplateForOwner((int) $website['id'], $userId, $templateKey);
         Session::flash('success', 'Advanced portfolio design settings saved.');
         $this->backToEditor((int) $website['id']);
     }
