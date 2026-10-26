@@ -5,11 +5,12 @@ $name = trim((string) ($portfolio['display_name'] ?? 'Portfolio'));
 $headline = trim((string) ($portfolio['headline'] ?? ''));
 $bio = trim((string) ($portfolio['bio'] ?? ''));
 $template = (string) ($portfolio['template_key'] ?? 'classic');
-$availableTemplates = ['classic', 'editorial', '3d', 'minimal', 'noir', 'aurora', 'studio', 'orbit', 'prism', 'archive'];
-$reactTemplates = ['aurora', 'studio', 'orbit', 'prism', 'archive'];
+$availableTemplates = ['classic', 'editorial', '3d', 'minimal', 'noir', 'aurora', 'studio', 'orbit', 'prism', 'archive', 'ledger', 'graduate'];
+$reactTemplates = ['aurora', 'studio', 'orbit', 'prism', 'archive', 'ledger', 'graduate'];
 $customTemplate = is_array($customTemplate ?? null) ? $customTemplate : null;
 $isCustomTemplate = $customTemplate !== null
     && (string) ($customTemplate['template_key'] ?? '') === $template;
+$isCustomReactTemplate = $isCustomTemplate && (string) ($customTemplate['render_engine'] ?? 'html') === 'react';
 $noirStylesheetPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/portfolio-noir.css';
 $noirStylesheetVersion = is_file($noirStylesheetPath) ? (string) filemtime($noirStylesheetPath) : '1';
 $reactStylesheetPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/react-portfolio.css';
@@ -119,6 +120,14 @@ foreach ($navigationPriority as $navigationKey) {
 }
 $navigationItems = array_slice($navigationItems, 0, 5);
 
+$customNavigationLinks = '';
+foreach ($navigationItems as $navigationItem) {
+    $customNavigationLinks .= '<a href="' . $escape($navigationItem['href']) . '">' . $escape($navigationItem['label']) . '</a>';
+}
+$customNavigationMarkup = $customNavigationLinks !== ''
+    ? '<nav class="custom-site-nav" aria-label="Portfolio navigation">' . $customNavigationLinks . '</nav>'
+    : '';
+
 // Custom templates receive escaped profile values and pre-rendered content
 // blocks. The HTML source itself is stored only after admin-side safety checks.
 $customSectionsMarkup = '';
@@ -172,14 +181,15 @@ if ($showContact && ($email !== '' || $safeSocialLinks !== [])) {
 $customAvatarMarkup = $avatarUrl !== ''
     ? '<img class="custom-avatar" src="' . $escape($avatarUrl) . '" alt="' . $escape($name) . '">'
     : '';
-$customTemplateHtml = $isCustomTemplate ? (string) ($customTemplate['html_code'] ?? '') : '';
+$customTemplateHtml = $isCustomTemplate && !$isCustomReactTemplate ? (string) ($customTemplate['html_code'] ?? '') : '';
 $customTemplateCss = $isCustomTemplate ? (string) ($customTemplate['css_code'] ?? '') : '';
-$customTemplateOutput = $isCustomTemplate ? strtr($customTemplateHtml, [
+$customTemplateOutput = $isCustomTemplate && !$isCustomReactTemplate ? strtr($customTemplateHtml, [
     '{{name}}' => $escape($name),
     '{{headline}}' => $escape($headline),
     '{{bio}}' => nl2br($escape($bio)),
     '{{location}}' => $escape($location),
     '{{avatar}}' => $customAvatarMarkup,
+    '{{navigation}}' => $customNavigationMarkup,
     '{{sections}}' => $customSectionsMarkup,
     '{{projects}}' => $customProjectsMarkup,
     '{{contact}}' => $customContactMarkup,
@@ -229,6 +239,11 @@ $reactPortfolioData = [
     'socials' => array_values($safeSocialLinks),
 ];
 $initials = strtoupper(substr($name, 0, 1));
+$customReactPayload = $isCustomReactTemplate ? [
+    'code' => (string) ($customTemplate['react_code'] ?? ''),
+    'css' => $customTemplateCss,
+    'data' => $reactPortfolioData,
+] : null;
 ?>
 <!doctype html>
 <html lang="en">
@@ -293,7 +308,7 @@ $initials = strtoupper(substr($name, 0, 1));
     body.portfolio-template-classic .portfolio-hero{background:linear-gradient(135deg,<?= $escape($backgroundColor) ?> 0%,#e2e8f0 55%,<?= $escape($backgroundColor) ?> 100%)}
     @media(max-width:650px){.portfolio-content-section{padding:3.5rem 1.25rem}.portfolio-hero{min-height:auto}}
   </style>
-  <?php if ($isCustomTemplate && $customTemplateCss !== ''): ?>
+  <?php if ($isCustomTemplate && !$isCustomReactTemplate && $customTemplateCss !== ''): ?>
     <style id="custom-portfolio-template-css"><?= $customTemplateCss ?></style>
   <?php endif; ?>
   <?php if ($template === 'noir'): ?>
@@ -307,7 +322,10 @@ $initials = strtoupper(substr($name, 0, 1));
       <a href="<?= $escape($baseUrl . '/dashboard/websites/portfolio?id=' . (int) $website['id']) ?>" style="margin-left:.6rem;color:#78350f;text-decoration:underline">Back to Portfolio Studio</a>
     </div>
   <?php endif; ?>
-  <?php if ($isCustomTemplate): ?>
+  <?php if ($isCustomReactTemplate): ?>
+    <iframe id="custom-react-template-frame" class="custom-react-template-frame" title="<?= $escape($name) ?> portfolio" src="<?= $escape($baseUrl . '/assets/portfolio-template/custom-react-template-frame.html') ?>" sandbox="allow-scripts" style="display:block;width:100%;min-height:420px;border:0;background:transparent"></iframe>
+    <script id="custom-react-template-payload" type="application/json"><?= json_encode($customReactPayload, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) ?: '{}' ?></script>
+  <?php elseif ($isCustomTemplate): ?>
     <?= $customTemplateOutput ?>
   <?php elseif ($template === 'noir'): ?>
     <header class="noir-site-header">
@@ -559,6 +577,25 @@ $initials = strtoupper(substr($name, 0, 1));
       });
     }());
   </script>
+  <?php if ($isCustomReactTemplate): ?>
+    <script>
+      (function () {
+        var frame = document.getElementById('custom-react-template-frame');
+        var payloadNode = document.getElementById('custom-react-template-payload');
+        if (!frame || !payloadNode) return;
+        var payload;
+        try { payload = JSON.parse(payloadNode.textContent || '{}'); } catch (error) { return; }
+        var send = function () { if (frame.contentWindow) frame.contentWindow.postMessage({ type: 'instaweb-react-template', payload: payload }, '*'); };
+        frame.addEventListener('load', send);
+        window.addEventListener('message', function (event) {
+          if (event.source !== frame.contentWindow || !event.data || event.data.type !== 'instaweb-react-template-height') return;
+          var height = Number(event.data.height);
+          if (Number.isFinite(height) && height >= 200 && height <= 30000) frame.style.height = Math.ceil(height) + 'px';
+        });
+        send();
+      }());
+    </script>
+  <?php endif; ?>
   <?php if ($template === '3d'): ?>
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"}}</script>
     <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.js') ?>"></script>

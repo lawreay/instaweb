@@ -21,6 +21,8 @@ class PortfolioTemplate
         'orbit' => 'Orbit 3D — mission-control interface',
         'prism' => 'Prism — colourful and expressive',
         'archive' => 'Archive — paper-led catalogue',
+        'ledger' => 'Ledger — precise professional portfolio',
+        'graduate' => 'Graduate Path — confident early-career portfolio',
     ];
 
     private PDO $database;
@@ -41,15 +43,17 @@ class PortfolioTemplate
                 'template_key' => $key,
                 'display_name' => $label,
                 'description' => 'Built-in portfolio layout',
+                'render_engine' => 'built_in',
                 'status' => $statuses[$key] ?? 'active',
                 'is_builtin' => true,
                 'html_code' => '',
                 'css_code' => '',
+                'react_code' => '',
             ];
         }
 
         $statement = $this->database->query(
-            'SELECT id, template_key, display_name, description, html_code, css_code, status, created_by, created_at, updated_at
+            'SELECT id, template_key, display_name, description, render_engine, html_code, css_code, react_code, status, created_by, created_at, updated_at
              FROM portfolio_template_definitions
              ORDER BY created_at DESC, id DESC'
         );
@@ -89,7 +93,7 @@ class PortfolioTemplate
     public function customByKey(string $templateKey): ?array
     {
         $statement = $this->database->prepare(
-            "SELECT id, template_key, display_name, description, html_code, css_code
+            "SELECT id, template_key, display_name, description, render_engine, html_code, css_code, react_code
              FROM portfolio_template_definitions
              WHERE template_key = :template_key
              LIMIT 1"
@@ -103,7 +107,7 @@ class PortfolioTemplate
     public function findCustom(int $id): ?array
     {
         $statement = $this->database->prepare(
-            'SELECT id, template_key, display_name, description, html_code, css_code, status, created_by, created_at, updated_at
+            'SELECT id, template_key, display_name, description, render_engine, html_code, css_code, react_code, status, created_by, created_at, updated_at
              FROM portfolio_template_definitions WHERE id = :id LIMIT 1'
         );
         $statement->execute(['id' => $id]);
@@ -116,15 +120,17 @@ class PortfolioTemplate
     {
         $statement = $this->database->prepare(
             'INSERT INTO portfolio_template_definitions
-                (template_key, display_name, description, html_code, css_code, status, created_by)
-             VALUES (:template_key, :display_name, :description, :html_code, :css_code, :status, :created_by)'
+                (template_key, display_name, description, render_engine, html_code, css_code, react_code, status, created_by)
+             VALUES (:template_key, :display_name, :description, :render_engine, :html_code, :css_code, :react_code, :status, :created_by)'
         );
         $statement->execute([
             'template_key' => (string) $data['template_key'],
             'display_name' => (string) $data['display_name'],
             'description' => (string) $data['description'],
+            'render_engine' => (string) ($data['render_engine'] ?? 'html'),
             'html_code' => (string) $data['html_code'],
             'css_code' => (string) $data['css_code'],
+            'react_code' => (string) ($data['react_code'] ?? ''),
             'status' => (string) ($data['status'] ?? 'active'),
             'created_by' => $adminId,
         ]);
@@ -137,14 +143,17 @@ class PortfolioTemplate
         $statement = $this->database->prepare(
             'UPDATE portfolio_template_definitions
              SET display_name = :display_name, description = :description,
-                 html_code = :html_code, css_code = :css_code, updated_at = CURRENT_TIMESTAMP
+                 render_engine = :render_engine, html_code = :html_code,
+                 css_code = :css_code, react_code = :react_code, updated_at = CURRENT_TIMESTAMP
              WHERE id = :id'
         );
         $statement->execute([
             'display_name' => (string) $data['display_name'],
             'description' => (string) $data['description'],
+            'render_engine' => (string) ($data['render_engine'] ?? 'html'),
             'html_code' => (string) $data['html_code'],
             'css_code' => (string) $data['css_code'],
+            'react_code' => (string) ($data['react_code'] ?? ''),
             'id' => $id,
         ]);
 

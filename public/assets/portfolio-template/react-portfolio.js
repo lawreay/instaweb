@@ -241,12 +241,97 @@ function ArchiveApp({ data }) {
   return h('div', { className: 'rp ra', style: { '--ra-accent': data.accent || '#b6462f' } }, h('header', { className: 'ra-masthead' }, h('a', { href: '#home' }, 'The ', h('strong', null, 'Working Archive')), h('span', null, 'Volume 01 / Portfolio'), h(PortfolioLinks, { data, className: 'ra-links', limit: 5 })), h('main', null, lead, h('section', { id: 'about', className: 'ra-editorial' }, h('span', null, 'Editor’s note'), h('p', null, data.bio || `More information about ${data.name} will be added here.`)), catalogueSections, projectSection, contactSection, h('footer', { className: 'ra-footer' }, `© ${new Date().getFullYear()} ${data.name} / The Working Archive`)));
 }
 
+function LedgerApp({ data }) {
+  const sections = data.sections || [];
+  const projects = data.projects || [];
+  const sectionBlocks = sections.map((section, sectionIndex) => h('section', { id: section.key, className: 'ld-section', key: section.key },
+    h('header', { className: 'ld-section-heading' }, h('span', null, String(sectionIndex + 2).padStart(2, '0')), h('div', null, h('p', null, 'Portfolio record'), h('h2', null, section.label))),
+    h('div', { className: 'ld-ledger' }, (section.items || []).map((item, itemIndex) => h('article', { className: 'ld-entry', key: `${section.key}-${itemIndex}`, style: { '--entry-index': itemIndex } },
+      h('span', { className: 'ld-entry-number' }, String(itemIndex + 1).padStart(2, '0')),
+      h('div', null, h('h3', null, item.title), item.details ? h('p', null, item.details) : null),
+      h('footer', null, item.organisation ? h('span', null, item.organisation) : null, item.period ? h('span', null, item.period) : null, item.link ? h('a', { href: item.link, target: '_blank', rel: 'noreferrer' }, 'Open record') : null)
+    )))
+  ));
+  const projectSection = data.showProjects ? h('section', { id: 'projects', className: 'ld-projects' },
+    h('div', { className: 'ld-section-heading' }, h('span', null, 'Work'), h('div', null, h('p', null, 'Selected evidence'), h('h2', null, 'Projects with a clear outcome.'))),
+    h('div', { className: 'ld-project-grid' }, projects.map((project, index) => h('article', { key: project.id || index, style: { '--entry-index': index } },
+      h('span', null, String(index + 1).padStart(2, '0')),
+      project.image_url ? h('img', { src: project.image_url, alt: '' }) : null,
+      h('h3', null, project.title),
+      project.summary ? h('p', null, project.summary) : null,
+      project.project_url ? h('a', { href: project.project_url, target: '_blank', rel: 'noreferrer' }, 'View project') : null
+    )))
+  ) : null;
+  const contactSection = data.showContact && (data.email || (data.socials || []).length) ? h('section', { id: 'contact', className: 'ld-contact' }, h('p', null, 'Available for the next opportunity'), h('h2', null, 'Let’s make the numbers useful.'), h('div', null, data.email ? h('a', { href: `mailto:${data.email}` }, `Email ${data.name}`) : null, (data.socials || []).map(social => h('a', { key: social.label, href: social.url, target: '_blank', rel: 'noreferrer' }, social.label)))) : null;
+  const hero = h('section', { id: 'home', className: 'ld-hero' },
+    h('div', null,
+      h('p', { className: 'ld-kicker' }, data.location || 'Professional portfolio'),
+      h('h1', null, data.name),
+      h('h2', null, data.headline || 'Clear thinking. Dependable work.'),
+      h('p', null, data.bio || 'A focused record of experience, practical work and professional strengths.'),
+      h('div', { className: 'ld-actions' }, data.showProjects ? h('a', { href: '#projects' }, 'View selected work') : null, data.email ? h('a', { href: `mailto:${data.email}` }, 'Start a conversation') : null)
+    ),
+    h('aside', { className: 'ld-balance', 'aria-label': 'Portfolio summary' },
+      data.avatar ? h('img', { src: data.avatar, alt: '' }) : h('span', null, data.initials),
+      h('dl', null,
+        h('div', null, h('dt', null, 'Projects'), h('dd', null, String(projects.length).padStart(2, '0'))),
+        h('div', null, h('dt', null, 'Records'), h('dd', null, String(sections.length).padStart(2, '0')))
+      )
+    )
+  );
+  return h('div', { className: 'rp rp--ledger ld', style: { '--ld-accent': data.accent || '#0c766e' } },
+    h('header', { className: 'ld-header' }, h('a', { href: '#home', className: 'ld-brand' }, h('span', null, data.initials), h('strong', null, data.name || 'Ledger')), h(PortfolioLinks, { data, className: 'ld-links', limit: 5 })),
+    h('main', { className: 'ld-main' }, hero, h('section', { id: 'about', className: 'ld-about' }, h('span', null, '01'), h('div', null, h('p', null, 'Professional summary'), h('h2', null, 'Work that holds up to scrutiny.'), h('p', null, data.bio || `More information about ${data.name} will be added here.`))), sectionBlocks, projectSection, contactSection),
+    h('footer', { className: 'ld-footer' }, `© ${new Date().getFullYear()} ${data.name} / Ledger`)
+  );
+}
+
+function GraduateApp({ data }) {
+  const sections = data.sections || [];
+  const projects = data.projects || [];
+  const pathSections = sections.map((section, sectionIndex) => h('section', { id: section.key, className: 'gp-section', key: section.key },
+    h('header', null, h('span', null, String(sectionIndex + 2).padStart(2, '0')), h('div', null, h('p', null, 'The path so far'), h('h2', null, section.label))),
+    h('div', { className: 'gp-path' }, (section.items || []).map((item, itemIndex) => h('article', { key: `${section.key}-${itemIndex}`, style: { '--entry-index': itemIndex } },
+      h('i', { 'aria-hidden': true }),
+      h('div', null,
+        h('h3', null, item.title),
+        item.details ? h('p', null, item.details) : null,
+        h('footer', null, item.organisation ? h('span', null, item.organisation) : null, item.period ? h('span', null, item.period) : null, item.link ? h('a', { href: item.link, target: '_blank', rel: 'noreferrer' }, 'Learn more') : null)
+      )
+    )))
+  ));
+  const projectSection = data.showProjects ? h('section', { id: 'projects', className: 'gp-projects' },
+    h('header', null, h('p', null, 'Selected work'), h('h2', null, 'Curious, capable, and ready to contribute.')),
+    h('div', null, projects.map((project, index) => h('article', { key: project.id || index, style: { '--entry-index': index } },
+      project.image_url ? h('img', { src: project.image_url, alt: '' }) : h('span', { className: 'gp-project-number' }, String(index + 1).padStart(2, '0')),
+      h('h3', null, project.title),
+      project.summary ? h('p', null, project.summary) : null,
+      project.project_url ? h('a', { href: project.project_url, target: '_blank', rel: 'noreferrer' }, 'See project') : null
+    )))
+  ) : null;
+  const contactSection = data.showContact && (data.email || (data.socials || []).length) ? h('section', { id: 'contact', className: 'gp-contact' }, h('p', null, 'The next chapter'), h('h2', null, 'Let’s start a conversation.'), data.email ? h('a', { href: `mailto:${data.email}` }, `Email ${data.name}`) : null, h('nav', null, (data.socials || []).map(social => h('a', { key: social.label, href: social.url, target: '_blank', rel: 'noreferrer' }, social.label)))) : null;
+  const hero = h('section', { id: 'home', className: 'gp-hero' },
+    h('div', { className: 'gp-hero-copy' },
+      h('p', null, data.location || 'Early-career portfolio'), h('h1', null, data.name), h('h2', null, data.headline || 'Ready for a meaningful first step.'), h('p', null, data.bio || 'A growing collection of practical work, learning and ambitions.'),
+      h('div', null, data.showProjects ? h('a', { href: '#projects' }, 'Explore my work') : null, data.email ? h('a', { href: `mailto:${data.email}` }, 'Get in touch') : null)
+    ),
+    h('figure', { className: 'gp-portrait' }, h('div', { className: 'gp-orbit', 'aria-hidden': true }, h('i'), h('i'), h('i')), data.avatar ? h('img', { src: data.avatar, alt: '' }) : h('span', null, data.initials), h('figcaption', null, 'Open to new opportunities'))
+  );
+  return h('div', { className: 'rp rp--graduate gp', style: { '--gp-accent': data.accent || '#6750d8' } },
+    h('header', { className: 'gp-header' }, h('a', { href: '#home', className: 'gp-brand' }, h('span', null, data.initials), h('strong', null, data.name || 'Graduate Path')), h(PortfolioLinks, { data, className: 'gp-links', limit: 5 })),
+    h('main', { className: 'gp-main' }, hero, h('section', { id: 'about', className: 'gp-about' }, h('span', null, '01'), h('div', null, h('p', null, 'A little about me'), h('h2', null, 'Potential is built through practice.'), h('p', null, data.bio || `More information about ${data.name} will be added here.`))), pathSections, projectSection, contactSection),
+    h('footer', { className: 'gp-footer' }, `© ${new Date().getFullYear()} ${data.name} / Graduate Path`)
+  );
+}
+
 function App({ data }) {
   if (data.template === 'aurora') return h(AuroraApp, { data });
   if (data.template === 'studio') return h(StudioApp, { data });
   if (data.template === 'orbit') return h(OrbitApp, { data });
   if (data.template === 'prism') return h(PrismApp, { data });
   if (data.template === 'archive') return h(ArchiveApp, { data });
+  if (data.template === 'ledger') return h(LedgerApp, { data });
+  if (data.template === 'graduate') return h(GraduateApp, { data });
   const progress = useScrollProgress();
   const prefersReducedMotion = useReducedMotion() === true;
   const heroChildren = [

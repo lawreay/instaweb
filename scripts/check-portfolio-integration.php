@@ -58,7 +58,7 @@ if (!preg_match('/\$reactTemplates\s*=\s*\[(.*?)\];/s', $publicView, $reactMatch
     failCheck('Public renderer does not declare its React template list.');
 }
 preg_match_all("/'([a-z0-9]+)'/", $reactMatch[1], $reactKeys);
-$expectedReact = ['aurora', 'studio', 'orbit', 'prism', 'archive'];
+$expectedReact = ['aurora', 'studio', 'orbit', 'prism', 'archive', 'ledger', 'graduate'];
 if ($expectedReact !== $reactKeys[1]) {
     failCheck('React template allowlist differs from the expected five template keys.');
 }
@@ -85,6 +85,8 @@ $dedicatedReactTemplates = [
     'orbit' => ['OrbitApp', '.ro-console', '.ro-route'],
     'prism' => ['PrismApp', '.rpz-hero', '.rpz-items'],
     'archive' => ['ArchiveApp', '.ra-masthead', '.ra-catalogue'],
+    'ledger' => ['LedgerApp', '.ld-header', '.ld-ledger'],
+    'graduate' => ['GraduateApp', '.gp-header', '.gp-path'],
 ];
 foreach ($dedicatedReactTemplates as $template => [$renderer, $firstSelector, $secondSelector]) {
     if (!str_contains($reactJs, 'function ' . $renderer)
@@ -137,6 +139,10 @@ if (!str_contains($portfolioController, 'public function autosave(): void')
 
 $adminTemplateView = readRequiredFile($root . '/app/Views/admin/portfolio-templates.php');
 $adminController = readRequiredFile($root . '/app/Controllers/AdminController.php');
+$customTemplateModel = readRequiredFile($root . '/app/Models/PortfolioTemplate.php');
+$customTemplateForm = readRequiredFile($root . '/app/Views/admin/portfolio-template-form.php');
+$customReactFrame = readRequiredFile($root . '/public/assets/portfolio-template/custom-react-template-frame.html');
+$customReactRuntime = readRequiredFile($root . '/public/assets/portfolio-template/custom-react-template-runtime.js');
 if (!str_contains($routes, "'/admin/portfolio-templates' => [AdminController::class, 'portfolioTemplates']")
     || !str_contains($routes, "'/admin/portfolio-templates/save' => [AdminController::class, 'savePortfolioTemplates']")
     || !str_contains($adminController, 'public function savePortfolioTemplates(): void')
@@ -150,6 +156,22 @@ if (!str_contains($routes, "'/admin/portfolio-templates' => [AdminController::cl
 
 if (!str_contains($editorView, 'foreach ($templates as $templateKey => $templateLabel)')) {
     failCheck('Advanced Editor selector is not generated from the server-side template registry.');
+}
+
+if (!str_contains($customTemplateModel, 'render_engine')
+    || !str_contains($customTemplateModel, 'react_code')
+    || !str_contains($customTemplateForm, 'React + JSX')
+    || !str_contains($customTemplateForm, 'function Portfolio({ data })')
+    || !str_contains($adminController, 'defaultTemplateReact')
+    || !str_contains($adminController, '$unsafeReact')
+    || !str_contains($publicView, '$isCustomReactTemplate')
+    || !str_contains($publicView, 'custom-react-template-frame')
+    || !str_contains($publicView, 'sandbox="allow-scripts"')
+    || !str_contains($customReactFrame, 'react.production.min.js')
+    || !str_contains($customReactFrame, 'babel.min.js')
+    || !str_contains($customReactRuntime, "Babel.transform")
+    || !str_contains($customReactRuntime, "instaweb-react-template-height")) {
+    failCheck('Admin-authored React/JSX template support is incomplete.');
 }
 
 if (!str_contains($advancedPortfolioController, 'updateTemplateForOwner((int) $website[\'id\'], $userId, $templateKey)')

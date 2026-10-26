@@ -7,7 +7,7 @@ $baseUrl = rtrim((string) (($app ?? [])['base_url'] ?? ''), '/');
     <div>
       <p class="text-uppercase small fw-bold text-secondary mb-1">Portfolio Studio</p>
       <h1 class="h3 mb-2">Template manager</h1>
-      <p class="text-secondary mb-0">Control which layouts are available, create custom HTML/CSS layouts, and choose sample portfolios for template previews.</p>
+      <p class="text-secondary mb-0">Control which layouts are available, create custom HTML/CSS or React/JSX layouts, and choose sample portfolios for template previews.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a class="btn btn-primary" href="<?= $escape($baseUrl . '/admin/portfolio-templates/new') ?>"><i data-lucide="plus"></i> Add custom template</a>
@@ -17,7 +17,7 @@ $baseUrl = rtrim((string) (($app ?? [])['base_url'] ?? ''), '/');
 
   <div class="alert alert-light border d-flex gap-3 mb-4" role="note">
     <i data-lucide="shield-check" class="flex-shrink-0 mt-1"></i>
-    <div><strong>Built-in layouts are protected.</strong> You can activate or suspend them, but their application code cannot be deleted. Add a custom template when you need editable HTML and CSS. Suspended templates are hidden from new portfolio selections; existing portfolios continue to render normally.</div>
+    <div><strong>Built-in layouts are protected.</strong> You can activate or suspend them, but their application code cannot be deleted. Custom templates can use safe HTML/CSS or React/JSX. React templates run in an isolated frame. Suspended templates are hidden from new portfolio selections; existing portfolios continue to render normally.</div>
   </div>
 
   <div class="row g-3">
@@ -26,6 +26,7 @@ $baseUrl = rtrim((string) (($app ?? [])['base_url'] ?? ''), '/');
         $templateKey = (string) ($template['template_key'] ?? '');
         $isBuiltIn = !empty($template['is_builtin']);
         $isActive = ($template['status'] ?? '') === 'active';
+        $renderEngine = (string) ($template['render_engine'] ?? 'html');
         $matching = array_values(array_filter($portfolios, static fn (array $p): bool => ($p['template_key'] ?? '') === $templateKey));
         $selectedId = (int) ($defaults[$templateKey] ?? 0);
         $selected = null;
@@ -43,6 +44,7 @@ $baseUrl = rtrim((string) (($app ?? [])['base_url'] ?? ''), '/');
               <div>
                 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                   <span class="badge text-bg-light"><?= $escape($isBuiltIn ? 'BUILT-IN' : 'CUSTOM') ?></span>
+                  <?php if (!$isBuiltIn): ?><span class="badge text-bg-info"><?= $escape($renderEngine === 'react' ? 'REACT / JSX' : 'HTML / CSS') ?></span><?php endif; ?>
                   <span class="badge text-bg-<?= $isActive ? 'success' : 'warning' ?>"><?= $escape(ucfirst((string) ($template['status'] ?? 'suspended'))) ?></span>
                 </div>
                 <h2 class="h5 mb-1"><?= $escape($template['display_name'] ?? '') ?></h2>
@@ -53,7 +55,7 @@ $baseUrl = rtrim((string) (($app ?? [])['base_url'] ?? ''), '/');
               <?php endif; ?>
             </div>
 
-            <p class="small text-secondary mb-3"><?= $isBuiltIn ? 'Renderer files are maintained by the application.' : 'Editable, script-free HTML and CSS.' ?></p>
+            <p class="small text-secondary mb-3"><?= $isBuiltIn ? 'Renderer files are maintained by the application.' : ($renderEngine === 'react' ? 'Editable React component and CSS, rendered in an isolated frame.' : 'Editable, script-free HTML and CSS.') ?></p>
 
             <div class="mt-auto d-flex flex-wrap gap-2">
               <form method="POST" action="<?= $escape($baseUrl . '/admin/portfolio-templates/status') ?>">

@@ -27,6 +27,8 @@ class PortfolioController extends Controller
         'orbit' => 'Orbit 3D — mission-control interface',
         'prism' => 'Prism — colourful and expressive',
         'archive' => 'Archive — paper-led catalogue',
+        'ledger' => 'Ledger — precise professional portfolio',
+        'graduate' => 'Graduate Path — confident early-career portfolio',
     ];
 
     public function edit(): void
