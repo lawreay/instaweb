@@ -906,6 +906,62 @@ class AdminController extends Controller
     }
 
     /**
+     * Configure the administrator-owned published portfolio used as the
+     * sample preview for each portfolio template.
+     */
+    public function portfolioTemplates(): void
+    {
+        $this->adminOnly();
+        $settings = (new Setting())->all();
+        $portfolios = (new Portfolio())->ownedPortfolioOptions((int) AuthService::id());
+        $defaults = [];
+        foreach (array_keys(PortfolioController::TEMPLATES) as $templateKey) {
+            $defaults[$templateKey] = (int) ($settings['portfolio_template_default_' . $templateKey] ?? 0);
+        }
+
+        $this->view('admin/portfolio-templates', [
+            'title' => 'Portfolio Template Previews',
+            'templates' => PortfolioController::TEMPLATES,
+            'portfolios' => $portfolios,
+            'defaults' => $defaults,
+        ], 'layouts/admin');
+    }
+
+    public function savePortfolioTemplates(): void
+    {
+        $this->adminOnly();
+        if (!Csrf::validate($this->input('_csrf'))) {
+            Session::flash('error', 'Your session expired. Please try again.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        $userId = (int) AuthService::id();
+        $portfolioModel = new Portfolio();
+        $owned = $portfolioModel->ownedPortfolioOptions($userId);
+        $ownedById = [];
+        foreach ($owned as $portfolio) {
+            $ownedById[(int) $portfolio['id']] = (string) ($portfolio['template_key'] ?? '');
+        }
+
+        $settingsToSave = [];
+        foreach (array_keys(PortfolioController::TEMPLATES) as $templateKey) {
+            $portfolioId = (int) $this->input('default_' . $templateKey, 0);
+            if ($portfolioId !== 0 && (($ownedById[$portfolioId] ?? null) !== $templateKey)) {
+                Session::flash('error', 'Choose a portfolio you own that uses the matching template. Each sample must match its template.');
+                $this->redirectTo('/admin/portfolio-templates');
+            }
+            $settingsToSave['portfolio_template_default_' . $templateKey] = [
+                'value' => (string) $portfolioId,
+                'group' => 'portfolio_templates',
+            ];
+        }
+
+        (new Setting())->saveMany($settingsToSave);
+        Session::flash('success', 'Default portfolio template previews saved.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    /**
      * Require an authenticated admin account.
      */
     private function adminOnly(): void
