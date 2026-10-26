@@ -298,7 +298,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
     if (submitButton) submitButton.disabled = true;
     try {
       const response = await fetch(avatarForm.action, { method: 'POST', body: new FormData(avatarForm), credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({ ok: false, message: 'Photo upload failed. Check the file and try again.' }));
       if (!response.ok || !result.ok) throw new Error(result.message || 'Photo upload failed.');
       if (result.avatar_url && avatarPreview) {
         avatarPreview.src = result.avatar_url + '?_=' + Date.now();
