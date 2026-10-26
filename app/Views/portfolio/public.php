@@ -259,19 +259,19 @@ $customReactPayload = $isCustomReactTemplate ? [
   <meta name="robots" content="<?= !empty($isPreview) ? 'noindex,nofollow' : 'index,follow' ?>">
   <meta name="theme-color" content="<?= in_array($template, ['3d', 'noir'], true) ? '#080b0e' : '#f4f0e7' ?>">
   <?php
-    $faviconBase = $avatar !== '' && !str_contains($avatar, '..')
-        && preg_match('#^uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/[A-Za-z0-9_.-]+$#', $avatar)
-        ? $baseUrl . '/' . ltrim($avatar, '/')
-        : $baseUrl . '/assets/images/instaweb-favicon.png';
+    $avatarStem = $avatarUrl !== '' ? pathinfo($avatar, PATHINFO_FILENAME) : '';
     $faviconDirectory = dirname(__DIR__, 3) . '/public/uploads/portfolios/' . (int) ($website['id'] ?? 0);
-    $favicon32 = is_file($faviconDirectory . '/avatar-favicon-32.png') ? $baseUrl . '/uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/avatar-favicon-32.png' : $faviconBase;
-    $favicon180 = is_file($faviconDirectory . '/avatar-favicon-180.png') ? $baseUrl . '/uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/avatar-favicon-180.png' : $faviconBase;
-    $favicon192 = is_file($faviconDirectory . '/avatar-favicon-192.png') ? $baseUrl . '/uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/avatar-favicon-192.png' : $faviconBase;
+    $favicon32Path = $avatarStem !== '' ? $faviconDirectory . '/' . $avatarStem . '-favicon-32.png' : '';
+    $favicon180Path = $avatarStem !== '' ? $faviconDirectory . '/' . $avatarStem . '-favicon-180.png' : '';
+    $favicon192Path = $avatarStem !== '' ? $faviconDirectory . '/' . $avatarStem . '-favicon-192.png' : '';
+    $defaultFavicon = $baseUrl . '/favicon.ico';
+    $favicon32 = $favicon32Path !== '' && is_file($favicon32Path) ? $baseUrl . '/uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/' . basename($favicon32Path) : ($avatarUrl !== '' ? $avatarUrl : $defaultFavicon);
+    $favicon180 = $favicon180Path !== '' && is_file($favicon180Path) ? $baseUrl . '/uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/' . basename($favicon180Path) : ($avatarUrl !== '' ? $avatarUrl : $defaultFavicon);
+    $favicon192 = $favicon192Path !== '' && is_file($favicon192Path) ? $baseUrl . '/uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/' . basename($favicon192Path) : ($avatarUrl !== '' ? $avatarUrl : $defaultFavicon);
   ?>
-  <link rel="icon" href="<?= $escape($favicon32) ?>" sizes="32x32" type="<?= str_ends_with($favicon32, '.png') ? 'image/png' : 'image/webp' ?>">
+  <link rel="icon" href="<?= $escape($favicon32) ?>" sizes="32x32" <?= str_ends_with($favicon32, '.png') ? 'type="image/png"' : '' ?>>
   <link rel="apple-touch-icon" href="<?= $escape($favicon180) ?>">
-  <link rel="icon" href="<?= $escape($favicon192) ?>" sizes="192x192" type="<?= str_ends_with($favicon192, '.png') ? 'image/png' : 'image/webp' ?>">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="icon" href="<?= $escape($favicon192) ?>" sizes="192x192" <?= str_ends_with($favicon192, '.png') ? 'type="image/png"' : '' ?>>
   <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/styles.css') ?>">
   <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio.css') ?>">
   <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/navbar.css') ?>">
