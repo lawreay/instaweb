@@ -258,6 +258,19 @@ $customReactPayload = $isCustomReactTemplate ? [
   <meta name="description" content="<?= $escape(substr($bio !== '' ? $bio : $headline, 0, 160)) ?>">
   <meta name="robots" content="<?= !empty($isPreview) ? 'noindex,nofollow' : 'index,follow' ?>">
   <meta name="theme-color" content="<?= in_array($template, ['3d', 'noir'], true) ? '#080b0e' : '#f4f0e7' ?>">
+  <?php
+    $faviconBase = $avatar !== '' && !str_contains($avatar, '..')
+        && preg_match('#^uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/[A-Za-z0-9_.-]+$#', $avatar)
+        ? $baseUrl . '/' . ltrim($avatar, '/')
+        : $baseUrl . '/assets/images/instaweb-favicon.png';
+    $faviconDirectory = dirname(__DIR__, 3) . '/public/uploads/portfolios/' . (int) ($website['id'] ?? 0);
+    $favicon32 = is_file($faviconDirectory . '/avatar-favicon-32.png') ? $baseUrl . '/uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/avatar-favicon-32.png' : $faviconBase;
+    $favicon180 = is_file($faviconDirectory . '/avatar-favicon-180.png') ? $baseUrl . '/uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/avatar-favicon-180.png' : $faviconBase;
+    $favicon192 = is_file($faviconDirectory . '/avatar-favicon-192.png') ? $baseUrl . '/uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/avatar-favicon-192.png' : $faviconBase;
+  ?>
+  <link rel="icon" href="<?= $escape($favicon32) ?>" sizes="32x32" type="<?= str_ends_with($favicon32, '.png') ? 'image/png' : 'image/webp' ?>">
+  <link rel="apple-touch-icon" href="<?= $escape($favicon180) ?>">
+  <link rel="icon" href="<?= $escape($favicon192) ?>" sizes="192x192" type="<?= str_ends_with($favicon192, '.png') ? 'image/png' : 'image/webp' ?>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/styles.css') ?>">
   <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio.css') ?>">
