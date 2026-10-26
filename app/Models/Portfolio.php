@@ -177,6 +177,47 @@ class Portfolio extends Model
     }
 
     /**
+     * Return portfolios owned by an administrator for template demo selection.
+     */
+    public function ownedPortfolioOptions(int $userId): array
+    {
+        $statement = $this->query(
+            "SELECT p.id, p.display_name, p.template_key, w.website_name, w.slug, w.status
+             FROM portfolios p
+             INNER JOIN websites w ON w.id = p.website_id
+             WHERE p.user_id = :user_id
+               AND w.user_id = :website_user_id
+               AND w.template_key = 'portfolio'
+             ORDER BY p.display_name ASC, p.id ASC",
+            ['user_id' => $userId, 'website_user_id' => $userId]
+        );
+
+        return $statement->fetchAll();
+    }
+
+    /**
+     * Resolve an administrator-selected, published sample for one template.
+     * Only published examples are exposed to other users' preview pages.
+     */
+    public function findPublishedTemplatePreview(int $portfolioId, string $templateKey): ?array
+    {
+        $statement = $this->query(
+            "SELECT p.id, p.template_key, w.slug
+             FROM portfolios p
+             INNER JOIN websites w ON w.id = p.website_id AND w.user_id = p.user_id
+             WHERE p.id = :portfolio_id
+               AND p.template_key = :template_key
+               AND w.template_key = 'portfolio'
+               AND w.status = 'published'
+             LIMIT 1",
+            ['portfolio_id' => $portfolioId, 'template_key' => $templateKey]
+        );
+        $row = $statement->fetch();
+
+        return $row ?: null;
+    }
+
+    /**
      * Return portfolio projects in deterministic display order.
      */
     public function projects(int $portfolioId): array
