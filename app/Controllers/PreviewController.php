@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Core\View;
 use App\Models\Portfolio;
 use App\Models\AdvancedPortfolio;
+use App\Models\PortfolioTemplate;
 use App\Core\Session;
 use App\Models\Website;
 use App\Services\AuthService;
@@ -50,6 +51,7 @@ class PreviewController extends Controller
                 'advancedSettings' => $advancedModel->settings((int) $website['id'], $userId),
                 'advancedItems' => $advancedModel->visibleItems((int) $website['id'], $userId),
                 'noirSectionImages' => $advancedModel->noirSectionImages((int) $website['id'], $userId),
+                'customTemplate' => (new PortfolioTemplate())->customByKey((string) ($portfolio['template_key'] ?? '')),
                 'isPreview' => true,
             ], '');
             return;

@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Core\Csrf;
 use App\Core\Session;
 use App\Models\Portfolio;
+use App\Models\PortfolioTemplate;
 use App\Models\Setting;
 use App\Models\Website;
 use App\Services\AuthService;
@@ -32,9 +33,10 @@ class PortfolioController extends Controller
     {
         [$userId, $website, $portfolio] = $this->ownedPortfolio();
         $settings = (new Setting())->all();
+        $templates = $this->availableTemplates((string) ($portfolio['template_key'] ?? 'classic'));
         $templatePreviewUrls = [];
         $portfolioModel = new Portfolio();
-        foreach (array_keys(self::TEMPLATES) as $templateKey) {
+        foreach (array_keys($templates) as $templateKey) {
             $defaultPortfolioId = (int) ($settings['portfolio_template_default_' . $templateKey] ?? 0);
             if ($defaultPortfolioId < 1) {
                 continue;
@@ -49,7 +51,7 @@ class PortfolioController extends Controller
             'title' => 'Edit Portfolio',
             'website' => $website,
             'portfolio' => $portfolio,
-            'templates' => self::TEMPLATES,
+            'templates' => $templates,
             'templatePreviewUrls' => $templatePreviewUrls,
             'active' => 'websites',
         ], 'layouts/dashboard');
@@ -77,7 +79,7 @@ class PortfolioController extends Controller
         $templateKey = trim((string) $this->input('template_key', (string) ($portfolio['template_key'] ?? 'classic')));
 
         if ($displayName === '' || mb_strlen($displayName) > 120 || mb_strlen($headline) > 180
-            || !array_key_exists($templateKey, self::TEMPLATES)) {
+            || !$this->canUseTemplate($templateKey, (string) ($portfolio['template_key'] ?? 'classic'))) {
             http_response_code(422);
             echo json_encode(['ok' => false, 'message' => 'Enter a full name and choose an available template.']);
             return;
@@ -137,7 +139,7 @@ class PortfolioController extends Controller
             || strlen($bio) > 10000
             || strlen($email) > 190
             || strlen($location) > 120
-            || !array_key_exists($templateKey, self::TEMPLATES)
+            || !$this->canUseTemplate($templateKey, (string) ($portfolio['template_key'] ?? 'classic'))
             || ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false)) {
             Session::flash('error', 'Check the profile fields. The name is required, the email must be valid, and the selected template must be available.');
             $this->redirectTo($this->editorPath((int) $website['id']));
@@ -348,6 +350,28 @@ class PortfolioController extends Controller
 
         Session::flash($deleted ? 'success' : 'error', $deleted ? 'Project removed from your portfolio.' : 'Project not found or you do not have permission to remove it.');
         $this->redirectTo($this->editorPath((int) $website['id']));
+    }
+
+    /** Active templates are selectable; a current suspended template stays visible for its owner. */
+    private function availableTemplates(string $currentTemplate = ''): array
+    {
+        $catalog = new PortfolioTemplate();
+        $templates = $catalog->selectable();
+        if ($currentTemplate !== '' && !isset($templates[$currentTemplate])) {
+            foreach ($catalog->all() as $template) {
+                if ((string) ($template['template_key'] ?? '') === $currentTemplate) {
+                    $templates[$currentTemplate] = (string) ($template['display_name'] ?? $currentTemplate) . ' (currently suspended)';
+                    break;
+                }
+            }
+        }
+
+        return $templates;
+    }
+
+    private function canUseTemplate(string $templateKey, string $currentTemplate): bool
+    {
+        return array_key_exists($templateKey, $this->availableTemplates($currentTemplate));
     }
 
     /**

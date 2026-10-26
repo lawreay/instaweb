@@ -10,6 +10,7 @@ use App\Core\Validator;
 use App\Models\AdminRepository;
 use App\Models\LegalPolicy;
 use App\Models\Portfolio;
+use App\Models\PortfolioTemplate;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\User;
@@ -930,15 +931,18 @@ class AdminController extends Controller
         $this->adminOnly();
         $settings = (new Setting())->all();
         $portfolios = (new Portfolio())->ownedPortfolioOptions((int) AuthService::id());
+        $templateCatalog = new PortfolioTemplate();
+        $templates = $templateCatalog->all();
         $defaults = [];
-        foreach (array_keys(PortfolioController::TEMPLATES) as $templateKey) {
+        foreach ($templates as $template) {
+            $templateKey = (string) $template['template_key'];
             $defaults[$templateKey] = (int) ($settings['portfolio_template_default_' . $templateKey] ?? 0);
         }
 
         $this->view('admin/portfolio-templates', [
-            'title' => 'Portfolio Template Previews',
+            'title' => 'Portfolio Templates',
             'active' => 'portfolio-templates',
-            'templates' => PortfolioController::TEMPLATES,
+            'templates' => $templates,
             'portfolios' => $portfolios,
             'defaults' => $defaults,
         ], 'layouts/admin');
@@ -961,7 +965,8 @@ class AdminController extends Controller
         }
 
         $settingsToSave = [];
-        foreach (array_keys(PortfolioController::TEMPLATES) as $templateKey) {
+        foreach ((new PortfolioTemplate())->all() as $template) {
+            $templateKey = (string) $template['template_key'];
             $portfolioId = (int) $this->input('default_' . $templateKey, 0);
             if ($portfolioId !== 0 && (($ownedById[$portfolioId] ?? null) !== $templateKey)) {
                 Session::flash('error', 'Choose a portfolio you own that uses the matching template. Each sample must match its template.');
@@ -976,6 +981,215 @@ class AdminController extends Controller
         (new Setting())->saveMany($settingsToSave);
         Session::flash('success', 'Default portfolio template previews saved.');
         $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    /** Show the safe HTML/CSS editor for a new custom portfolio template. */
+    public function createPortfolioTemplate(): void
+    {
+        $this->adminOnly();
+        $this->view('admin/portfolio-template-form', [
+            'title' => 'Add Portfolio Template',
+            'active' => 'portfolio-templates',
+            'mode' => 'create',
+            'template' => [
+                'display_name' => '',
+                'description' => '',
+                'html_code' => $this->defaultTemplateHtml(),
+                'css_code' => $this->defaultTemplateCss(),
+            ],
+        ], 'layouts/admin');
+    }
+
+    /** Show the code editor for a custom template. Built-ins are code-owned. */
+    public function editPortfolioTemplate(): void
+    {
+        $this->adminOnly();
+        $template = (new PortfolioTemplate())->findCustom((int) $this->input('id', 0));
+        if (!$template) {
+            Session::flash('error', 'That custom template was not found. Built-in template code is managed by the application.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        $this->view('admin/portfolio-template-form', [
+            'title' => 'Edit Portfolio Template',
+            'active' => 'portfolio-templates',
+            'mode' => 'edit',
+            'template' => $template,
+        ], 'layouts/admin');
+    }
+
+    public function storePortfolioTemplate(): void
+    {
+        $this->adminOnly();
+        $this->validateTemplateCsrf();
+        $data = $this->templateInput();
+        $catalog = new PortfolioTemplate();
+        $data['template_key'] = $this->nextCustomTemplateKey($data['display_name'], $catalog->all());
+        $data['status'] = 'active';
+        $catalog->create($data, (int) AuthService::id());
+
+        Session::flash('success', 'Custom template added. It is now available in Portfolio Studio.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    public function updatePortfolioTemplate(): void
+    {
+        $this->adminOnly();
+        $this->validateTemplateCsrf();
+        $catalog = new PortfolioTemplate();
+        $templateId = (int) $this->input('id', 0);
+        if (!$catalog->findCustom($templateId)) {
+            Session::flash('error', 'That custom template no longer exists.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        $catalog->update($templateId, $this->templateInput());
+        Session::flash('success', 'Template code saved.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    /** Suspend or activate either a built-in or custom template. */
+    public function setPortfolioTemplateStatus(): void
+    {
+        $this->adminOnly();
+        $this->validateTemplateCsrf();
+        $status = (string) $this->input('status', '');
+        if (!in_array($status, ['active', 'suspended'], true)) {
+            Session::flash('error', 'Choose a valid template status.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        $catalog = new PortfolioTemplate();
+        $templateKey = trim((string) $this->input('template_key', ''));
+        if ($catalog->isBuiltIn($templateKey)) {
+            $catalog->setBuiltInStatus($templateKey, $status);
+        } else {
+            $templateId = (int) $this->input('id', 0);
+            if (!$catalog->findCustom($templateId)) {
+                Session::flash('error', 'That custom template was not found.');
+                $this->redirectTo('/admin/portfolio-templates');
+            }
+            $catalog->setCustomStatus($templateId, $status);
+        }
+
+        Session::flash('success', $status === 'suspended'
+            ? 'Template suspended. It is hidden from new Portfolio Studio selections; portfolios already using it still render.'
+            : 'Template activated and available in Portfolio Studio.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    /** Delete an unused custom template. Built-in renderer files stay protected. */
+    public function deletePortfolioTemplate(): void
+    {
+        $this->adminOnly();
+        $this->validateTemplateCsrf();
+        $catalog = new PortfolioTemplate();
+        $template = $catalog->findCustom((int) $this->input('id', 0));
+        if (!$template) {
+            Session::flash('error', 'Only custom templates can be deleted.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+        if ($catalog->isInUse((string) $template['template_key'])) {
+            Session::flash('error', 'This template is currently used by a portfolio and cannot be deleted. Switch those portfolios to another template first.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        $catalog->deleteCustom((int) $template['id']);
+        Session::flash('success', 'Custom template deleted.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    private function validateTemplateCsrf(): void
+    {
+        if (!Csrf::validate($this->input('_csrf'))) {
+            Session::flash('error', 'Your session expired. Please try again.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+    }
+
+    /** Validate the code that is stored for a public-facing custom template. */
+    private function templateInput(): array
+    {
+        $displayName = trim((string) $this->input('display_name', ''));
+        $description = trim((string) $this->input('description', ''));
+        $html = trim((string) $this->input('html_code', ''));
+        $css = trim((string) $this->input('css_code', ''));
+
+        $unsafeHtml = '/<\/?(?:script|iframe|object|embed|base|form|meta|link)\b|<\?|\bon[a-z]+\s*=|(?:javascript|vbscript|data)\s*:/i';
+        $unsafeCss = '/<\/?(?:style|script|iframe|object|embed|base|form|meta|link)\b|@import|expression\s*\(|(?:javascript|vbscript|data)\s*:|behavior\s*:/i';
+        if ($displayName === '' || mb_strlen($displayName) > 120 || mb_strlen($description) > 500
+            || $html === '' || strlen($html) > 180000 || strlen($css) > 90000
+            || preg_match($unsafeHtml, $html) || preg_match($unsafeCss, $css)) {
+            Session::flash('error', 'Use a name, safe HTML, and safe CSS. Scripts, embedded pages, event handlers, imports, and executable URLs are not allowed.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        return [
+            'display_name' => $displayName,
+            'description' => $description,
+            'html_code' => $html,
+            'css_code' => $css,
+        ];
+    }
+
+    private function nextCustomTemplateKey(string $displayName, array $templates): string
+    {
+        $slug = strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $displayName), '-'));
+        $slug = $slug !== '' ? $slug : 'portfolio';
+        $base = substr('custom-' . $slug, 0, 36);
+        $keys = [];
+        foreach ($templates as $template) {
+            $keys[(string) ($template['template_key'] ?? '')] = true;
+        }
+        $key = $base;
+        $suffix = 2;
+        while (isset($keys[$key])) {
+            $suffixText = '-' . $suffix++;
+            $key = substr($base, 0, 40 - strlen($suffixText)) . $suffixText;
+        }
+
+        return $key;
+    }
+
+    private function defaultTemplateHtml(): string
+    {
+        return <<<'HTML'
+<main class="custom-portfolio">
+  <header class="custom-hero" id="home">
+    <div>
+      <p class="custom-eyebrow">{{location}}</p>
+      <h1>{{name}}</h1>
+      <p class="custom-headline">{{headline}}</p>
+      <p>{{bio}}</p>
+      <a class="custom-button" href="#contact">Get in touch</a>
+    </div>
+    {{avatar}}
+  </header>
+  {{sections}}
+  {{projects}}
+  {{contact}}
+  <footer>© {{year}} {{name}}</footer>
+</main>
+HTML;
+    }
+
+    private function defaultTemplateCss(): string
+    {
+        return <<<'CSS'
+.custom-portfolio { max-width: 1120px; margin: 0 auto; padding: 28px; }
+.custom-hero { min-height: 72vh; display: grid; grid-template-columns: 1fr minmax(240px, .72fr); align-items: center; gap: 56px; }
+.custom-hero h1 { margin: 0; font-size: clamp(3rem, 10vw, 7rem); letter-spacing: -.07em; line-height: .92; }
+.custom-eyebrow { color: var(--portfolio-accent); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.custom-headline { font-size: 1.3rem; font-weight: 700; }
+.custom-avatar { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.custom-section { padding: 78px 0; border-top: 1px solid rgba(15, 23, 42, .15); }
+.custom-section h2 { font-size: clamp(2rem, 5vw, 3.5rem); margin: 0 0 28px; }
+.custom-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.custom-card { padding: 22px; background: rgba(255,255,255,.72); border: 1px solid rgba(15,23,42,.12); border-radius: 14px; }
+.custom-card h3 { margin-top: 0; }.custom-button { display:inline-block; padding: 12px 18px; background: #172b3a; color: #fff; text-decoration:none; }
+.custom-portfolio footer { padding: 32px 0; color: #64748b; }
+@media (max-width: 720px) { .custom-portfolio { padding: 20px; } .custom-hero { grid-template-columns: 1fr; min-height: auto; padding: 60px 0; gap: 28px; } }
+CSS;
     }
 
     /**

@@ -213,8 +213,13 @@ if (!str_contains($publicView, "!empty(\$isPreview) ? 'noindex,nofollow' : 'inde
     failCheck('Private portfolio preview must be marked noindex,nofollow while published pages remain indexable.');
 }
 
-if (!str_contains($reactJs, "(data.showContact && (data.email || (data.socials || []).length)) ? { id: 'contact', label: 'Contact' } : null")) {
-    failCheck('React Contact navigation must only appear when the Contact section can render.');
+if (!str_contains($reactJs, 'function rankedNavigation(data)')
+    || !str_contains($reactJs, "const navigationPriority = ['about', 'experience', 'projects', 'skills', 'contact'")
+    || !str_contains($reactJs, 'data.showContact && (data.email || (data.socials || []).length)')
+    || !str_contains($reactJs, '.slice(0, 5)')
+    || !str_contains($publicView, '$navigationPriority =')
+    || !str_contains($publicView, 'array_slice($navigationItems, 0, 5)')) {
+    failCheck('Portfolio navigation must rank available destinations and keep only five links.');
 }
 
 if (!str_contains($publishController, 'updateStatus((int) $website[\'id\'], $userId, \'published\')')

@@ -7,13 +7,16 @@ $bio = trim((string) ($portfolio['bio'] ?? ''));
 $template = (string) ($portfolio['template_key'] ?? 'classic');
 $availableTemplates = ['classic', 'editorial', '3d', 'minimal', 'noir', 'aurora', 'studio', 'orbit', 'prism', 'archive'];
 $reactTemplates = ['aurora', 'studio', 'orbit', 'prism', 'archive'];
+$customTemplate = is_array($customTemplate ?? null) ? $customTemplate : null;
+$isCustomTemplate = $customTemplate !== null
+    && (string) ($customTemplate['template_key'] ?? '') === $template;
 $noirStylesheetPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/portfolio-noir.css';
 $noirStylesheetVersion = is_file($noirStylesheetPath) ? (string) filemtime($noirStylesheetPath) : '1';
 $reactStylesheetPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/react-portfolio.css';
 $reactStylesheetVersion = is_file($reactStylesheetPath) ? (string) filemtime($reactStylesheetPath) : '1';
 $reactScriptPath = dirname(__DIR__, 3) . '/public/assets/portfolio-template/react-portfolio.js';
 $reactScriptVersion = is_file($reactScriptPath) ? (string) filemtime($reactScriptPath) : '1';
-if (!in_array($template, $availableTemplates, true)) {
+if (!$isCustomTemplate && !in_array($template, $availableTemplates, true)) {
     $template = 'classic';
 }
 $advancedSettings = is_array($advancedSettings ?? null) ? $advancedSettings : [];
@@ -85,6 +88,103 @@ foreach (($projects ?? []) as $project) {
     }
     $safeProjects[] = $project;
 }
+
+// Navigation is intentionally limited to the five most useful destinations.
+// Missing content falls through to the next available priority instead of
+// leaving an empty position in the menu.
+$navigationPriority = ['about', 'experience', 'projects', 'skills', 'contact', 'education', 'goals', 'interests', 'challenges', 'partnerships', 'news', 'cv'];
+$navigationItemsByKey = [
+    'about' => ['href' => '#about', 'label' => 'About'],
+];
+$navigationLabels = ['experience' => 'Experience'];
+foreach ($sectionLabels as $sectionKey => $sectionLabel) {
+    if (!empty($sectionItems[$sectionKey])) {
+        $navigationItemsByKey[$sectionKey] = [
+            'href' => '#' . $sectionKey,
+            'label' => $navigationLabels[$sectionKey] ?? $sectionLabel,
+        ];
+    }
+}
+if ($showProjects && $safeProjects !== []) {
+    $navigationItemsByKey['projects'] = ['href' => '#projects', 'label' => 'Projects'];
+}
+if ($showContact && ($email !== '' || $safeSocialLinks !== [])) {
+    $navigationItemsByKey['contact'] = ['href' => '#contact', 'label' => 'Contact'];
+}
+$navigationItems = [];
+foreach ($navigationPriority as $navigationKey) {
+    if (isset($navigationItemsByKey[$navigationKey])) {
+        $navigationItems[] = $navigationItemsByKey[$navigationKey];
+    }
+}
+$navigationItems = array_slice($navigationItems, 0, 5);
+
+// Custom templates receive escaped profile values and pre-rendered content
+// blocks. The HTML source itself is stored only after admin-side safety checks.
+$customSectionsMarkup = '';
+foreach ($sectionLabels as $sectionKey => $sectionLabel) {
+    if (empty($sectionItems[$sectionKey])) {
+        continue;
+    }
+    $cards = '';
+    foreach ($sectionItems[$sectionKey] as $item) {
+        $payload = json_decode((string) ($item['payload'] ?? '{}'), true);
+        $payload = is_array($payload) ? $payload : [];
+        $link = trim((string) ($payload['link'] ?? ''));
+        if (!filter_var($link, FILTER_VALIDATE_URL) || !in_array(strtolower((string) parse_url($link, PHP_URL_SCHEME)), ['http', 'https'], true)) {
+            $link = '';
+        }
+        $meta = trim((string) ($payload['organisation'] ?? '') . (!empty($payload['organisation']) && !empty($payload['period']) ? ' · ' : '') . (string) ($payload['period'] ?? ''));
+        $cards .= '<article class="custom-card"><h3>' . $escape($item['title'] ?? '') . '</h3>'
+            . ($meta !== '' ? '<p>' . $escape($meta) . '</p>' : '')
+            . (!empty($payload['details']) ? '<p>' . nl2br($escape($payload['details'])) . '</p>' : '')
+            . ($link !== '' ? '<p><a href="' . $escape($link) . '" target="_blank" rel="noopener noreferrer">Learn more</a></p>' : '')
+            . '</article>';
+    }
+    $customSectionsMarkup .= '<section id="' . $escape($sectionKey) . '" class="custom-section"><h2>' . $escape($sectionLabel) . '</h2><div class="custom-cards">' . $cards . '</div></section>';
+}
+
+$customProjectsMarkup = '';
+if ($showProjects) {
+    $projectCards = '';
+    foreach ($safeProjects as $project) {
+        $projectCards .= '<article class="custom-card">'
+            . (!empty($project['image_url']) ? '<img class="custom-project-image" src="' . $escape($project['image_url']) . '" alt="" loading="lazy">' : '')
+            . '<h3>' . $escape($project['title'] ?? '') . '</h3>'
+            . (!empty($project['summary']) ? '<p>' . nl2br($escape($project['summary'])) . '</p>' : '')
+            . (!empty($project['project_url']) ? '<p><a href="' . $escape($project['project_url']) . '" target="_blank" rel="noopener noreferrer">View project</a></p>' : '')
+            . '</article>';
+    }
+    $customProjectsMarkup = '<section id="projects" class="custom-section"><h2>Projects</h2><div class="custom-cards">'
+        . ($projectCards !== '' ? $projectCards : '<p>Projects will appear here as they are added.</p>')
+        . '</div></section>';
+}
+
+$customContactMarkup = '';
+if ($showContact && ($email !== '' || $safeSocialLinks !== [])) {
+    $contactLinks = $email !== '' ? '<p><a class="custom-button" href="mailto:' . $escape($email) . '">Email ' . $escape($name) . '</a></p>' : '';
+    foreach ($safeSocialLinks as $social) {
+        $contactLinks .= '<a href="' . $escape($social['url']) . '" target="_blank" rel="noopener noreferrer">' . $escape($social['label']) . '</a> ';
+    }
+    $customContactMarkup = '<section id="contact" class="custom-section"><h2>Get in touch</h2><p>Contact ' . $escape($name) . ' to discuss a project or opportunity.</p>' . $contactLinks . '</section>';
+}
+
+$customAvatarMarkup = $avatarUrl !== ''
+    ? '<img class="custom-avatar" src="' . $escape($avatarUrl) . '" alt="' . $escape($name) . '">'
+    : '';
+$customTemplateHtml = $isCustomTemplate ? (string) ($customTemplate['html_code'] ?? '') : '';
+$customTemplateCss = $isCustomTemplate ? (string) ($customTemplate['css_code'] ?? '') : '';
+$customTemplateOutput = $isCustomTemplate ? strtr($customTemplateHtml, [
+    '{{name}}' => $escape($name),
+    '{{headline}}' => $escape($headline),
+    '{{bio}}' => nl2br($escape($bio)),
+    '{{location}}' => $escape($location),
+    '{{avatar}}' => $customAvatarMarkup,
+    '{{sections}}' => $customSectionsMarkup,
+    '{{projects}}' => $customProjectsMarkup,
+    '{{contact}}' => $customContactMarkup,
+    '{{year}}' => date('Y'),
+]) : '';
 
 // Noir uses local editorial visuals by default. A portfolio owner may safely
 // replace a section image from the Advanced Editor; the override is accepted
@@ -193,6 +293,9 @@ $initials = strtoupper(substr($name, 0, 1));
     body.portfolio-template-classic .portfolio-hero{background:linear-gradient(135deg,<?= $escape($backgroundColor) ?> 0%,#e2e8f0 55%,<?= $escape($backgroundColor) ?> 100%)}
     @media(max-width:650px){.portfolio-content-section{padding:3.5rem 1.25rem}.portfolio-hero{min-height:auto}}
   </style>
+  <?php if ($isCustomTemplate && $customTemplateCss !== ''): ?>
+    <style id="custom-portfolio-template-css"><?= $customTemplateCss ?></style>
+  <?php endif; ?>
   <?php if ($template === 'noir'): ?>
     <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-noir.css?v=' . $noirStylesheetVersion) ?>">
   <?php endif; ?>
@@ -204,14 +307,13 @@ $initials = strtoupper(substr($name, 0, 1));
       <a href="<?= $escape($baseUrl . '/dashboard/websites/portfolio?id=' . (int) $website['id']) ?>" style="margin-left:.6rem;color:#78350f;text-decoration:underline">Back to Portfolio Studio</a>
     </div>
   <?php endif; ?>
-  <?php if ($template === 'noir'): ?>
+  <?php if ($isCustomTemplate): ?>
+    <?= $customTemplateOutput ?>
+  <?php elseif ($template === 'noir'): ?>
     <header class="noir-site-header">
       <a class="noir-wordmark" href="#home" aria-label="<?= $escape($name) ?> home"><span><?= $escape($initials) ?></span><strong><?= $escape($name) ?></strong></a>
       <nav class="noir-nav" aria-label="Portfolio navigation">
-        <a href="#about">About</a>
-        <?php if (!empty($sectionItems['experience'])): ?><a href="#experience">Experience</a><?php endif; ?>
-        <?php if ($showProjects): ?><a href="#projects">Work</a><?php endif; ?>
-        <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?><a href="#contact">Contact</a><?php endif; ?>
+        <?php foreach ($navigationItems as $navigationItem): ?><a href="<?= $escape($navigationItem['href']) ?>"><?= $escape($navigationItem['label']) ?></a><?php endforeach; ?>
       </nav>
     </header>
 
@@ -312,12 +414,7 @@ $initials = strtoupper(substr($name, 0, 1));
           <span></span><span></span><span></span>
         </button>
         <ul id="nav-menu">
-          <li><a href="#about">About</a></li>
-          <?php foreach ($sectionLabels as $sectionKey => $sectionLabel): ?>
-            <?php if (!empty($sectionItems[$sectionKey])): ?><li><a href="#<?= $escape($sectionKey) ?>"><?= $escape($sectionLabel) ?></a></li><?php endif; ?>
-          <?php endforeach; ?>
-          <?php if ($showProjects): ?><li><a href="#projects">Projects</a></li><?php endif; ?>
-          <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?><li><a href="#contact">Contact</a></li><?php endif; ?>
+          <?php foreach ($navigationItems as $navigationItem): ?><li><a href="<?= $escape($navigationItem['href']) ?>"><?= $escape($navigationItem['label']) ?></a></li><?php endforeach; ?>
         </ul>
       </div>
     </nav>
@@ -449,7 +546,7 @@ $initials = strtoupper(substr($name, 0, 1));
   </main>
   <?php endif; ?>
 
-  <footer class="portfolio-footer">© <?= date('Y') ?> <?= $escape($name) ?><?= $location !== '' ? ' · ' . $escape($location) : '' ?></footer>
+  <?php if (!$isCustomTemplate): ?><footer class="portfolio-footer">© <?= date('Y') ?> <?= $escape($name) ?><?= $location !== '' ? ' · ' . $escape($location) : '' ?></footer><?php endif; ?>
   <script>
     (function () {
       var button = document.getElementById('hamburger-menu');

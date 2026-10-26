@@ -52,8 +52,28 @@ function TiltCard({ children, className = '' }) {
   return h(Motion.article, { className: `rp-card ${className}`, style: prefersReducedMotion ? {} : { rotateX, rotateY }, onPointerMove: prefersReducedMotion ? undefined : e => { const r = e.currentTarget.getBoundingClientRect(); x.set((e.clientX - r.left) / r.width - .5); y.set((e.clientY - r.top) / r.height - .5); }, onPointerLeave: prefersReducedMotion ? undefined : () => { x.set(0); y.set(0); }, whileHover: prefersReducedMotion ? undefined : { y: -5 }, transition: { type: 'spring', stiffness: 220, damping: 20 } }, children);
 }
 
+const navigationPriority = ['about', 'experience', 'projects', 'skills', 'contact', 'education', 'goals', 'interests', 'challenges', 'partnerships', 'news', 'cv'];
+
+function rankedNavigation(data) {
+  const sections = new Map((data.sections || [])
+    .filter(section => (section.items || []).length > 0)
+    .map(section => [section.key, { id: section.key, label: section.key === 'experience' ? 'Experience' : section.label }]));
+  const available = new Map([
+    ['about', { id: 'about', label: 'About' }],
+    ...sections,
+    ...(data.showProjects && (data.projects || []).length > 0 ? [['projects', { id: 'projects', label: 'Work' }]] : []),
+    ...(data.showContact && (data.email || (data.socials || []).length) ? [['contact', { id: 'contact', label: 'Contact' }]] : []),
+  ]);
+  const remaining = [...sections.keys()].filter(key => !navigationPriority.includes(key));
+
+  return [...navigationPriority, ...remaining]
+    .map(key => available.get(key))
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
 function Navigation({ data }) {
-  const links = [{ id: 'about', label: 'About' }, ...(data.sections || []).map(section => ({ id: section.key, label: section.label })), data.showProjects ? { id: 'projects', label: 'Work' } : null, (data.showContact && (data.email || (data.socials || []).length)) ? { id: 'contact', label: 'Contact' } : null].filter(Boolean);
+  const links = rankedNavigation(data);
   return h('nav', { className: 'rp-nav', 'aria-label': 'Portfolio navigation' }, h('a', { href: '#home', className: 'rp-wordmark' }, data.initials), h('div', { className: 'rp-nav-links' }, links.map(link => h('a', { href: `#${link.id}`, key: link.id }, link.label))));
 }
 
@@ -101,11 +121,11 @@ function AuroraSection({ section, index, prefersReducedMotion }) {
 function AuroraApp({ data }) {
   const progress = useScrollProgress();
   const prefersReducedMotion = useReducedMotion() === true;
-  const links = [{ id: 'about', label: 'Profile' }, ...(data.sections || []).map(section => ({ id: section.key, label: section.label })), data.showProjects ? { id: 'projects', label: 'Work' } : null, data.showContact && (data.email || (data.socials || []).length) ? { id: 'contact', label: 'Contact' } : null].filter(Boolean);
+  const links = rankedNavigation(data);
   const projects = data.projects || [];
   const navigation = h('nav', { className: 'am-nav', 'aria-label': 'Portfolio navigation' },
     h('a', { href: '#home', className: 'am-wordmark' }, h('span', null, data.initials), h('strong', null, 'Aurora Motion')),
-    h('div', { className: 'am-nav-links' }, links.slice(0, 5).map(link => h('a', { href: `#${link.id}`, key: link.id }, link.label)))
+    h('div', { className: 'am-nav-links' }, links.map(link => h('a', { href: `#${link.id}`, key: link.id }, link.label)))
   );
   const heroCopy = h('div', { className: 'am-hero-copy' },
     h('p', { className: 'am-kicker' }, data.location || 'Independent digital practice'),
@@ -157,8 +177,8 @@ function AuroraApp({ data }) {
 }
 
 function PortfolioLinks({ data, className = '', limit }) {
-  const links = [{ id: 'about', label: 'About' }, ...(data.sections || []).map(section => ({ id: section.key, label: section.label })), data.showProjects ? { id: 'projects', label: 'Work' } : null, data.showContact && (data.email || (data.socials || []).length) ? { id: 'contact', label: 'Contact' } : null].filter(Boolean);
-  return h('nav', { className, 'aria-label': 'Portfolio navigation' }, links.slice(0, limit || links.length).map(link => h('a', { href: `#${link.id}`, key: link.id }, link.label)));
+  const links = rankedNavigation(data);
+  return h('nav', { className, 'aria-label': 'Portfolio navigation' }, links.slice(0, Math.min(limit || 5, 5)).map(link => h('a', { href: `#${link.id}`, key: link.id }, link.label)));
 }
 
 function StudioApp({ data }) {
@@ -174,7 +194,7 @@ function StudioApp({ data }) {
   });
   const projectSection = data.showProjects ? h('section', { id: 'projects', className: 'rs-projects' }, h('p', { className: 'rs-label' }, 'Selected work'), h('h2', null, 'Recent collaborations.'), h('div', null, projects.map((project, index) => h('article', { key: project.id || index }, h('span', null, String(index + 1).padStart(2, '0')), h('h3', null, project.title), project.summary ? h('p', null, project.summary) : null, project.project_url ? h('a', { href: project.project_url, target: '_blank', rel: 'noreferrer' }, 'View case study ↗') : null)))) : null;
   const contactSection = data.showContact && (data.email || (data.socials || []).length) ? h('section', { id: 'contact', className: 'rs-contact' }, h('p', { className: 'rs-label' }, 'Available for considered work'), h('h2', null, 'Start with a good question.'), data.email ? h('a', { href: `mailto:${data.email}` }, data.email) : null, h('div', null, (data.socials || []).map(social => h('a', { href: social.url, target: '_blank', rel: 'noreferrer', key: social.label }, social.label)))) : null;
-  const rail = h('aside', { className: 'rs-rail' }, h('a', { href: '#home', className: 'rs-mark' }, h('span', null, data.initials), h('strong', null, data.name)), h('p', { className: 'rs-rail-note' }, data.location || 'Independent studio'), h(PortfolioLinks, { data, className: 'rs-links', limit: 6 }), h('p', { className: 'rs-rail-footer' }, `© ${new Date().getFullYear()} / Selected practice`));
+  const rail = h('aside', { className: 'rs-rail' }, h('a', { href: '#home', className: 'rs-mark' }, h('span', null, data.initials), h('strong', null, data.name)), h('p', { className: 'rs-rail-note' }, data.location || 'Independent studio'), h(PortfolioLinks, { data, className: 'rs-links', limit: 5 }), h('p', { className: 'rs-rail-footer' }, `© ${new Date().getFullYear()} / Selected practice`));
   const hero = h('header', { id: 'home', className: 'rs-hero' }, h('p', { className: 'rs-label' }, 'Creative practice / 01'), h('h1', null, data.name), data.avatar ? h('figure', { className: 'rs-portrait' }, h('img', { src: data.avatar, alt: '' })) : null, h('div', { className: 'rs-hero-bottom' }, h('p', null, data.headline || 'Thoughtful work for people and organisations.'), h('p', null, data.bio || 'A small, independent practice for clear digital experiences and useful systems.'), data.showProjects ? h('a', { href: '#projects', className: 'rs-button' }, 'Browse selected work ↘') : null));
   return h('div', { className: 'rp rs', style: { '--rs-accent': data.accent || '#df5d3e' } }, rail, h('main', { className: 'rs-main' }, hero, h('section', { id: 'about', className: 'rs-intro' }, h('p', { className: 'rs-label' }, 'A note on the work'), h('h2', null, 'Ideas made tangible.'), h('p', null, data.bio || `More information about ${data.name} will be added here.`)), contentSections, projectSection, contactSection));
 }
