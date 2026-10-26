@@ -183,40 +183,43 @@ class PortfolioController extends Controller
         $file = $_FILES['avatar'] ?? null;
         if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
             || !is_uploaded_file((string) ($file['tmp_name'] ?? ''))
-            || (int) ($file['size'] ?? 0) < 1 || (int) $file['size'] > 3 * 1024 * 1024) {
-            Session::flash('error', 'Choose a profile image smaller than 3 MB.');
-            $this->redirectTo($this->editorPath($websiteId));
+            || (int) ($file['size'] ?? 0) < 1) {
+            $this->avatarUploadFailure($websiteId, 'Choose a valid image to upload.');
+            return;
         }
 
         $tmpPath = (string) $file['tmp_name'];
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $finfo = new \\finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($tmpPath);
         $imageInfo = @getimagesize($tmpPath);
-        $allowedTypes = [
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-            'image/webp' => 'webp',
-        ];
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
-        if (!is_string($mime) || !isset($allowedTypes[$mime]) || $imageInfo === false
+        if (!is_string($mime) || !in_array($mime, $allowedTypes, true) || $imageInfo === false
             || ($imageInfo['mime'] ?? '') !== $mime
+            || (int) ($imageInfo[0] ?? 0) < 1 || (int) ($imageInfo[1] ?? 0) < 1
             || (int) ($imageInfo[0] ?? 0) > 6000 || (int) ($imageInfo[1] ?? 0) > 6000) {
-            Session::flash('error', 'Use a valid JPEG, PNG, or WebP image up to 6000 × 6000 pixels.');
-            $this->redirectTo($this->editorPath($websiteId));
+            $this->avatarUploadFailure($websiteId, 'Use a valid JPEG, PNG, or WebP image up to 6000 × 6000 pixels.');
+            return;
         }
 
         $relativeDirectory = 'uploads/portfolios/' . $websiteId;
         $targetDirectory = dirname(__DIR__, 2) . '/public/' . $relativeDirectory;
         if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0755, true) && !is_dir($targetDirectory)) {
-            Session::flash('error', 'The profile image directory could not be created.');
-            $this->redirectTo($this->editorPath($websiteId));
+            $this->avatarUploadFailure($websiteId, 'The profile image directory could not be created.');
+            return;
         }
 
-        $filename = bin2hex(random_bytes(16)) . '.' . $allowedTypes[$mime];
+        $filename = bin2hex(random_bytes(16)) . '.webp';
         $targetPath = $targetDirectory . DIRECTORY_SEPARATOR . $filename;
-        if (!move_uploaded_file($tmpPath, $targetPath)) {
-            Session::flash('error', 'The profile image could not be saved.');
-            $this->redirectTo($this->editorPath($websiteId));
+        if (!$this->convertAvatarToWebp($tmpPath, $mime, $targetPath)) {
+            $this->avatarUploadFailure($websiteId, 'This server could not convert the image to WebP. Please try another image.');
+            return;
+        }
+
+        if (!is_file($targetPath) || filesize($targetPath) === 0) {
+            @unlink($targetPath);
+            $this->avatarUploadFailure($websiteId, 'The converted profile image could not be saved.');
+            return;
         }
 
         $relativePath = $relativeDirectory . '/' . $filename;
@@ -261,6 +264,82 @@ class PortfolioController extends Controller
         }
 
         Session::flash('success', 'Profile image uploaded.');
+        $this->redirectTo($this->editorPath($websiteId));
+    }
+
+    /**
+     * Convert uploaded raster images to WebP. Imagick uses lossless WebP when
+     * available; GD fallback uses quality 92 (high visual quality, not lossless).
+     */
+    private function convertAvatarToWebp(string $sourcePath, string $mime, string $targetPath): bool
+    {
+        if (class_exists(\\Imagick::class)) {
+            try {
+                $image = new \\Imagick($sourcePath);
+                if (method_exists($image, 'autoOrient')) {
+                    $image->autoOrient();
+                } elseif (method_exists($image, 'autoOrientImage')) {
+                    $image->autoOrientImage();
+                }
+                $image->setImageFormat('webp');
+                $image->setOption('webp:lossless', 'true');
+                $image->setImageCompressionQuality(100);
+                $image->stripImage();
+                $saved = $image->writeImage($targetPath);
+                $image->clear();
+                $image->destroy();
+                if ($saved && is_file($targetPath) && filesize($targetPath) > 0) {
+                    return true;
+                }
+                @unlink($targetPath);
+            } catch (\\Throwable $exception) {
+                @unlink($targetPath);
+            }
+        }
+
+        if (!function_exists('imagewebp')) {
+            return false;
+        }
+
+        $image = match ($mime) {
+            'image/jpeg' => @imagecreatefromjpeg($sourcePath),
+            'image/png' => @imagecreatefrompng($sourcePath),
+            'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($sourcePath) : false,
+            default => false,
+        };
+        if ($image === false) {
+            return false;
+        }
+
+        if ($mime === 'image/png') {
+            imagepalettetotruecolor($image);
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
+        }
+
+        $saved = @imagewebp($image, $targetPath, 92);
+        imagedestroy($image);
+
+        if (!$saved || !is_file($targetPath) || filesize($targetPath) === 0) {
+            @unlink($targetPath);
+            return false;
+        }
+
+        return true;
+    }
+
+    /** Return upload errors as JSON for the setup page's asynchronous uploader. */
+    private function avatarUploadFailure(int $websiteId, string $message): void
+    {
+        if (strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest') {
+            header('Content-Type: application/json; charset=utf-8');
+            header('Cache-Control: no-store');
+            http_response_code(422);
+            echo json_encode(['ok' => false, 'message' => $message]);
+            return;
+        }
+
+        Session::flash('error', $message);
         $this->redirectTo($this->editorPath($websiteId));
     }
 
