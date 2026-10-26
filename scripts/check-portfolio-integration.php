@@ -130,6 +130,19 @@ if (!str_contains($portfolioController, 'public function autosave(): void')
     failCheck('Portfolio setup autosave endpoint must validate the session token.');
 }
 
+$adminTemplateView = readRequiredFile($root . '/app/Views/admin/portfolio-templates.php');
+$adminController = readRequiredFile($root . '/app/Controllers/AdminController.php');
+if (!str_contains($routes, "'/admin/portfolio-templates' => [AdminController::class, 'portfolioTemplates']")
+    || !str_contains($routes, "'/admin/portfolio-templates/save' => [AdminController::class, 'savePortfolioTemplates']")
+    || !str_contains($adminController, 'public function savePortfolioTemplates(): void')
+    || !str_contains($adminController, 'ownedPortfolioOptions((int) AuthService::id())')
+    || !str_contains($adminTemplateView, 'Save template previews')
+    || !str_contains($portfolioModel, 'function findPublishedTemplatePreview')
+    || !str_contains($portfolioModel, 'function ownedPortfolioOptions')
+    || !str_contains($portfolioController, 'portfolio_template_default_')) {
+    failCheck('Admin-managed, owner-scoped default template preview workflow is incomplete.');
+}
+
 if (!str_contains($editorView, 'foreach ($templates as $templateKey => $templateLabel)')) {
     failCheck('Advanced Editor selector is not generated from the server-side template registry.');
 }
