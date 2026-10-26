@@ -182,7 +182,7 @@ class Portfolio extends Model
     public function ownedPortfolioOptions(int $userId): array
     {
         $statement = $this->query(
-            "SELECT p.id, p.display_name, p.template_key, w.website_name, w.slug, w.status
+            "SELECT p.id, p.website_id, p.display_name, p.template_key, w.website_name, w.slug, w.status
              FROM portfolios p
              INNER JOIN websites w ON w.id = p.website_id
              WHERE p.user_id = :user_id
