@@ -197,7 +197,7 @@ class AdvancedPortfolioController extends Controller
                 $originalExtension = strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
                 if ($extension === null && $mime === 'application/zip' && $originalExtension === 'docx'
                     && class_exists('\\ZipArchive')) {
-                    $zip = new \\ZipArchive();
+                    $zip = new \ZipArchive();
                     if ($zip->open($tmpPath) === true) {
                         $isDocx = $zip->locateName('[Content_Types].xml') !== false
                             && $zip->locateName('word/document.xml') !== false;
