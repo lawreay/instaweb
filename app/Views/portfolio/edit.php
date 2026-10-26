@@ -45,6 +45,13 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
 .portfolio-setup .ps-status{font-size:.8rem;color:var(--ps-muted);min-height:1.2rem}
 .portfolio-setup .ps-status[data-state="saved"]{color:#16804a}
 .portfolio-setup .ps-status[data-state="error"]{color:#b42318}
+.portfolio-setup .ps-toast{position:fixed;right:1.25rem;bottom:1.25rem;z-index:2000;display:flex;align-items:flex-start;gap:.7rem;max-width:min(26rem,calc(100vw - 2rem));padding:.9rem 1rem;border-radius:.8rem;background:#17211b;color:#fff;box-shadow:0 12px 35px #0003;font-size:.9rem;font-weight:650;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+.portfolio-setup .ps-toast.is-visible{opacity:1;transform:translateY(0)}
+.portfolio-setup .ps-toast[data-state="error"]{background:#8f1d18}
+.portfolio-setup .ps-template-active{display:inline-flex;align-items:center;gap:.25rem;margin-top:.55rem;padding:.25rem .5rem;border-radius:999px;background:#fff1e8;color:#9a3412;font-size:.7rem;font-weight:800}
+.portfolio-setup .ps-template-active[hidden]{display:none}
+.portfolio-setup .ps-active-control{border:1px solid var(--ps-accent);background:#fff7ed;color:#9a3412;font-weight:800;border-radius:.65rem;padding:.55rem .8rem;font-size:.82rem}
+.portfolio-setup .ps-active-control:disabled{opacity:1;cursor:default}
 .portfolio-setup .ps-template-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
 .portfolio-setup .ps-template{position:relative;display:block;border:1px solid var(--ps-line);border-radius:.85rem;padding:.6rem;text-align:left;cursor:pointer;background:transparent;color:inherit;transition:border-color .15s,box-shadow .15s}
 .portfolio-setup .ps-template:has(input:checked){border:2px solid var(--ps-accent);padding:calc(.6rem - 1px);box-shadow:0 0 0 3px #f9731617}
@@ -74,6 +81,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
 @media(max-width:1000px){.portfolio-setup .ps-layout{grid-template-columns:1fr}}
 @media(max-width:560px){.portfolio-setup .ps-heading{display:block}.portfolio-setup .ps-heading .ps-actions{margin-top:1rem}.portfolio-setup .ps-template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.portfolio-setup .ps-profile-row{grid-template-columns:76px minmax(0,1fr)}.portfolio-setup .ps-avatar{width:76px;height:96px}}
 </style>
+<div class="ps-toast" id="portfolio-toast" role="status" aria-live="polite" data-state="success"><span id="portfolio-toast-icon" aria-hidden="true">✓</span><span id="portfolio-toast-message">Changes saved successfully.</span></div>
 <section class="client-dashboard iw-client-page portfolio-setup">
   <div class="client-main">
     <header class="ps-heading">
@@ -122,7 +130,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
         </section>
 
         <section class="ps-panel">
-          <div class="ps-panel-head"><h2>Choose a template</h2><span class="text-secondary small">10 designs</span></div>
+          <div class="ps-panel-head"><h2>Choose a template</h2><button type="button" class="ps-active-control" id="portfolio-active-template" disabled>✓ Active: <?= $escape(preg_replace('/\s+[—-].*$/u', '', $templates[$currentTemplate] ?? ucfirst($currentTemplate))) ?></button></div>
           <div class="ps-template-grid" role="radiogroup" aria-label="Portfolio templates">
             <?php foreach ($templates as $key => $label): ?>
               <label class="ps-template">
@@ -130,6 +138,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
                 <span class="ps-mini ps-mini--<?= $escape($key) ?>" aria-hidden="true"><span></span><span></span><span></span></span>
                 <span class="ps-template-name"><?= $escape(preg_replace('/\s+[—-].*$/u', '', $label)) ?></span>
                 <span class="ps-template-desc"><?= $escape($templateDescriptions[$key] ?? 'A distinctive portfolio design.') ?></span>
+                <span class="ps-template-active" data-active-template="<?= $escape($key) ?>" <?= $currentTemplate === $key ? '' : 'hidden' ?>>✓ Active Template</span>
               </label>
             <?php endforeach; ?>
           </div>
@@ -156,6 +165,30 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
   const form = document.getElementById('portfolio-setup-form');
   if (!form) return;
   const status = document.getElementById('portfolio-save-status');
+  const toast = document.getElementById('portfolio-toast');
+  const toastMessage = document.getElementById('portfolio-toast-message');
+  const toastIcon = document.getElementById('portfolio-toast-icon');
+  const activeTemplateButton = document.getElementById('portfolio-active-template');
+  let toastTimer = null;
+  function showToast(message, state) {
+    if (!toast || !toastMessage) return;
+    toastMessage.textContent = message;
+    toast.dataset.state = state || 'success';
+    if (toastIcon) toastIcon.textContent = state === 'error' ? '!' : '✓';
+    toast.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('is-visible'), state === 'error' ? 5500 : 3200);
+  }
+  function updateActiveTemplate() {
+    const selected = document.querySelector('input[name="template_choice"]:checked');
+    const key = selected ? selected.value : '';
+    document.querySelectorAll('[data-active-template]').forEach(badge => { badge.hidden = badge.dataset.activeTemplate !== key; });
+    if (activeTemplateButton && selected) {
+      const label = selected.closest('.ps-template')?.querySelector('.ps-template-name')?.textContent?.trim() || selected.value;
+      activeTemplateButton.textContent = '✓ Active: ' + label;
+    }
+  }
+  updateActiveTemplate();
   const preview = document.getElementById('portfolio-template-preview');
   const previewOpen = document.getElementById('portfolio-preview-open');
   const previewStage = document.getElementById('portfolio-preview-stage');
@@ -206,6 +239,8 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
       if (currentRequest !== requestNumber) return;
       if (!response.ok || !result.ok) throw new Error(result.message || 'Could not save changes.');
       setStatus('All changes saved', 'saved');
+      showToast(selected ? 'Changes saved. ' + (selected.closest('.ps-template')?.querySelector('.ps-template-name')?.textContent?.trim() || selected.value) + ' is now your active template.' : 'Your portfolio changes were saved successfully.', 'success');
+      updateActiveTemplate();
       if (selected && preview) {
         const target = selectedPreviewUrl();
         const separator = target.includes('?') ? '&' : '?';
@@ -213,7 +248,10 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
         if (previewOpen) previewOpen.href = target;
       }
     } catch (error) {
-      if (currentRequest === requestNumber) setStatus(error.message || 'Save failed. Check your connection.', 'error');
+      if (currentRequest === requestNumber) {
+        setStatus(error.message || 'Save failed. Check your connection.', 'error');
+        showToast(error.message || 'Save failed. Check your connection and try again.', 'error');
+      }
     }
   }
   form.querySelectorAll('#display_name, #headline').forEach(input => {
@@ -225,6 +263,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
     input.addEventListener('blur', () => { clearTimeout(timer); saveSetup(); });
   });
   document.querySelectorAll('input[name="template_choice"][form="portfolio-setup-form"]').forEach(input => input.addEventListener('change', () => {
+    updateActiveTemplate();
     const target = selectedPreviewUrl();
     if (preview) {
       const separator = target.includes('?') ? '&' : '?';
@@ -243,15 +282,36 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
     if (avatarEmpty) avatarEmpty.hidden = true;
   });
   const avatarForm = document.getElementById('portfolio-avatar-form');
-  if (avatarForm) avatarForm.addEventListener('submit', event => {
+  if (avatarForm) avatarForm.addEventListener('submit', async event => {
+    event.preventDefault();
     const file = avatarInput && avatarInput.files && avatarInput.files[0];
-    if (!file) { event.preventDefault(); return; }
+    if (!file) { showToast('Choose a profile photo first.', 'error'); return; }
     if (file.size > 3 * 1024 * 1024) {
-      event.preventDefault();
       setStatus('Photo must be smaller than 3 MB.', 'error');
+      showToast('Photo must be smaller than 3 MB.', 'error');
       return;
     }
     setStatus('Uploading photo…', 'saving');
+    const submitButton = avatarForm.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.disabled = true;
+    try {
+      const response = await fetch(avatarForm.action, { method: 'POST', body: new FormData(avatarForm), credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+      const result = await response.json();
+      if (!response.ok || !result.ok) throw new Error(result.message || 'Photo upload failed.');
+      if (result.avatar_url && avatarPreview) {
+        avatarPreview.src = result.avatar_url + '?_=' + Date.now();
+        avatarPreview.hidden = false;
+        if (avatarEmpty) avatarEmpty.hidden = true;
+      }
+      avatarInput.value = '';
+      setStatus('Profile photo saved', 'saved');
+      showToast('Profile photo saved successfully.', 'success');
+      if (preview) { const target = selectedPreviewUrl(); preview.src = target + (target.includes('?') ? '&' : '?') + '_preview=' + Date.now(); }
+    } catch (error) {
+      const message = error.message || 'Photo upload failed. Check your connection.';
+      setStatus(message, 'error');
+      showToast(message, 'error');
+    } finally { if (submitButton) submitButton.disabled = false; }
   });
 })();
 </script>
