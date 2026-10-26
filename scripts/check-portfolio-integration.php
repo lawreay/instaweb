@@ -38,6 +38,7 @@ $reactJs = readRequiredFile($root . '/public/assets/portfolio-template/react-por
 $publishController = readRequiredFile($root . '/app/Controllers/PublishController.php');
 $portfolioController = readRequiredFile($root . '/app/Controllers/PortfolioController.php');
 $advancedPortfolioController = readRequiredFile($root . '/app/Controllers/AdvancedPortfolioController.php');
+$routes = readRequiredFile($root . '/app/Config/routes.php');
 
 if (!preg_match('/\$availableTemplates\s*=\s*\[(.*?)\];/s', $publicView, $templateMatch)) {
     failCheck('Public renderer does not declare its supported template list.');
@@ -63,9 +64,9 @@ foreach ($expectedReact as $key) {
     }
 }
 
-if (!str_contains($publicView, "if (\$template === 'noir')")
+if (!str_contains($publicView, 'if ($template === \'noir\')')
     || !str_contains($publicView, 'class="noir-hero')
-    || !str_contains($publicView, 'class="noir-project-grid"')) {
+    || !str_contains($publicView, 'class="noir-project-grid')) {
     failCheck('Noir does not have its dedicated renderer path.');
 }
 
@@ -73,6 +74,17 @@ foreach (['.noir-hero', '.noir-project-grid', '.noir-timeline', '.noir-skills', 
     if (!str_contains($reactCss . readRequiredFile($root . '/public/assets/portfolio-template/portfolio-noir.css'), $noirSelector)) {
         failCheck("Noir redesign is missing '{$noirSelector}'.");
     }
+}
+
+foreach (['uploadNoirSectionImage', 'removeNoirSectionImage', 'noirSectionImages', 'noirSectionImage'] as $noirImageWiring) {
+    if (!str_contains($advancedPortfolioController . $portfolioModel, $noirImageWiring)) {
+        failCheck("Noir section-image support is missing '{$noirImageWiring}'.");
+    }
+}
+if (!str_contains($routes, 'noir-image/upload') || !str_contains($routes, 'noir-image/remove')
+    || !str_contains($editorView, 'data-ap-tab-panel="noir-images"')
+    || !str_contains($publicView, '$noirImageUrls')) {
+    failCheck('Noir image dashboard routes or public rendering are incomplete.');
 }
 
 if (!str_contains($editorView, 'foreach ($templates as $templateKey => $templateLabel)')) {

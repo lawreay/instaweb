@@ -49,6 +49,7 @@ class PreviewController extends Controller
                 'projects' => $portfolioModel->projects((int) $portfolio['id']),
                 'advancedSettings' => $advancedModel->settings((int) $website['id'], $userId),
                 'advancedItems' => $advancedModel->visibleItems((int) $website['id'], $userId),
+                'noirSectionImages' => $advancedModel->noirSectionImages((int) $website['id'], $userId),
                 'isPreview' => true,
             ], '');
             return;

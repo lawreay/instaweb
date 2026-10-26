@@ -46,6 +46,7 @@ class PortfolioPublicController extends Controller
             'projects' => $portfolioModel->projects((int) $portfolio['id']),
             'advancedSettings' => $advancedModel->settings((int) $website['id'], (int) $website['user_id']),
             'advancedItems' => $advancedModel->visibleItems((int) $website['id'], (int) $website['user_id']),
+            'noirSectionImages' => $advancedModel->noirSectionImages((int) $website['id'], (int) $website['user_id']),
         ], '');
     }
 }

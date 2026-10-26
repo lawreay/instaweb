@@ -92,6 +92,8 @@ return [
         '/dashboard/websites/portfolio/advanced/items/save' => [AdvancedPortfolioController::class, 'saveItem'],
         '/dashboard/websites/portfolio/advanced/items/toggle' => [AdvancedPortfolioController::class, 'toggleItem'],
         '/dashboard/websites/portfolio/advanced/items/delete' => [AdvancedPortfolioController::class, 'deleteItem'],
+        '/dashboard/websites/portfolio/advanced/noir-image/upload' => [AdvancedPortfolioController::class, 'uploadNoirSectionImage'],
+        '/dashboard/websites/portfolio/advanced/noir-image/remove' => [AdvancedPortfolioController::class, 'removeNoirSectionImage'],
         '/dashboard/websites/portfolio/projects/add' => [PortfolioController::class, 'addProject'],
         '/dashboard/websites/portfolio/projects/save' => [PortfolioController::class, 'saveProject'],
         '/dashboard/websites/portfolio/projects/delete' => [PortfolioController::class, 'deleteProject'],
