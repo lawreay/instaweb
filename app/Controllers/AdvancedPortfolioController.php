@@ -172,7 +172,8 @@ class AdvancedPortfolioController extends Controller
             $payload['details'] = 'Category: ' . $payload['category'];
         }
         if (isset($payload['proficiency']) && $payload['proficiency'] !== '') {
-            $payload['details'] = trim(($payload['details'] ?? '') . ($payload['details'] ?? '') === '' ? 'Proficiency: ' . $payload['proficiency'] : ' · Proficiency: ' . $payload['proficiency']);
+            $existingDetails = trim((string) ($payload['details'] ?? ''));
+            $payload['details'] = $existingDetails === '' ? 'Proficiency: ' . $payload['proficiency'] : $existingDetails . ' · Proficiency: ' . $payload['proficiency'];
         }
         if (isset($payload['outcome']) && $payload['outcome'] !== '') {
             $payload['details'] = trim(($payload['details'] ?? '') . "\nOutcome: " . $payload['outcome']);
