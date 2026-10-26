@@ -1269,7 +1269,7 @@ function Portfolio({ data }) {
           <h1>{data.name}</h1>
           <p className="react-custom-headline">{data.headline}</p>
           <p>{data.bio}</p>
-          {data.email && <a className="react-custom-button" href={`mailto:${data.email}`}>Start a conversation</a>}
+          {data.contactAvailable && <a className="react-custom-button" href="#portfolio-contact-dialog" data-portfolio-contact>Start a conversation</a>}
         </div>
         {data.avatar && <img className="react-custom-avatar" src={data.avatar} alt={data.name} />}
       </header>
@@ -1292,7 +1292,7 @@ function Portfolio({ data }) {
 
       {data.showProjects && <section className="react-custom-section" id="projects"><p className="react-custom-kicker">Selected work</p><h2>Projects</h2><div className="react-custom-grid">{projects.map((project, index) => <article className="react-custom-card" key={project.id || index}><h3>{project.title}</h3><p>{project.summary}</p>{project.project_url && <a href={project.project_url} target="_blank" rel="noreferrer">View project ↗</a>}</article>)}</div>{allProjects.length > 3 && <button type="button" className="react-custom-toggle" onClick={() => setShowAllProjects(!showAllProjects)}>{showAllProjects ? 'Show fewer projects' : 'Show all projects'}</button>}</section>}
 
-      {data.showContact && data.email && <section className="react-custom-section react-custom-contact" id="contact"><p className="react-custom-kicker">Contact</p><h2>Let’s work together.</h2><a className="react-custom-button" href={`mailto:${data.email}`}>Email {data.name}</a></section>}
+      {data.showContact && data.contactAvailable && <section className="react-custom-section react-custom-contact" id="contact"><p className="react-custom-kicker">Contact</p><h2>Let’s work together.</h2><a className="react-custom-button" href="#portfolio-contact-dialog" data-portfolio-contact>Email {data.name}</a></section>}
     </main>
   );
 }

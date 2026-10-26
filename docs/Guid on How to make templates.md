@@ -266,6 +266,7 @@ The component receives a `data` object with this shape:
   headline: 'BBA Accounting Graduate',
   bio: '...',
   email: 'john@example.com',
+  contactAvailable: true,
   location: 'Blantyre, Malawi',
   avatar: '/uploads/portfolios/55/avatar.jpg',
   accent: '#f97316',
@@ -307,9 +308,11 @@ Some values may be blank. Always make optional values conditional.
 
 ```jsx
 {data.avatar && <img src={data.avatar} alt={data.name} />}
-{data.email && <a href={`mailto:${data.email}`}>Email me</a>}
+{data.contactAvailable && <a href="#portfolio-contact-dialog" data-portfolio-contact>Email me</a>}
 {data.projects.length > 0 && <Projects projects={data.projects} />}
 ```
+
+Use `data.contactAvailable` for a contact action. Add `href="#portfolio-contact-dialog"` and `data-portfolio-contact` exactly as shown: the public portfolio page opens the built-in accessible message form and sends it through the application's configured SMTP service. Do not build a separate form or use `mailto:` in a custom React template.
 
 ### Complete React example
 
@@ -328,7 +331,7 @@ function Portfolio({ data }) {
           <h1>{data.name}</h1>
           {data.headline && <p className="cobalt-role">{data.headline}</p>}
           {data.bio && <p className="cobalt-intro">{data.bio}</p>}
-          {data.email && <a className="cobalt-button" href={`mailto:${data.email}`}>Start a conversation</a>}
+          {data.contactAvailable && <a className="cobalt-button" href="#portfolio-contact-dialog" data-portfolio-contact>Start a conversation</a>}
         </div>
         {data.avatar && <img className="cobalt-avatar" src={data.avatar} alt={data.name} />}
       </header>
@@ -379,11 +382,11 @@ function Portfolio({ data }) {
         </section>
       )}
 
-      {data.showContact && (data.email || data.socials.length > 0) && (
+      {data.showContact && (data.contactAvailable || data.socials.length > 0) && (
         <section className="cobalt-section cobalt-contact" id="contact">
           <p className="cobalt-label">Contact</p>
           <h2>Let’s work together.</h2>
-          {data.email && <a className="cobalt-button" href={`mailto:${data.email}`}>Email {data.name}</a>}
+          {data.contactAvailable && <a className="cobalt-button" href="#portfolio-contact-dialog" data-portfolio-contact>Email {data.name}</a>}
           <nav aria-label="Social profiles">
             {data.socials.map(social => <a key={social.label} href={social.url} target="_blank" rel="noreferrer">{social.label}</a>)}
           </nav>

@@ -44,6 +44,8 @@ $publishController = readRequiredFile($root . '/app/Controllers/PublishControlle
 $portfolioController = readRequiredFile($root . '/app/Controllers/PortfolioController.php');
 $advancedPortfolioController = readRequiredFile($root . '/app/Controllers/AdvancedPortfolioController.php');
 $routes = readRequiredFile($root . '/app/Config/routes.php');
+$portfolioContactController = readRequiredFile($root . '/app/Controllers/PortfolioContactController.php');
+$portfolioContactMigration = readRequiredFile($root . '/database/migrations/20261026_004_create_portfolio_contact_rate_limits.php');
 
 if (!preg_match('/\$availableTemplates\s*=\s*\[(.*?)\];/s', $publicView, $templateMatch)) {
     failCheck('Public renderer does not declare its supported template list.');
@@ -237,11 +239,25 @@ if (!str_contains($publicView, "!empty(\$isPreview) ? 'noindex,nofollow' : 'inde
 
 if (!str_contains($reactJs, 'function rankedNavigation(data)')
     || !str_contains($reactJs, "const navigationPriority = ['about', 'experience', 'projects', 'skills', 'contact'")
-    || !str_contains($reactJs, 'data.showContact && (data.email || (data.socials || []).length)')
+    || !str_contains($reactJs, 'data.showContact && (data.contactAvailable || (data.socials || []).length)')
     || !str_contains($reactJs, '.slice(0, 5)')
     || !str_contains($publicView, '$navigationPriority =')
     || !str_contains($publicView, 'array_slice($navigationItems, 0, 5)')) {
     failCheck('Portfolio navigation must rank available destinations and keep only five links.');
+}
+
+if (!str_contains($routes, "'/portfolio/contact' => [PortfolioContactController::class, 'send']")
+    || !str_contains($publicView, 'data-portfolio-contact-form')
+    || !str_contains($publicView, 'portfolio-contact-dialog')
+    || !str_contains($publicView, "'contactAvailable' => \$portfolioContactAvailable")
+    || !str_contains($portfolioContactController, 'Csrf::validate')
+    || !str_contains($portfolioContactController, 'findPublishedPortfolioBySlug')
+    || !str_contains($portfolioContactController, 'withinRateLimit')
+    || !str_contains($portfolioContactMigration, 'portfolio_contact_rate_limits')) {
+    failCheck('Portfolio contact modal, SMTP endpoint, publication checks, or rate limiting are incomplete.');
+}
+if (str_contains($reactJs, 'mailto:')) {
+    failCheck('Built-in React portfolio contacts must use the SMTP contact modal, not mailto links.');
 }
 
 if (!str_contains($publishController, 'updateStatus((int) $website[\'id\'], $userId, \'published\')')

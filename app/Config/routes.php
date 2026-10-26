@@ -11,6 +11,7 @@ use App\Controllers\MarketingController;
 use App\Controllers\AdminController;
 use App\Controllers\WebsiteController;
 use App\Controllers\PortfolioController;
+use App\Controllers\PortfolioContactController;
 use App\Controllers\AdvancedPortfolioController;
 use App\Controllers\FileManagerController;
 use App\Controllers\EditorController;
@@ -101,6 +102,7 @@ return [
         '/dashboard/websites/portfolio/projects/add' => [PortfolioController::class, 'addProject'],
         '/dashboard/websites/portfolio/projects/save' => [PortfolioController::class, 'saveProject'],
         '/dashboard/websites/portfolio/projects/delete' => [PortfolioController::class, 'deleteProject'],
+        '/portfolio/contact' => [PortfolioContactController::class, 'send'],
         '/dashboard/websites/delete' => [WebsiteController::class, 'delete'],
         '/dashboard/websites/files/upload' => [FileManagerController::class, 'upload'],
         '/dashboard/websites/files/import' => [FileManagerController::class, 'importZip'],

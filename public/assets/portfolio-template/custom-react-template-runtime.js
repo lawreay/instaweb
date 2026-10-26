@@ -9,6 +9,7 @@
   const root = window.ReactDOM && typeof window.ReactDOM.createRoot === 'function'
     ? window.ReactDOM.createRoot(rootElement)
     : null;
+  let acceptsMessages = false;
 
   const reportHeight = () => {
     const height = Math.max(
@@ -34,6 +35,7 @@
       showError('template data is incomplete.');
       return;
     }
+    acceptsMessages = payload.data.contactAvailable === true;
 
     try {
       const compiled = window.Babel.transform(payload.code, {
@@ -60,6 +62,15 @@
     if (event.source !== window.parent || !event.data || event.data.type !== 'instaweb-react-template') return;
     renderTemplate(event.data.payload);
   });
+
+  document.addEventListener('click', event => {
+    const target = event.target instanceof Element
+      ? event.target.closest('[data-portfolio-contact], a[href^="mailto:"]')
+      : null;
+    if (!acceptsMessages || !target) return;
+    event.preventDefault();
+    window.parent.postMessage({ type: 'instaweb-react-template-contact' }, '*');
+  }, true);
 
   if ('ResizeObserver' in window) {
     new ResizeObserver(reportHeight).observe(document.documentElement);

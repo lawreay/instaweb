@@ -57,6 +57,7 @@ if ($avatar !== '' && !str_contains($avatar, '..') && preg_match('#^uploads/[A-Z
     $avatarUrl = $baseUrl . '/' . ltrim($avatar, '/');
 }
 $email = trim((string) ($portfolio['email'] ?? ''));
+$portfolioContactAvailable = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 $location = trim((string) ($portfolio['location'] ?? ''));
 $socialLinks = json_decode((string) ($portfolio['social_links'] ?? '{}'), true);
 $socialLinks = is_array($socialLinks) ? $socialLinks : [];
@@ -109,7 +110,7 @@ foreach ($sectionLabels as $sectionKey => $sectionLabel) {
 if ($showProjects && $safeProjects !== []) {
     $navigationItemsByKey['projects'] = ['href' => '#projects', 'label' => 'Projects'];
 }
-if ($showContact && ($email !== '' || $safeSocialLinks !== [])) {
+if ($showContact && ($portfolioContactAvailable || $safeSocialLinks !== [])) {
     $navigationItemsByKey['contact'] = ['href' => '#contact', 'label' => 'Contact'];
 }
 $navigationItems = [];
@@ -170,8 +171,8 @@ if ($showProjects) {
 }
 
 $customContactMarkup = '';
-if ($showContact && ($email !== '' || $safeSocialLinks !== [])) {
-    $contactLinks = $email !== '' ? '<p><a class="custom-button" href="mailto:' . $escape($email) . '">Email ' . $escape($name) . '</a></p>' : '';
+if ($showContact && ($portfolioContactAvailable || $safeSocialLinks !== [])) {
+    $contactLinks = $portfolioContactAvailable ? '<p><a class="custom-button" href="#portfolio-contact-dialog" data-portfolio-contact="true">Email ' . $escape($name) . '</a></p>' : '';
     foreach ($safeSocialLinks as $social) {
         $contactLinks .= '<a href="' . $escape($social['url']) . '" target="_blank" rel="noopener noreferrer">' . $escape($social['label']) . '</a> ';
     }
@@ -195,6 +196,9 @@ $customTemplateOutput = $isCustomTemplate && !$isCustomReactTemplate ? strtr($cu
     '{{contact}}' => $customContactMarkup,
     '{{year}}' => date('Y'),
 ]) : '';
+if ($isCustomTemplate && !$isCustomReactTemplate && $portfolioContactAvailable) {
+    $customTemplateOutput = preg_replace('/\shref\s*=\s*(["\'])mailto:[^"\']*\1/i', ' href="#portfolio-contact-dialog" data-portfolio-contact="true"', $customTemplateOutput) ?? $customTemplateOutput;
+}
 
 // Noir uses local editorial visuals by default. A portfolio owner may safely
 // replace a section image from the Advanced Editor; the override is accepted
@@ -233,7 +237,7 @@ foreach ($sectionLabels as $sectionKey => $sectionLabel) {
 }
 $reactPortfolioData = [
     'template' => $template, 'name' => $name, 'headline' => $headline, 'bio' => $bio, 'initials' => $initials ?? strtoupper(substr($name, 0, 1)),
-    'avatar' => $avatarUrl, 'email' => $email, 'location' => $location, 'accent' => $accentColor, 'background' => $backgroundColor,
+    'avatar' => $avatarUrl, 'email' => $email, 'contactAvailable' => $portfolioContactAvailable, 'location' => $location, 'accent' => $accentColor, 'background' => $backgroundColor,
     'textColor' => $textColor, 'fontFamily' => $fontFamily, 'heroStyle' => $heroStyle,
     'showProjects' => $showProjects, 'showContact' => $showContact, 'projects' => $safeProjects, 'sections' => $reactSections,
     'socials' => array_values($safeSocialLinks),
@@ -306,6 +310,7 @@ $customReactPayload = $isCustomReactTemplate ? [
     @media(max-width:760px){body.portfolio-template-classic.portfolio-hero-style-split .hero-shell{grid-template-columns:1fr}body.portfolio-template-classic.portfolio-hero-style-split .hero-portrait-wrap{width:min(100%,300px);justify-self:start;grid-row:1}}
     .hero-eyebrow,.portfolio-project-card a{color:var(--portfolio-accent)!important}
     body.portfolio-template-classic .portfolio-hero{background:linear-gradient(135deg,<?= $escape($backgroundColor) ?> 0%,#e2e8f0 55%,<?= $escape($backgroundColor) ?> 100%)}
+    .portfolio-contact-dialog{width:min(100% - 2rem,38rem);max-height:min(90vh,48rem);padding:0;border:0;border-radius:1.25rem;background:#fff;color:#172b3a;box-shadow:0 28px 75px rgba(15,23,42,.35)}.portfolio-contact-dialog::backdrop{background:rgba(15,23,42,.68);backdrop-filter:blur(4px)}.portfolio-contact-form{padding:clamp(1.4rem,4vw,2.25rem)}.portfolio-contact-form-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.5rem}.portfolio-contact-form h2{margin:0;font-size:clamp(1.45rem,4vw,2rem);letter-spacing:-.035em}.portfolio-contact-form-header p{margin:.35rem 0 0;color:#64748b}.portfolio-contact-close{display:grid;place-items:center;flex:0 0 auto;width:2.45rem;height:2.45rem;border:1px solid #cbd5e1;border-radius:999px;background:#fff;color:#334155;font-size:1.5rem;line-height:1;cursor:pointer}.portfolio-contact-fields{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.portfolio-contact-field{display:grid;gap:.4rem;color:#334155;font-size:.88rem;font-weight:700}.portfolio-contact-field--full{grid-column:1/-1}.portfolio-contact-field input,.portfolio-contact-field textarea{width:100%;padding:.78rem .85rem;border:1px solid #cbd5e1;border-radius:.6rem;background:#fff;color:#172b3a;font:inherit;font-weight:400}.portfolio-contact-field input:focus,.portfolio-contact-field textarea:focus{outline:3px solid color-mix(in srgb,var(--portfolio-accent) 28%,transparent);border-color:var(--portfolio-accent)}.portfolio-contact-field textarea{min-height:8.5rem;resize:vertical}.portfolio-contact-submit{width:100%;margin-top:1.25rem;padding:.9rem 1.1rem;border:0;border-radius:.6rem;background:#172b3a;color:#fff;font:700 1rem/1.2 inherit;cursor:pointer}.portfolio-contact-submit:disabled{cursor:wait;opacity:.72}.portfolio-contact-status{min-height:1.4em;margin:1rem 0 0;color:#475569}.portfolio-contact-status[data-state="success"]{color:#15803d}.portfolio-contact-status[data-state="error"]{color:#b91c1c}.portfolio-contact-trap{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important}@media(max-width:520px){.portfolio-contact-fields{grid-template-columns:1fr}.portfolio-contact-field--full{grid-column:auto}.portfolio-contact-dialog{width:min(100% - 1rem,38rem)}}
     @media(max-width:650px){.portfolio-content-section{padding:3.5rem 1.25rem}.portfolio-hero{min-height:auto}}
   </style>
   <?php if ($isCustomTemplate && !$isCustomReactTemplate && $customTemplateCss !== ''): ?>
@@ -372,7 +377,7 @@ $customReactPayload = $isCustomReactTemplate ? [
       <section id="about" class="noir-about" aria-labelledby="noir-about-title">
         <p class="noir-overline">01 / About</p>
         <div><h2 id="noir-about-title">Useful things.<br>Built to last.</h2></div>
-        <div class="noir-about-copy"><p><?= nl2br($escape($bio !== '' ? $bio : 'More information about ' . $name . ' will be added here.')) ?></p><?php if ($email !== ''): ?><a href="mailto:<?= $escape($email) ?>">Start a conversation <span aria-hidden="true">&nearr;</span></a><?php endif; ?></div>
+        <div class="noir-about-copy"><p><?= nl2br($escape($bio !== '' ? $bio : 'More information about ' . $name . ' will be added here.')) ?></p><?php if ($portfolioContactAvailable): ?><a href="#portfolio-contact-dialog" data-portfolio-contact="true">Start a conversation <span aria-hidden="true">&nearr;</span></a><?php endif; ?></div>
       </section>
 
       <?php foreach ($sectionLabels as $sectionKey => $sectionLabel): ?>
@@ -418,7 +423,7 @@ $customReactPayload = $isCustomReactTemplate ? [
         <?php endif; ?>
       </section><?php endif; ?>
 
-      <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?><section id="contact" class="noir-contact" aria-labelledby="noir-contact-title"><p class="noir-overline">Contact / 08</p><h2 id="noir-contact-title">Let’s build something useful together.</h2><div><p>Need a website, system, learning platform, automation solution, or technical support? Start with a conversation.</p><?php if ($email !== ''): ?><a class="noir-contact-email" href="mailto:<?= $escape($email) ?>">Email <?= $escape($name) ?> <span aria-hidden="true">&nearr;</span></a><?php endif; ?><nav aria-label="Social profiles"><?php foreach ($safeSocialLinks as $social): ?><a href="<?= $escape($social['url']) ?>" target="_blank" rel="noopener noreferrer"><?= $escape($social['label']) ?> <span aria-hidden="true">&nearr;</span></a><?php endforeach; ?></nav></div></section><?php endif; ?>
+      <?php if ($showContact && ($portfolioContactAvailable || $safeSocialLinks !== [])): ?><section id="contact" class="noir-contact" aria-labelledby="noir-contact-title"><p class="noir-overline">Contact / 08</p><h2 id="noir-contact-title">Let’s build something useful together.</h2><div><p>Need a website, system, learning platform, automation solution, or technical support? Start with a conversation.</p><?php if ($portfolioContactAvailable): ?><a class="noir-contact-email" href="#portfolio-contact-dialog" data-portfolio-contact="true">Email <?= $escape($name) ?> <span aria-hidden="true">&nearr;</span></a><?php endif; ?><nav aria-label="Social profiles"><?php foreach ($safeSocialLinks as $social): ?><a href="<?= $escape($social['url']) ?>" target="_blank" rel="noopener noreferrer"><?= $escape($social['label']) ?> <span aria-hidden="true">&nearr;</span></a><?php endforeach; ?></nav></div></section><?php endif; ?>
     </main>
   <?php else: ?>
   <header class="navbar">
@@ -455,7 +460,7 @@ $customReactPayload = $isCustomReactTemplate ? [
           <p id="hero-tagline" class="hero-summary"><?= nl2br($escape($bio !== '' ? $bio : 'Welcome to my portfolio. Explore selected work and get in touch.')) ?></p>
           <div class="hero-actions">
             <?php if ($showProjects): ?><a class="hero-button hero-button-primary" href="#projects">Explore my work <span aria-hidden="true">↘</span></a><?php endif; ?>
-            <?php if ($showContact && $email !== ''): ?><a class="hero-text-link hero-button-secondary" href="mailto:<?= $escape($email) ?>">Contact me <span aria-hidden="true">↗</span></a><?php endif; ?>
+            <?php if ($showContact && $portfolioContactAvailable): ?><a class="hero-text-link hero-button-secondary" href="#portfolio-contact-dialog" data-portfolio-contact="true">Contact me <span aria-hidden="true">↗</span></a><?php endif; ?>
           </div>
           <?php if ($template === '3d'): ?>
             <div class="hero-proof"><div><strong>Selected work</strong><span><?= count($projects) ?> portfolio projects</span></div><div><strong><?= $escape($location !== '' ? $location : 'Open to opportunities') ?></strong><span>Profile and work</span></div></div>
@@ -544,13 +549,13 @@ $customReactPayload = $isCustomReactTemplate ? [
       </div>
     </section><?php endif; ?>
 
-    <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?>
+    <?php if ($showContact && ($portfolioContactAvailable || $safeSocialLinks !== [])): ?>
       <section id="contact" class="portfolio-content-section portfolio-contact">
         <div class="portfolio-content-inner">
           <p class="hero-eyebrow">Get in touch</p>
           <h2>Have a project in mind?</h2>
           <p class="lead mt-3">Contact <?= $escape($name) ?> to discuss a project or opportunity.</p>
-          <?php if ($email !== ''): ?><a class="hero-button hero-button-primary mt-3" href="mailto:<?= $escape($email) ?>">Email <?= $escape($name) ?> <span aria-hidden="true">↗</span></a><?php endif; ?>
+          <?php if ($portfolioContactAvailable): ?><a class="hero-button hero-button-primary mt-3" href="#portfolio-contact-dialog" data-portfolio-contact="true">Email <?= $escape($name) ?> <span aria-hidden="true">↗</span></a><?php endif; ?>
           <?php if ($safeSocialLinks !== []): ?>
             <nav class="portfolio-social-links mt-4 d-flex flex-wrap gap-3" aria-label="Social profiles">
               <?php foreach ($safeSocialLinks as $social): ?>
@@ -562,6 +567,30 @@ $customReactPayload = $isCustomReactTemplate ? [
       </section>
     <?php endif; ?>
   </main>
+  <?php endif; ?>
+
+  <?php if ($portfolioContactAvailable): ?>
+    <dialog id="portfolio-contact-dialog" class="portfolio-contact-dialog" aria-labelledby="portfolio-contact-title">
+      <form class="portfolio-contact-form" action="<?= $escape($baseUrl . '/portfolio/contact') ?>" method="post" data-portfolio-contact-form novalidate>
+        <?= \App\Core\Csrf::field() ?>
+        <input type="hidden" name="portfolio_slug" value="<?= $escape((string) ($website['slug'] ?? '')) ?>">
+        <div class="portfolio-contact-trap" aria-hidden="true">
+          <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+        </div>
+        <header class="portfolio-contact-form-header">
+          <div><h2 id="portfolio-contact-title">Send <?= $escape($name) ?> a message</h2><p>Your message will be delivered securely by email.</p></div>
+          <button class="portfolio-contact-close" type="button" aria-label="Close contact form" data-portfolio-contact-close>×</button>
+        </header>
+        <div class="portfolio-contact-fields">
+          <label class="portfolio-contact-field"><span>Your name</span><input type="text" name="name" autocomplete="name" minlength="2" maxlength="150" required></label>
+          <label class="portfolio-contact-field"><span>Phone number</span><input type="tel" name="phone" autocomplete="tel" minlength="7" maxlength="30" required></label>
+          <label class="portfolio-contact-field portfolio-contact-field--full"><span>Email address</span><input type="email" name="email" autocomplete="email" maxlength="254" required></label>
+          <label class="portfolio-contact-field portfolio-contact-field--full"><span>Message</span><textarea name="message" minlength="2" maxlength="5000" required></textarea></label>
+        </div>
+        <button class="portfolio-contact-submit" type="submit">Send message</button>
+        <p class="portfolio-contact-status" role="status" aria-live="polite" data-portfolio-contact-status></p>
+      </form>
+    </dialog>
   <?php endif; ?>
 
   <?php if (!$isCustomTemplate): ?><footer class="portfolio-footer">© <?= date('Y') ?> <?= $escape($name) ?><?= $location !== '' ? ' · ' . $escape($location) : '' ?></footer><?php endif; ?>
@@ -577,6 +606,63 @@ $customReactPayload = $isCustomReactTemplate ? [
       });
     }());
   </script>
+  <?php if ($portfolioContactAvailable): ?>
+    <script>
+      (function () {
+        var dialog = document.getElementById('portfolio-contact-dialog');
+        var form = dialog && dialog.querySelector('[data-portfolio-contact-form]');
+        if (!dialog || !form) return;
+        var closeButton = dialog.querySelector('[data-portfolio-contact-close]');
+        var status = dialog.querySelector('[data-portfolio-contact-status]');
+        var submit = form.querySelector('[type="submit"]');
+        var setStatus = function (message, state) {
+          status.textContent = message || '';
+          if (state) status.setAttribute('data-state', state); else status.removeAttribute('data-state');
+        };
+        var close = function () {
+          if (typeof dialog.close === 'function') dialog.close(); else dialog.removeAttribute('open');
+        };
+        var open = function () {
+          setStatus('', '');
+          if (typeof dialog.showModal === 'function') {
+            if (!dialog.open) dialog.showModal();
+          } else {
+            dialog.setAttribute('open', '');
+          }
+          var firstField = form.querySelector('[name="name"]');
+          if (firstField) window.setTimeout(function () { firstField.focus(); }, 20);
+        };
+        window.instawebPortfolioContact = { open: open };
+        document.addEventListener('click', function (event) {
+          var element = event.target && event.target.closest ? event.target.closest('[data-portfolio-contact]') : null;
+          if (!element) return;
+          event.preventDefault();
+          open();
+        });
+        if (closeButton) closeButton.addEventListener('click', close);
+        dialog.addEventListener('click', function (event) { if (event.target === dialog) close(); });
+        form.addEventListener('submit', function (event) {
+          event.preventDefault();
+          if (!form.reportValidity()) return;
+          submit.disabled = true;
+          setStatus('Sending your message…', '');
+          fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin', headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (response) { return response.json().catch(function () { return { ok: false, message: 'We could not send your message right now.' }; }); })
+            .then(function (result) {
+              setStatus(result.message || 'We could not send your message right now.', result.ok ? 'success' : 'error');
+              if (result.ok) {
+                form.reset();
+                submit.textContent = 'Message sent';
+                submit.disabled = true;
+                return;
+              }
+              submit.disabled = false;
+            })
+            .catch(function () { setStatus('We could not send your message right now. Please try again later.', 'error'); submit.disabled = false; });
+        });
+      }());
+    </script>
+  <?php endif; ?>
   <?php if ($isCustomReactTemplate): ?>
     <script>
       (function () {
@@ -588,7 +674,12 @@ $customReactPayload = $isCustomReactTemplate ? [
         var send = function () { if (frame.contentWindow) frame.contentWindow.postMessage({ type: 'instaweb-react-template', payload: payload }, '*'); };
         frame.addEventListener('load', send);
         window.addEventListener('message', function (event) {
-          if (event.source !== frame.contentWindow || !event.data || event.data.type !== 'instaweb-react-template-height') return;
+          if (event.source !== frame.contentWindow || !event.data) return;
+          if (event.data.type === 'instaweb-react-template-contact') {
+            if (window.instawebPortfolioContact) window.instawebPortfolioContact.open();
+            return;
+          }
+          if (event.data.type !== 'instaweb-react-template-height') return;
           var height = Number(event.data.height);
           if (Number.isFinite(height) && height >= 200 && height <= 30000) frame.style.height = Math.ceil(height) + 'px';
         });
