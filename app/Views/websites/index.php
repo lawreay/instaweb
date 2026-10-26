@@ -41,6 +41,7 @@ $formatBytes = static function (int $bytes): string {
               $websiteStatus = (string) ($website['status'] ?? 'draft');
               $publicUrl = (string) ($website['public_url'] ?? '');
               $isPublished = $websiteStatus === 'published' && $publicUrl !== '';
+              $isSystemTemplate = !empty($website['is_system_template']);
               $manageUrl = $baseUrl . '/dashboard/websites/show?id=' . $websiteId;
               $previewUrl = $baseUrl . '/dashboard/websites/preview?id=' . $websiteId;
             ?>
@@ -65,6 +66,7 @@ $formatBytes = static function (int $bytes): string {
               </div>
               <div class="client-site-actions">
                 <span class="client-status <?= htmlspecialchars($websiteStatus, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(ucfirst($websiteStatus), ENT_QUOTES, 'UTF-8') ?></span>
+                <?php if ($isSystemTemplate): ?><span class="badge text-bg-primary">Default template</span><?php endif; ?>
 
                 <?php if ($isPublished): ?>
                   <a class="btn btn-sm btn-primary" href="<?= htmlspecialchars($publicUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit</a>
@@ -75,11 +77,13 @@ $formatBytes = static function (int $bytes): string {
 
                 <a class="btn btn-sm btn-outline-primary" href="<?= htmlspecialchars($manageUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
 
-                <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/delete', ENT_QUOTES, 'UTF-8') ?>" onsubmit="return confirm('Delete this website project and its files? This cannot be undone.');">
-                  <?= \App\Core\Csrf::field() ?>
-                  <input type="hidden" name="id" value="<?= $websiteId ?>">
-                  <button type="submit" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2"></i> Delete</button>
-                </form>
+                <?php if (!$isSystemTemplate): ?>
+                  <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/delete', ENT_QUOTES, 'UTF-8') ?>" onsubmit="return confirm('Delete this website project and its files? This cannot be undone.');">
+                    <?= \App\Core\Csrf::field() ?>
+                    <input type="hidden" name="id" value="<?= $websiteId ?>">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"><i data-lucide="trash-2"></i> Delete</button>
+                  </form>
+                <?php endif; ?>
               </div>
             </article>
           <?php endforeach; ?>

@@ -304,6 +304,11 @@ class AdminController extends Controller
             $this->redirectTo('/admin/users');
         }
 
+        if ((new AdminRepository())->userOwnsSystemWebsite($userId)) {
+            Session::flash('error', 'This account owns a protected default portfolio and cannot be deleted.');
+            $this->redirectTo('/admin/users');
+        }
+
         $userModel->query('DELETE FROM users WHERE id = :id', ['id' => $userId]);
         Session::flash('success', 'User account deleted successfully.');
         $this->redirectTo('/admin/users');
@@ -636,6 +641,11 @@ class AdminController extends Controller
             $this->redirectTo('/admin/websites');
         }
 
+        if (!empty($website['is_system_template'])) {
+            Session::flash('error', 'This protected default portfolio must remain published.');
+            $this->redirectTo('/admin/websites');
+        }
+
         (new PublishingService())->unpublish((int) $website['id'], $website['slug']);
         $repository->updateWebsiteStatus((int) $website['id'], 'suspended');
         try {
@@ -691,6 +701,11 @@ class AdminController extends Controller
 
         if (!$website) {
             Session::flash('error', 'Website not found.');
+            $this->redirectTo('/admin/websites');
+        }
+
+        if (!empty($website['is_system_template'])) {
+            Session::flash('error', 'This protected default portfolio cannot be deleted.');
             $this->redirectTo('/admin/websites');
         }
 

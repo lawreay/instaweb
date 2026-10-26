@@ -32,8 +32,9 @@
           </thead>
           <tbody>
             <?php foreach ($websites as $website): ?>
+              <?php $isSystemTemplate = !empty($website['is_system_template']); ?>
               <tr>
-                <td><strong><?= htmlspecialchars($website['website_name'] ?: 'Untitled website', ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($website['custom_domain'] ?: ($website['subdomain'] ?: $website['slug']), ENT_QUOTES, 'UTF-8') ?></small></td>
+                <td><strong><?= htmlspecialchars($website['website_name'] ?: 'Untitled website', ENT_QUOTES, 'UTF-8') ?></strong><?php if ($isSystemTemplate): ?><span class="badge text-bg-primary ms-1">Default template</span><?php endif; ?><small><?= htmlspecialchars($website['custom_domain'] ?: ($website['subdomain'] ?: $website['slug']), ENT_QUOTES, 'UTF-8') ?></small></td>
                 <td><?= htmlspecialchars($website['username'], ENT_QUOTES, 'UTF-8') ?><small><?= htmlspecialchars($website['email'], ENT_QUOTES, 'UTF-8') ?></small></td>
                 <td><span class="status-chip <?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($website['status'], ENT_QUOTES, 'UTF-8') ?></span></td>
                 <td><?= number_format(((int) $website['storage_used']) / 1048576, 2) ?> MB</td>
@@ -41,7 +42,9 @@
                 <td><?= htmlspecialchars($website['expires_at'] ?? 'No expiry', ENT_QUOTES, 'UTF-8') ?></td>
                 <td>
                   <div class="d-flex gap-2 flex-wrap">
-                    <?php if ($website['status'] === 'suspended'): ?>
+                    <?php if ($isSystemTemplate): ?>
+                      <span class="text-secondary small">Protected system portfolio</span>
+                    <?php elseif ($website['status'] === 'suspended'): ?>
                       <form method="POST" action="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/websites/unsuspend', ENT_QUOTES, 'UTF-8') ?>">
                         <?= \App\Core\Csrf::field() ?>
                         <input type="hidden" name="id" value="<?= (int) $website['id'] ?>">

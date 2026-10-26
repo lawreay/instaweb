@@ -19,7 +19,7 @@ class Website extends Model
     public function forUser(int $userId): array
     {
         $statement = $this->query(
-            'SELECT id, user_id, website_name, slug, template_key, subdomain, custom_domain, storage_used, bandwidth_used, status, expires_at, created_at
+            'SELECT id, user_id, website_name, slug, template_key, is_system_template, subdomain, custom_domain, storage_used, bandwidth_used, status, expires_at, created_at
              FROM websites
              WHERE user_id = :user_id
              ORDER BY created_at DESC',
@@ -97,10 +97,11 @@ class Website extends Model
         // with it; clean dependent rows first so a missing migration never leaves
         // a deleted website with an exception halfway through its cleanup.
         $ownerCheck = $this->database->prepare(
-            'SELECT id FROM websites WHERE id = :id AND user_id = :user_id LIMIT 1'
+            'SELECT id, is_system_template FROM websites WHERE id = :id AND user_id = :user_id LIMIT 1'
         );
         $ownerCheck->execute(['id' => $id, 'user_id' => $userId]);
-        if (!$ownerCheck->fetchColumn()) {
+        $website = $ownerCheck->fetch();
+        if (!$website || !empty($website['is_system_template'])) {
             return false;
         }
 
@@ -155,6 +156,12 @@ class Website extends Model
         }
 
         return true;
+    }
+
+    /** A protected system sample remains available as a portfolio template. */
+    public function isSystemTemplate(array $website): bool
+    {
+        return !empty($website['is_system_template']);
     }
 
     /**

@@ -3,6 +3,7 @@ $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
 $liveUrl = (string) ($liveUrl ?? '');
 $templateKey = strtolower((string) ($website['template_key'] ?? 'blank'));
 $managedContentType = in_array($templateKey, ['wordpress', 'portfolio'], true);
+$isSystemTemplate = !empty($website['is_system_template']);
 $formatBytes = static function (int $bytes): string {
     if ($bytes >= 1073741824) {
         return number_format($bytes / 1073741824, 2) . ' GB';
@@ -25,6 +26,7 @@ $formatBytes = static function (int $bytes): string {
           <p>This website is not currently available publicly.</p>
         <?php endif; ?>
       </div>
+      <?php if ($isSystemTemplate): ?><p class="alert alert-info mt-3 mb-0" role="status">This is the protected default portfolio template. It stays published and cannot be deleted.</p><?php endif; ?>
       <div class="d-flex gap-2 flex-wrap">
         <?php if ($templateKey === 'portfolio'): ?>
           <a class="btn btn-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/portfolio?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="panels-top-left"></i> Edit Portfolio</a>
@@ -108,19 +110,23 @@ $formatBytes = static function (int $bytes): string {
 
           <a class="btn btn-outline-primary" target="_blank" rel="noopener" href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="external-link"></i> Open Live Site</a>
           <button type="button" class="btn btn-outline-secondary btn-share-site" data-share-url="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="share-2"></i> Share</button>
-          <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/unpublish', ENT_QUOTES, 'UTF-8') ?>">
-            <?= \App\Core\Csrf::field() ?>
-            <input type="hidden" name="website_id" value="<?= (int) $website['id'] ?>">
-            <button class="btn btn-outline-danger" type="submit"><i data-lucide="cloud-off"></i> Unpublish</button>
-          </form>
+          <?php if (!$isSystemTemplate): ?>
+            <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/unpublish', ENT_QUOTES, 'UTF-8') ?>">
+              <?= \App\Core\Csrf::field() ?>
+              <input type="hidden" name="website_id" value="<?= (int) $website['id'] ?>">
+              <button class="btn btn-outline-danger" type="submit"><i data-lucide="cloud-off"></i> Unpublish</button>
+            </form>
+          <?php endif; ?>
         <?php endif; ?>
       </div>
 
-      <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/delete', ENT_QUOTES, 'UTF-8') ?>" class="mt-4" onsubmit="return confirm('Delete this website project and draft files?');">
-        <?= \App\Core\Csrf::field() ?>
-        <input type="hidden" name="id" value="<?= (int) $website['id'] ?>">
-        <button class="btn btn-outline-danger" type="submit"><i data-lucide="trash-2"></i> Delete Website</button>
-      </form>
+      <?php if (!$isSystemTemplate): ?>
+        <form method="POST" action="<?= htmlspecialchars($baseUrl . '/dashboard/websites/delete', ENT_QUOTES, 'UTF-8') ?>" class="mt-4" onsubmit="return confirm('Delete this website project and draft files?');">
+          <?= \App\Core\Csrf::field() ?>
+          <input type="hidden" name="id" value="<?= (int) $website['id'] ?>">
+          <button class="btn btn-outline-danger" type="submit"><i data-lucide="trash-2"></i> Delete Website</button>
+        </form>
+      <?php endif; ?>
     </section>
   </div>
 </section>

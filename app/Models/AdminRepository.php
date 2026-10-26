@@ -97,7 +97,7 @@ class AdminRepository
     public function websites(int $limit = 100): array
     {
         $statement = $this->database->prepare(
-            'SELECT w.id, w.website_name, w.slug, w.subdomain, w.custom_domain, w.status,
+            'SELECT w.id, w.website_name, w.slug, w.subdomain, w.custom_domain, w.status, w.is_system_template,
                     w.storage_used, w.bandwidth_used, w.expires_at, w.created_at,
                     u.username, u.email
              FROM websites w
@@ -117,7 +117,7 @@ class AdminRepository
     public function website(int $id): ?array
     {
         $statement = $this->database->prepare(
-            'SELECT w.id, w.user_id, w.website_name, w.slug, w.subdomain, w.custom_domain, w.status,
+            'SELECT w.id, w.user_id, w.website_name, w.slug, w.subdomain, w.custom_domain, w.status, w.is_system_template,
                     w.storage_used, w.bandwidth_used, w.expires_at, w.created_at,
                     u.username, u.email
              FROM websites w
@@ -143,10 +143,23 @@ class AdminRepository
     /**
      * Delete a website record from the admin console.
      */
-    public function deleteWebsite(int $id): void
+    public function deleteWebsite(int $id): bool
     {
-        $statement = $this->database->prepare('DELETE FROM websites WHERE id = :id');
+        $statement = $this->database->prepare('DELETE FROM websites WHERE id = :id AND is_system_template = 0');
         $statement->execute(['id' => $id]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /** Keep the account owning a protected system site intact through the admin UI. */
+    public function userOwnsSystemWebsite(int $userId): bool
+    {
+        $statement = $this->database->prepare(
+            'SELECT 1 FROM websites WHERE user_id = :user_id AND is_system_template = 1 LIMIT 1'
+        );
+        $statement->execute(['user_id' => $userId]);
+
+        return (bool) $statement->fetchColumn();
     }
 
     /**
