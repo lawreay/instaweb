@@ -169,6 +169,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
   const toastMessage = document.getElementById('portfolio-toast-message');
   const toastIcon = document.getElementById('portfolio-toast-icon');
   const activeTemplateButton = document.getElementById('portfolio-active-template');
+  let activeTemplateKey = <?= json_encode($currentTemplate) ?>;
   let toastTimer = null;
   function showToast(message, state) {
     if (!toast || !toastMessage) return;
@@ -180,11 +181,10 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
     toastTimer = setTimeout(() => toast.classList.remove('is-visible'), state === 'error' ? 5500 : 3200);
   }
   function updateActiveTemplate() {
-    const selected = document.querySelector('input[name="template_choice"]:checked');
-    const key = selected ? selected.value : '';
-    document.querySelectorAll('[data-active-template]').forEach(badge => { badge.hidden = badge.dataset.activeTemplate !== key; });
-    if (activeTemplateButton && selected) {
-      const label = selected.closest('.ps-template')?.querySelector('.ps-template-name')?.textContent?.trim() || selected.value;
+    document.querySelectorAll('[data-active-template]').forEach(badge => { badge.hidden = badge.dataset.activeTemplate !== activeTemplateKey; });
+    const activeRadio = document.querySelector('input[name="template_choice"][value="' + CSS.escape(activeTemplateKey) + '"]');
+    if (activeTemplateButton) {
+      const label = activeRadio?.closest('.ps-template')?.querySelector('.ps-template-name')?.textContent?.trim() || activeTemplateKey;
       activeTemplateButton.textContent = '✓ Active: ' + label;
     }
   }
@@ -239,8 +239,10 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
       if (currentRequest !== requestNumber) return;
       if (!response.ok || !result.ok) throw new Error(result.message || 'Could not save changes.');
       setStatus('All changes saved', 'saved');
-      showToast(selected ? 'Changes saved. ' + (selected.closest('.ps-template')?.querySelector('.ps-template-name')?.textContent?.trim() || selected.value) + ' is now your active template.' : 'Your portfolio changes were saved successfully.', 'success');
+      const templateChanged = !!selected && selected.value !== activeTemplateKey;
+      if (selected) activeTemplateKey = selected.value;
       updateActiveTemplate();
+      showToast(templateChanged ? (selected.closest('.ps-template')?.querySelector('.ps-template-name')?.textContent?.trim() || selected.value) + ' is now your active template.' : 'Your portfolio changes were saved successfully.', 'success');
       if (selected && preview) {
         const target = selectedPreviewUrl();
         const separator = target.includes('?') ? '&' : '?';
@@ -263,7 +265,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
     input.addEventListener('blur', () => { clearTimeout(timer); saveSetup(); });
   });
   document.querySelectorAll('input[name="template_choice"][form="portfolio-setup-form"]').forEach(input => input.addEventListener('change', () => {
-    updateActiveTemplate();
+    if (activeTemplateButton) activeTemplateButton.textContent = 'Saving template…';
     const target = selectedPreviewUrl();
     if (preview) {
       const separator = target.includes('?') ? '&' : '?';
