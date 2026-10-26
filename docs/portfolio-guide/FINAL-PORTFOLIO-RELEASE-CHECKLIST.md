@@ -38,6 +38,7 @@
 - [x] Update `AdvancedPortfolioController::saveItem()` to validate the field allowlist and required fields by section.
 - [x] Preserve compatibility with the current JSON payload/public renderer for the existing generic fields; education/experience date ranges are also mapped to the legacy `period` value.
 - [x] Add integration-guard assertions for the Interests, Skills, CV metadata forms, and section-specific controller field rules.
+- [x] Map news publication dates to the existing public `period` field so the date is not silently omitted by the current renderer.
 - [ ] Run PHP lint, the integration guard, and React syntax checks against this commit in CI.
 - [ ] Test add/edit/hide/delete for each section in WAMP and verify values render publicly.
 - [ ] Implement actual CV file upload, validation, replacement/removal, and download visibility as a separate capability. Do not describe the current CV metadata form as file upload.
