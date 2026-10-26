@@ -23,7 +23,7 @@
 | InstaWeb-owned portfolio editor and owner checks | **Partial** | Routes/controllers and website-owner lookups exist. Cross-account runtime tests have not been evidenced. |
 | Tabbed Advanced Editor | **Implemented; browser QA pending** | `app/Views/portfolio/advanced.php` has Overview, Profile, Design, section tabs, Projects, URL tab retention, and now generates its template selector from the server-side ten-template allowlist. Mobile/keyboard/browser checks are not evidenced. |
 | Profile, social links, avatar, projects | **Implemented; runtime QA pending** | Controller/model/view paths exist. Avatar validation and owner-scoped project updates are present; database and upload behavior still need local verification. |
-| Nine structured content sections | **Implemented; end-to-end QA pending** | Goals, Interests, Challenges, Experience, Education, Skills, News, Partnerships, and CV/Resume have CRUD/visibility UI and controller/model paths. Some source-reference features are not ported. |
+| Nine structured content sections | **Section-specific editor in progress; runtime QA pending** | The Advanced Editor now defines distinct fields for Goals, Interests, Challenges, Experience, Education, Skills, News, Partnerships, and CV/Resume. The controller validates section-specific payload fields. CV file upload/replace/download is still outstanding; the current CV form stores document metadata, not a file. Browser, persistence, and public-rendering checks remain pending. |
 | Ten template identifiers | **Wired in code; visual parity partial** | `PortfolioController::TEMPLATES` and `portfolio/public.php` list Classic, Editorial, 3D Motion, Minimal, Noir, Aurora Motion, Studio Canvas, Orbit 3D, Prism, and Archive. Selection and renderer paths exist, but browser proof of all ten is outstanding. |
 | React-powered template family | **Implemented; production verification pending** | `react-portfolio.js` uses React and Framer Motion and has distinct CSS variants. The PHP fallback now remains visible until the React component mounts. It is one shared React renderer with template-specific styling, not ten independent React applications. External CDN loading and each template's visual identity need browser testing. |
 | Draft preview and public publishing lifecycle | **Partial** | Preview/public controller and renderer code exist. Confirm private draft access, published-only public access, unpublish behavior, slug resolution, and the real hosting route in a running environment. |
@@ -32,6 +32,18 @@
 | Syntax / automated checks | **Passed on latest verified code commit** | GitHub Actions runs [#550](https://github.com/lawreay/instaweb/actions/runs/40226157766) and [#551](https://github.com/lawreay/instaweb/actions/runs/40226161039) passed for commit `a767bcf25151588973819f4a78365cfe32c5cc55`, including PHP lint, React module syntax, and the expanded static integration guard. This is not browser/database runtime verification. |
 | Production readiness | **Not signed off** | Runtime database, browser, hosting, accessibility, performance, and cross-user checks remain release gates. |
 
+## Portfolio editor field-contract correction (2026-10-26)
+
+- [x] Replace the universal title/organisation/period/link/details form with section-specific field definitions in `app/Views/portfolio/advanced.php`.
+- [x] Update `AdvancedPortfolioController::saveItem()` to validate the field allowlist and required fields by section.
+- [x] Preserve compatibility with the current JSON payload/public renderer for the existing generic fields; education/experience date ranges are also mapped to the legacy `period` value.
+- [x] Add integration-guard assertions for the Interests, Skills, CV metadata forms, and section-specific controller field rules.
+- [ ] Run PHP lint, the integration guard, and React syntax checks against this commit in CI.
+- [ ] Test add/edit/hide/delete for each section in WAMP and verify values render publicly.
+- [ ] Implement actual CV file upload, validation, replacement/removal, and download visibility as a separate capability. Do not describe the current CV metadata form as file upload.
+- [ ] Review semantic rendering of skill proficiency/category, news publication status, and current-role/current-study dates in all ten templates.
+
+**Current limitation:** These edits have been committed to the feature branch, but the latest CI result and live WAMP behavior have not yet been verified. The editor field contracts are a first implementation pass, not release approval.
 ## Non-negotiable product rules
 
 1. All implementation changes stay in **InstaWeb**. Do not edit the separate `Custom-portfolios` repository.
