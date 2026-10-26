@@ -96,6 +96,7 @@ $currentTemplate = (string) ($portfolio['template_key'] ?? 'classic');
             <label class="ps-field" for="headline">Role / headline
               <input id="headline" name="headline" maxlength="180" value="<?= $escape($portfolio['headline'] ?? '') ?>" placeholder="e.g. UI Designer and Front-end Developer">
             </label>
+          </form>
             <div class="ps-profile-row">
               <?php if ($avatarUrl !== ''): ?>
                 <img class="ps-avatar" id="portfolio-avatar-preview" src="<?= $escape($avatarUrl) ?>" alt="Portfolio photo preview">
@@ -113,7 +114,6 @@ $currentTemplate = (string) ($portfolio['template_key'] ?? 'classic');
                 </form>
               </div>
             </div>
-          </form>
         </section>
 
         <section class="ps-panel">
