@@ -56,7 +56,7 @@ class PortfolioController extends Controller
         $bio = trim((string) $this->input('bio', ''));
         $email = trim((string) $this->input('email', ''));
         $location = trim((string) $this->input('location', ''));
-        $templateKey = trim((string) $this->input('template_key', 'classic'));
+        $templateKey = trim((string) $this->input('template_key', (string) ($portfolio['template_key'] ?? 'classic')));
 
         $socialLinks = [];
         foreach (['github', 'linkedin', 'instagram', 'facebook', 'website'] as $platform) {
