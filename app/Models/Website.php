@@ -92,20 +92,67 @@ class Website extends Model
      */
     public function deleteForUser(int $id, int $userId): bool
     {
-        // MyISAM does not cascade deletes into the InnoDB portfolio tables.
-        $statement = $this->database->prepare(
-            'DELETE FROM websites WHERE id = :id AND user_id = :user_id'
+        // Verify ownership before touching any dependent records. The legacy
+        // websites table uses MyISAM, so these deletes cannot share a transaction
+        // with it; clean dependent rows first so a missing migration never leaves
+        // a deleted website with an exception halfway through its cleanup.
+        $ownerCheck = $this->database->prepare(
+            'SELECT id FROM websites WHERE id = :id AND user_id = :user_id LIMIT 1'
         );
-        $statement->execute(['id' => $id, 'user_id' => $userId]);
-
-        if ($statement->rowCount() !== 1) {
+        $ownerCheck->execute(['id' => $id, 'user_id' => $userId]);
+        if (!$ownerCheck->fetchColumn()) {
             return false;
         }
 
+        // Capture the avatar path before deleting the portfolio row so its
+        // generated public file can be removed after the database cleanup succeeds.
+        $avatarStatement = $this->database->prepare(
+            'SELECT avatar_path FROM portfolios WHERE website_id = :website_id AND user_id = :user_id LIMIT 1'
+        );
+        $avatarStatement->execute(['website_id' => $id, 'user_id' => $userId]);
+        $avatarPath = $avatarStatement->fetchColumn();
+
+        // Advanced tables deliberately have no foreign keys to legacy MyISAM
+        // websites. All cleanup remains scoped to both website and owner.
+        foreach (['portfolio_advanced_items', 'portfolio_advanced_settings', 'portfolio_advanced_uploads'] as $table) {
+            $deleteAdvanced = $this->database->prepare(
+                "DELETE FROM {$table} WHERE website_id = :website_id AND user_id = :user_id"
+            );
+            $deleteAdvanced->execute(['website_id' => $id, 'user_id' => $userId]);
+        }
+
+        // Delete portfolio rows before the parent website row. portfolio_projects
+        // is removed by its InnoDB foreign-key cascade from portfolios.
         $deletePortfolios = $this->database->prepare(
             'DELETE FROM portfolios WHERE website_id = :website_id AND user_id = :user_id'
         );
         $deletePortfolios->execute(['website_id' => $id, 'user_id' => $userId]);
+
+        $statement = $this->database->prepare(
+            'DELETE FROM websites WHERE id = :id AND user_id = :user_id'
+        );
+        $statement->execute(['id' => $id, 'user_id' => $userId]);
+        if ($statement->rowCount() !== 1) {
+            return false;
+        }
+
+        // Avatar uploads live under a per-website directory. Only unlink a
+        // stored path inside that exact directory; never trust a DB path as-is.
+        if (is_string($avatarPath) && str_starts_with($avatarPath, 'uploads/portfolios/' . $id . '/')) {
+            $publicRoot = realpath(dirname(__DIR__, 2) . '/public');
+            $uploadDirectory = $publicRoot === false
+                ? false
+                : realpath($publicRoot . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'portfolios' . DIRECTORY_SEPARATOR . $id);
+            $avatarAbsolutePath = $publicRoot === false
+                ? false
+                : realpath($publicRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $avatarPath));
+
+            if ($uploadDirectory !== false && $avatarAbsolutePath !== false
+                && str_starts_with($avatarAbsolutePath, rtrim($uploadDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)
+                && is_file($avatarAbsolutePath)) {
+                @unlink($avatarAbsolutePath);
+            }
+        }
 
         return true;
     }

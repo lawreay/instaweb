@@ -5,6 +5,11 @@ $name = trim((string) ($portfolio['display_name'] ?? 'Portfolio'));
 $headline = trim((string) ($portfolio['headline'] ?? ''));
 $bio = trim((string) ($portfolio['bio'] ?? ''));
 $template = (string) ($portfolio['template_key'] ?? 'classic');
+$availableTemplates = ['classic', 'editorial', '3d', 'minimal', 'noir', 'aurora', 'studio', 'orbit', 'prism', 'archive'];
+$reactTemplates = ['aurora', 'studio', 'orbit', 'prism', 'archive'];
+if (!in_array($template, $availableTemplates, true)) {
+    $template = 'classic';
+}
 $advancedSettings = is_array($advancedSettings ?? null) ? $advancedSettings : [];
 $accentColor = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($advancedSettings['accent_color'] ?? '')) ? $advancedSettings['accent_color'] : '#f97316';
 $backgroundColor = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($advancedSettings['background_color'] ?? '')) ? $advancedSettings['background_color'] : '#ffffff';
@@ -17,16 +22,22 @@ if (!in_array($heroStyle, ['centered', 'split', 'minimal'], true)) {
 }
 $showProjects = ($advancedSettings['show_projects'] ?? '1') !== '0';
 $showContact = ($advancedSettings['show_contact'] ?? '1') !== '0';
+// Keep this list aligned with AdvancedPortfolioController::SECTIONS.
 $sectionLabels = [
+    'goals' => 'Goals',
+    'interests' => 'Interests',
+    'challenges' => 'Challenges',
     'experience' => 'Work experience',
     'education' => 'Education',
     'skills' => 'Skills',
-    'interests' => 'Interests',
+    'news' => 'News and updates',
+    'partnerships' => 'Partnerships',
+    'cv' => 'CV / Resume',
 ];
 $sectionItems = [];
 foreach (($advancedItems ?? []) as $item) {
     $sectionKey = (string) ($item['section_key'] ?? '');
-    if (isset($sectionLabels[$sectionKey])) {
+    if (isset($sectionLabels[$sectionKey]) && !empty($item['is_enabled'])) {
         $sectionItems[$sectionKey][] = $item;
     }
 }
@@ -37,6 +48,54 @@ if ($avatar !== '' && !str_contains($avatar, '..') && preg_match('#^uploads/[A-Z
 }
 $email = trim((string) ($portfolio['email'] ?? ''));
 $location = trim((string) ($portfolio['location'] ?? ''));
+$socialLinks = json_decode((string) ($portfolio['social_links'] ?? '{}'), true);
+$socialLinks = is_array($socialLinks) ? $socialLinks : [];
+$socialLabels = ['github' => 'GitHub', 'linkedin' => 'LinkedIn', 'instagram' => 'Instagram', 'facebook' => 'Facebook', 'website' => 'Website'];
+$safeSocialLinks = [];
+foreach ($socialLabels as $platform => $label) {
+    $url = trim((string) ($socialLinks[$platform] ?? ''));
+    $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+    if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL) && in_array($scheme, ['http', 'https'], true)) {
+        $safeSocialLinks[$platform] = ['label' => $label, 'url' => $url];
+    }
+}
+
+// Treat persisted project URLs as untrusted too. Older records may predate
+// controller validation, so sanitize links at the public rendering boundary.
+$safeProjects = [];
+foreach (($projects ?? []) as $project) {
+    $project = is_array($project) ? $project : [];
+    $projectUrl = trim((string) ($project['project_url'] ?? ''));
+    $projectScheme = strtolower((string) parse_url($projectUrl, PHP_URL_SCHEME));
+    if ($projectUrl !== '' && (!filter_var($projectUrl, FILTER_VALIDATE_URL)
+        || !in_array($projectScheme, ['http', 'https'], true))) {
+        $project['project_url'] = '';
+    }
+    $safeProjects[] = $project;
+}
+
+$reactSections = [];
+foreach ($sectionLabels as $sectionKey => $sectionLabel) {
+    if (empty($sectionItems[$sectionKey])) continue;
+    $entries = [];
+    foreach ($sectionItems[$sectionKey] as $item) {
+        $payload = json_decode((string) ($item['payload'] ?? '{}'), true);
+        $payload = is_array($payload) ? $payload : [];
+        $link = trim((string) ($payload['link'] ?? ''));
+        if (!filter_var($link, FILTER_VALIDATE_URL) || !in_array(strtolower((string) parse_url($link, PHP_URL_SCHEME)), ['http', 'https'], true)) $link = '';
+        $cvPath = (string) ($payload['file_path'] ?? '');
+        if ($cvPath !== '' && !preg_match('#^uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/cv/[a-f0-9]{32}\\.(pdf|docx?)$#i', $cvPath)) $cvPath = '';
+        $entries[] = ['title' => (string) ($item['title'] ?? ''), 'details' => (string) ($payload['details'] ?? ''), 'organisation' => (string) ($payload['organisation'] ?? ''), 'period' => (string) ($payload['period'] ?? ''), 'link' => $link, 'fileUrl' => $cvPath !== '' ? '/' . $cvPath : '', 'fileName' => (string) ($payload['file_name'] ?? '')];
+    }
+    $reactSections[] = ['key' => $sectionKey, 'label' => $sectionLabel, 'items' => $entries];
+}
+$reactPortfolioData = [
+    'template' => $template, 'name' => $name, 'headline' => $headline, 'bio' => $bio, 'initials' => $initials ?? strtoupper(substr($name, 0, 1)),
+    'avatar' => $avatarUrl, 'email' => $email, 'location' => $location, 'accent' => $accentColor, 'background' => $backgroundColor,
+    'textColor' => $textColor, 'fontFamily' => $fontFamily, 'heroStyle' => $heroStyle,
+    'showProjects' => $showProjects, 'showContact' => $showContact, 'projects' => $safeProjects, 'sections' => $reactSections,
+    'socials' => array_values($safeSocialLinks),
+];
 $initials = strtoupper(substr($name, 0, 1));
 ?>
 <!doctype html>
@@ -46,8 +105,8 @@ $initials = strtoupper(substr($name, 0, 1));
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= $escape($name) ?><?= $headline !== '' ? ' | ' . $escape($headline) : '' ?></title>
   <meta name="description" content="<?= $escape(substr($bio !== '' ? $bio : $headline, 0, 160)) ?>">
-  <meta name="robots" content="index,follow">
-  <meta name="theme-color" content="<?= $template === '3d' ? '#080b0e' : '#f4f0e7' ?>">
+  <meta name="robots" content="<?= !empty($isPreview) ? 'noindex,nofollow' : 'index,follow' ?>">
+  <meta name="theme-color" content="<?= in_array($template, ['3d', 'noir'], true) ? '#080b0e' : '#f4f0e7' ?>">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/styles.css') ?>">
   <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio.css') ?>">
@@ -57,6 +116,13 @@ $initials = strtoupper(substr($name, 0, 1));
     <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-editorial.css') ?>">
   <?php elseif ($template === '3d'): ?>
     <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.css') ?>">
+  <?php elseif ($template === 'minimal'): ?>
+    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-minimal.css') ?>">
+  <?php elseif ($template === 'noir'): ?>
+    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-noir.css') ?>">
+  <?php endif; ?>
+  <?php if (in_array($template, $reactTemplates, true)): ?>
+    <link rel="stylesheet" href="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.css') ?>">
   <?php endif; ?>
   <style>
     body{font-family:<?= $escape($fontFamily) ?>;background-color:<?= $escape($backgroundColor) ?>;color:<?= $escape($textColor) ?>;--portfolio-accent:<?= $escape($accentColor) ?>;min-height:100vh;overflow-x:clip}#portfolio-container{overflow:hidden}.portfolio-nav-logo{width:38px;height:38px;display:grid;place-items:center;border:1px solid currentColor;font-weight:800}
@@ -98,7 +164,7 @@ $initials = strtoupper(substr($name, 0, 1));
     @media(max-width:650px){.portfolio-content-section{padding:3.5rem 1.25rem}.portfolio-hero{min-height:auto}}
   </style>
 </head>
-<body class="portfolio-template-<?= $escape($template) ?> portfolio-hero-style-<?= $escape($heroStyle) ?>">
+<body class="portfolio-template-<?= $escape($template) ?> portfolio-hero-style-<?= $escape($heroStyle) ?><?= in_array($template, $reactTemplates, true) ? ' react-portfolio-template' : '' ?>">
   <?php if (!empty($isPreview)): ?>
     <div style="position:relative;z-index:10000;padding:.65rem 1rem;background:#fef3c7;color:#78350f;text-align:center;font:600 13px/1.4 Arial,sans-serif">
       Draft preview · changes are shown from your saved portfolio data.
@@ -121,11 +187,15 @@ $initials = strtoupper(substr($name, 0, 1));
             <?php if (!empty($sectionItems[$sectionKey])): ?><li><a href="#<?= $escape($sectionKey) ?>"><?= $escape($sectionLabel) ?></a></li><?php endif; ?>
           <?php endforeach; ?>
           <?php if ($showProjects): ?><li><a href="#projects">Projects</a></li><?php endif; ?>
-          <?php if ($showContact && $email !== ''): ?><li><a href="#contact">Contact</a></li><?php endif; ?>
+          <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?><li><a href="#contact">Contact</a></li><?php endif; ?>
         </ul>
       </div>
     </nav>
   </header>
+
+  <?php if (in_array($template, $reactTemplates, true)): ?>
+    <main id="react-portfolio-root" data-portfolio="<?= $escape(json_encode($reactPortfolioData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) ?: '{}') ?>"></main>
+  <?php endif; ?>
 
   <main id="portfolio-container">
     <section id="home" class="portfolio-hero hero-gradient" aria-labelledby="hero-name">
@@ -186,7 +256,8 @@ $initials = strtoupper(substr($name, 0, 1));
                 $payload = is_array($payload) ? $payload : [];
                 $itemLink = trim((string) ($payload['link'] ?? ''));
                 $itemLinkScheme = strtolower((string) parse_url($itemLink, PHP_URL_SCHEME));
-                if (!in_array($itemLinkScheme, ['http', 'https'], true)) {
+                if ($itemLink !== '' && (!filter_var($itemLink, FILTER_VALIDATE_URL)
+                    || !in_array($itemLinkScheme, ['http', 'https'], true))) {
                     $itemLink = '';
                 }
                 ?>
@@ -196,6 +267,7 @@ $initials = strtoupper(substr($name, 0, 1));
                   <?php if (!empty($payload['period'])): ?><p class="mb-2"><?= $escape($payload['period']) ?></p><?php endif; ?>
                   <?php if (!empty($payload['details'])): ?><p><?= nl2br($escape($payload['details'])) ?></p><?php endif; ?>
                   <?php if ($itemLink !== ''): ?><a href="<?= $escape($itemLink) ?>" target="_blank" rel="noopener noreferrer">Learn more <span aria-hidden="true">↗</span></a><?php endif; ?>
+                  <?php $cvPath = (string) ($payload['file_path'] ?? ''); if ($sectionKey === 'cv' && $cvPath !== '' && preg_match('#^uploads/portfolios/' . (int) ($website['id'] ?? 0) . '/cv/[a-f0-9]{32}\\.(pdf|docx?)$#i', $cvPath)): ?><p><a href="<?= $escape('/' . $cvPath) ?>" download><?= $escape($payload['file_name'] ?? 'Download CV') ?> · Download</a></p><?php endif; ?>
                 </article>
               <?php endforeach; ?>
             </div>
@@ -213,7 +285,7 @@ $initials = strtoupper(substr($name, 0, 1));
           <div class="portfolio-empty">Projects will appear here as they are added to this portfolio.</div>
         <?php else: ?>
           <div class="portfolio-project-grid mt-4">
-            <?php foreach ($projects as $project): ?>
+            <?php foreach ($safeProjects as $project): ?>
               <article class="portfolio-project-card glass-card">
                 <p class="hero-eyebrow mb-2">PROJECT</p>
                 <h3><?= $escape($project['title'] ?? '') ?></h3>
@@ -226,13 +298,20 @@ $initials = strtoupper(substr($name, 0, 1));
       </div>
     </section><?php endif; ?>
 
-    <?php if ($showContact && $email !== ''): ?>
+    <?php if ($showContact && ($email !== '' || $safeSocialLinks !== [])): ?>
       <section id="contact" class="portfolio-content-section portfolio-contact">
         <div class="portfolio-content-inner">
           <p class="hero-eyebrow">Get in touch</p>
           <h2>Have a project in mind?</h2>
           <p class="lead mt-3">Contact <?= $escape($name) ?> to discuss a project or opportunity.</p>
-          <a class="hero-button hero-button-primary mt-3" href="mailto:<?= $escape($email) ?>">Email <?= $escape($name) ?> <span aria-hidden="true">↗</span></a>
+          <?php if ($email !== ''): ?><a class="hero-button hero-button-primary mt-3" href="mailto:<?= $escape($email) ?>">Email <?= $escape($name) ?> <span aria-hidden="true">↗</span></a><?php endif; ?>
+          <?php if ($safeSocialLinks !== []): ?>
+            <nav class="portfolio-social-links mt-4 d-flex flex-wrap gap-3" aria-label="Social profiles">
+              <?php foreach ($safeSocialLinks as $social): ?>
+                <a href="<?= $escape($social['url']) ?>" target="_blank" rel="noopener noreferrer"><?= $escape($social['label']) ?> <span aria-hidden="true">↗</span></a>
+              <?php endforeach; ?>
+            </nav>
+          <?php endif; ?>
         </div>
       </section>
     <?php endif; ?>
@@ -254,6 +333,10 @@ $initials = strtoupper(substr($name, 0, 1));
   <?php if ($template === '3d'): ?>
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"}}</script>
     <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/portfolio-3d.js') ?>"></script>
+  <?php endif; ?>
+  <?php if (in_array($template, $reactTemplates, true)): ?>
+    <script type="importmap">{"imports":{"react":"https://esm.sh/react@18.3.1","react-dom":"https://esm.sh/react-dom@18.3.1","react/jsx-runtime":"https://esm.sh/react@18.3.1/jsx-runtime"}}</script>
+    <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.js') ?>"></script>
   <?php endif; ?>
 </body>
 </html>

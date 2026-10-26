@@ -7,8 +7,10 @@ RewriteBase /instaweb1/
 RewriteRule ^public/(assets|sites|uploads)/(.*)$ public/$1/$2 [L,NC,QSA]
 RewriteRule ^(assets|sites|uploads|favicon\.ico|robots\.txt|sitemap\.xml)(.*)$ public/$1$2 [L,NC,QSA]
 
-# Never serve application code, secrets, backups, or package archives directly.
-RewriteRule ^(?:\.env(?:\..*)?|storage(?:/|$)|app(?:/|$)|vendor(?:/|$)|wordpress-[^/]+\.zip$) - [F,L,NC]
+# Never serve application code, secrets, internal references, repository metadata, or archives directly.
+RewriteRule ^(?:\.env(?:\..*)?|\.git(?:/|$)|\.github(?:/|$)|storage(?:/|$)|app(?:/|$)|vendor(?:/|$)|docs(?:/|$)|tests(?:/|$)|database(?:/|$)) - [F,L,NC]
+RewriteRule ^(?!index\.php$)[^/]+\.php$ - [F,L,NC]
+RewriteRule ^(?:api\.zip|composer\.(?:json|lock)|README\.md|[^/]+\.(?:zip|sql|sqlite|log|bak|ini))$ - [F,L,NC]
 
 # If the requested file or directory exists in the root, serve it directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]

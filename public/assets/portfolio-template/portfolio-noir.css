@@ -1,0 +1,17 @@
+/* Noir: dark, high-contrast presentation for visual and technical portfolios. */
+body.portfolio-template-noir{background:#090909!important;color:#f4f4f0!important}
+body.portfolio-template-noir .navbar{background:#090909!important;border-bottom:1px solid #292929!important;box-shadow:none!important}
+body.portfolio-template-noir .navbar a,body.portfolio-template-noir .logo-text{color:#f4f4f0!important}
+body.portfolio-template-noir .portfolio-nav-logo{border-color:var(--portfolio-accent)!important;color:var(--portfolio-accent)!important}
+body.portfolio-template-noir .portfolio-hero{position:relative;min-height:92svh;padding:150px clamp(24px,8vw,120px) 80px!important;background:#090909!important;color:#f4f4f0!important}
+body.portfolio-template-noir .portfolio-hero:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(25% - 1px),#ffffff0d calc(25% - 1px),#ffffff0d 25%);pointer-events:none}
+body.portfolio-template-noir .hero-shell{position:relative;width:min(100%,1200px);margin:auto}
+body.portfolio-template-noir .hero-kicker,body.portfolio-template-noir .hero-eyebrow{color:var(--portfolio-accent)!important;font:700 11px/1.4 Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase}
+body.portfolio-template-noir .portfolio-hero h1{max-width:950px;color:#f4f4f0!important;font:700 clamp(4rem,10vw,9.5rem)/.86 Arial,Helvetica,sans-serif;letter-spacing:-.09em}
+body.portfolio-template-noir .hero-role{color:#f4f4f0!important;font-weight:700}.portfolio-template-noir .hero-summary{max-width:620px;color:#b6b6b1!important;font-size:1.04rem;line-height:1.8}
+body.portfolio-template-noir .hero-button{border-radius:0;border-color:#f4f4f0!important}body.portfolio-template-noir .hero-button-primary{background:var(--portfolio-accent)!important;border-color:var(--portfolio-accent)!important;color:#090909!important}body.portfolio-template-noir .hero-button-secondary{color:#f4f4f0!important}
+body.portfolio-template-noir .portfolio-content-section{background:#090909!important;color:#f4f4f0!important;border-top:1px solid #292929;padding-block:6rem!important}body.portfolio-template-noir .portfolio-content-section:nth-of-type(even){background:#111!important}
+body.portfolio-template-noir .portfolio-content-section h2{color:#f4f4f0!important;font:700 clamp(2.6rem,6vw,5.3rem)/.9 Arial,Helvetica,sans-serif;letter-spacing:-.07em}
+body.portfolio-template-noir .portfolio-project-card{background:#111!important;border:1px solid #343434!important;border-radius:0!important;box-shadow:none!important}body.portfolio-template-noir .portfolio-project-card h3{color:#f4f4f0!important}body.portfolio-template-noir .portfolio-project-card p{color:#b6b6b1!important}
+body.portfolio-template-noir .portfolio-contact{background:var(--portfolio-accent)!important;color:#090909!important}body.portfolio-template-noir .portfolio-contact h2,body.portfolio-template-noir .portfolio-contact p{color:#090909!important}body.portfolio-template-noir .portfolio-contact a{color:#090909!important;border-color:#090909!important}.portfolio-template-noir .portfolio-footer{background:#090909;color:#888}
+@media(max-width:650px){body.portfolio-template-noir .portfolio-hero{padding:125px 24px 64px!important}body.portfolio-template-noir .portfolio-content-section{padding-block:4.5rem!important}}

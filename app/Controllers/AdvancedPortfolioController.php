@@ -27,11 +27,20 @@ class AdvancedPortfolioController extends Controller
         'show_contact' => ['1', 1],
     ];
 
+    /**
+     * Structured content areas supported by the InstaWeb portfolio editor.
+     * Hero/About and Projects keep their dedicated editors.
+     */
     private const SECTIONS = [
+        'goals' => 'Goals',
+        'interests' => 'Interests',
+        'challenges' => 'Challenges',
         'experience' => 'Work experience',
         'education' => 'Education',
         'skills' => 'Skills',
-        'interests' => 'Interests',
+        'news' => 'News and updates',
+        'partnerships' => 'Partnerships',
+        'cv' => 'CV / Resume',
     ];
 
     public function edit(): void
@@ -49,6 +58,8 @@ class AdvancedPortfolioController extends Controller
             'portfolio' => $portfolio,
             'settings' => $settings,
             'items' => $model->items((int) $website['id'], $userId),
+            'projects' => (new Portfolio())->projects((int) $portfolio['id']),
+            'templates' => PortfolioController::TEMPLATES,
             'sectionLabels' => self::SECTIONS,
             'active' => 'websites',
         ], 'layouts/dashboard');
@@ -56,7 +67,7 @@ class AdvancedPortfolioController extends Controller
 
     public function save(): void
     {
-        [$userId, $website] = $this->ownedPortfolio();
+        [$userId, $website, $portfolio] = $this->ownedPortfolio();
         if (!$this->validCsrf((int) $website['id'])) {
             return;
         }
@@ -89,7 +100,15 @@ class AdvancedPortfolioController extends Controller
             return;
         }
 
+        $templateKey = trim((string) $this->input('template_key', (string) ($portfolio['template_key'] ?? 'classic')));
+        if (!array_key_exists($templateKey, PortfolioController::TEMPLATES)) {
+            Session::flash('error', 'Choose one of the available portfolio templates.');
+            $this->backToEditor((int) $website['id']);
+            return;
+        }
+
         (new AdvancedPortfolio())->saveSettings((int) $website['id'], $userId, $settings);
+        (new Portfolio())->updateTemplateForOwner((int) $website['id'], $userId, $templateKey);
         Session::flash('success', 'Advanced portfolio design settings saved.');
         $this->backToEditor((int) $website['id']);
     }
@@ -104,34 +123,174 @@ class AdvancedPortfolioController extends Controller
 
         $section = trim((string) $this->input('section_key', ''));
         $title = trim((string) $this->input('title', ''));
-        $details = trim((string) $this->input('details', ''));
-        $organisation = trim((string) $this->input('organisation', ''));
-        $period = trim((string) $this->input('period', ''));
-        $link = trim((string) $this->input('link', ''));
         $sortOrder = max(0, min(9999, (int) $this->input('sort_order', 0)));
         $itemId = (int) $this->input('item_id', 0);
-
-        if (!isset(self::SECTIONS[$section]) || $title === '' || mb_strlen($title) > 190
-            || mb_strlen($details) > 5000 || mb_strlen($organisation) > 190
-            || mb_strlen($period) > 100 || mb_strlen($link) > 500) {
-            Session::flash('error', 'Check the section and required title. Some fields may be too long.');
-            $this->backToEditor($websiteId);
-            return;
-        }
-
-        if ($link !== '' && !filter_var($link, FILTER_VALIDATE_URL)) {
-            Session::flash('error', 'Links must be complete valid URLs, including https://.');
-            $this->backToEditor($websiteId);
-            return;
-        }
-
-        $payload = [
-            'details' => $details,
-            'organisation' => $organisation,
-            'period' => $period,
-            'link' => $link,
+        $fieldRules = [
+            'goals' => ['details'],
+            'interests' => ['details'],
+            'challenges' => ['details', 'outcome'],
+            'experience' => ['organisation', 'details', 'start_date', 'end_date', 'current'],
+            'education' => ['organisation', 'field_of_study', 'details', 'start_date', 'end_date', 'current'],
+            'skills' => ['category', 'proficiency'],
+            'news' => ['details', 'link', 'published_date'],
+            'partnerships' => ['details', 'link', 'start_date', 'end_date'],
+            'cv' => ['details', 'year'],
         ];
-
+        $requiredFields = ['education' => ['organisation'], 'experience' => ['organisation'], 'news' => ['details']];
+        if (!isset(self::SECTIONS[$section]) || $title === '' || mb_strlen($title) > 190) {
+            Session::flash('error', 'Enter a valid title for this portfolio entry.');
+            $this->backToEditor($websiteId);
+            return;
+        }
+        $payload = [];
+        foreach ($fieldRules[$section] as $field) {
+            $value = $field === 'current' ? ((string) $this->input($field, '0') === '1' ? '1' : '0') : trim((string) $this->input($field, ''));
+            $maxLength = in_array($field, ['details'], true) ? 5000 : (in_array($field, ['link'], true) ? 500 : 190);
+            if (mb_strlen($value) > $maxLength) {
+                Session::flash('error', 'One or more fields are too long. Please shorten the content and try again.');
+                $this->backToEditor($websiteId);
+                return;
+            }
+            if (in_array($field, $requiredFields[$section] ?? [], true) && $value === '') {
+                Session::flash('error', 'Complete the required fields for ' . self::SECTIONS[$section] . '.');
+                $this->backToEditor($websiteId);
+                return;
+            }
+            if ($field === 'link' && $value !== '' && (!filter_var($value, FILTER_VALIDATE_URL)
+                || !in_array(strtolower((string) parse_url($value, PHP_URL_SCHEME)), ['http', 'https'], true))) {
+                Session::flash('error', 'Links must be complete HTTP or HTTPS URLs, including https://.');
+                $this->backToEditor($websiteId);
+                return;
+            }
+            $payload[$field] = $value;
+        }
+        if ($section === 'cv') {
+            $existingItem = null;
+            if ($itemId > 0) {
+                foreach ((new AdvancedPortfolio())->items($websiteId, $userId) as $candidate) {
+                    if ((int) ($candidate['id'] ?? 0) === $itemId && ($candidate['section_key'] ?? '') === 'cv') {
+                        $existingItem = $candidate;
+                        break;
+                    }
+                }
+                if ($existingItem === null) {
+                    Session::flash('error', 'The CV entry could not be found for this website.');
+                    $this->backToEditor($websiteId);
+                    return;
+                }
+                $existingPayload = json_decode((string) ($existingItem['payload'] ?? '{}'), true);
+                if (is_array($existingPayload) && isset($existingPayload['file_path'])) {
+                    $payload['file_path'] = (string) $existingPayload['file_path'];
+                    $payload['file_name'] = (string) ($existingPayload['file_name'] ?? '');
+                }
+            }
+            $file = $_FILES['cv_file'] ?? null;
+            if (is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                if ((int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+                    || !is_uploaded_file((string) ($file['tmp_name'] ?? ''))
+                    || (int) ($file['size'] ?? 0) < 1 || (int) $file['size'] > 5 * 1024 * 1024) {
+                    Session::flash('error', 'Choose a PDF, DOC, or DOCX file smaller than 5 MB.');
+                    $this->backToEditor($websiteId);
+                    return;
+                }
+                $tmpPath = (string) $file['tmp_name'];
+                $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                $mime = $finfo->file($tmpPath);
+                $allowedTypes = [
+                    'application/pdf' => 'pdf',
+                    'application/msword' => 'doc',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+                ];
+                $extension = is_string($mime) ? ($allowedTypes[$mime] ?? null) : null;
+                $originalExtension = strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
+                if ($extension === null && $mime === 'application/zip' && $originalExtension === 'docx'
+                    && class_exists('\\ZipArchive')) {
+                    $zip = new \ZipArchive();
+                    if ($zip->open($tmpPath) === true) {
+                        $isDocx = $zip->locateName('[Content_Types].xml') !== false
+                            && $zip->locateName('word/document.xml') !== false;
+                        $zip->close();
+                        if ($isDocx) {
+                            $extension = 'docx';
+                        }
+                    }
+                }
+                if ($extension === null || $originalExtension !== $extension) {
+                    Session::flash('error', 'The CV file type is not supported. Upload a valid PDF, DOC, or DOCX file.');
+                    $this->backToEditor($websiteId);
+                    return;
+                }
+                $relativeDirectory = 'uploads/portfolios/' . $websiteId . '/cv';
+                $targetDirectory = dirname(__DIR__, 2) . '/public/' . $relativeDirectory;
+                if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0755, true) && !is_dir($targetDirectory)) {
+                    Session::flash('error', 'The CV upload directory could not be created.');
+                    $this->backToEditor($websiteId);
+                    return;
+                }
+                $filename = bin2hex(random_bytes(16)) . '.' . $extension;
+                $targetPath = $targetDirectory . DIRECTORY_SEPARATOR . $filename;
+                if (!move_uploaded_file($tmpPath, $targetPath)) {
+                    Session::flash('error', 'The CV file could not be saved.');
+                    $this->backToEditor($websiteId);
+                    return;
+                }
+                $payload['file_path'] = $relativeDirectory . '/' . $filename;
+                $originalName = basename((string) ($file['name'] ?? ('CV.' . $extension)));
+                $payload['file_name'] = mb_substr($originalName, 0, 190);
+                if (isset($existingPayload['file_path'])) {
+                    $oldPath = (string) $existingPayload['file_path'];
+                    $prefix = 'uploads/portfolios/' . $websiteId . '/cv/';
+                    if (str_starts_with($oldPath, $prefix)) {
+                        $oldAbsolute = realpath(dirname(__DIR__, 2) . '/public/' . str_replace('/', DIRECTORY_SEPARATOR, $oldPath));
+                        $safeDirectory = realpath($targetDirectory);
+                        if ($oldAbsolute !== false && $safeDirectory !== false
+                            && str_starts_with($oldAbsolute, rtrim($safeDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)
+                            && is_file($oldAbsolute)) {
+                            @unlink($oldAbsolute);
+                        }
+                    }
+                }
+            } elseif (empty($payload['file_path']) && $itemId === 0) {
+                Session::flash('error', 'Choose a CV file to upload.');
+                $this->backToEditor($websiteId);
+                return;
+            }
+        }
+        if (in_array($section, ['education', 'experience', 'partnerships'], true)) {
+            $start = trim((string) ($payload['start_date'] ?? ''));
+            $end = trim((string) ($payload['end_date'] ?? ''));
+            $payload['period'] = trim($start . ($end !== '' ? ' – ' . $end : ($start !== '' && !empty($payload['current']) ? ' – Present' : '')));
+        }
+        if (isset($payload['organisation']) && $payload['organisation'] !== '') {
+            // Keep the existing public renderer compatible while preserving section-specific fields.
+            $payload['organisation'] = $payload['organisation'];
+        }
+        if (isset($payload['field_of_study']) && $payload['field_of_study'] !== '') {
+            $existingDetails = trim((string) ($payload['details'] ?? ''));
+            $payload['details'] = trim($payload['field_of_study'] . ($existingDetails !== '' ? "\n" . $existingDetails : ''));
+        }
+        if (isset($payload['category']) && $payload['category'] !== '') {
+            $existingDetails = trim((string) ($payload['details'] ?? ''));
+            $categoryLine = 'Category: ' . $payload['category'];
+            $payload['details'] = $existingDetails === '' ? $categoryLine : $existingDetails . "\n" . $categoryLine;
+        }
+        if (isset($payload['proficiency']) && $payload['proficiency'] !== '') {
+            $existingDetails = trim((string) ($payload['details'] ?? ''));
+            $payload['details'] = $existingDetails === '' ? 'Proficiency: ' . $payload['proficiency'] : $existingDetails . ' · Proficiency: ' . $payload['proficiency'];
+        }
+        if (isset($payload['outcome']) && $payload['outcome'] !== '') {
+            $payload['details'] = trim(($payload['details'] ?? '') . "\nOutcome: " . $payload['outcome']);
+        }
+        if (isset($payload['year']) && $payload['year'] !== '') {
+            $payload['period'] = $payload['year'];
+        }
+        if (isset($payload['published_date']) && $payload['published_date'] !== '') {
+            // The shared public renderer displays period; map the news date there until templates support a dedicated date field.
+            $payload['period'] = $payload['published_date'];
+        }
+        if (!empty($payload['current']) && in_array($section, ['education', 'experience'], true)) {
+            $payload['period'] = trim((string) ($payload['start_date'] ?? '') . (!empty($payload['start_date']) ? ' – ' : '') . 'Present');
+        }
         (new AdvancedPortfolio())->saveItem(
             $websiteId,
             $userId,
@@ -190,7 +349,12 @@ class AdvancedPortfolioController extends Controller
 
     private function backToEditor(int $websiteId): void
     {
-        $this->redirectTo('/dashboard/websites/portfolio/advanced?id=' . $websiteId);
+        $tab = strtolower(trim((string) $this->input('tab', 'overview')));
+        if (!preg_match('/^[a-z-]{1,30}$/', $tab)) {
+            $tab = 'overview';
+        }
+
+        $this->redirectTo('/dashboard/websites/portfolio/advanced?id=' . $websiteId . '&tab=' . rawurlencode($tab));
     }
 
     private function ownedPortfolio(): array
