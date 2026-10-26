@@ -186,7 +186,7 @@ class AdvancedPortfolioController extends Controller
                     return;
                 }
                 $tmpPath = (string) $file['tmp_name'];
-                $finfo = new \\finfo(FILEINFO_MIME_TYPE);
+                $finfo = new \finfo(FILEINFO_MIME_TYPE);
                 $mime = $finfo->file($tmpPath);
                 $allowedTypes = [
                     'application/pdf' => 'pdf',
@@ -196,8 +196,8 @@ class AdvancedPortfolioController extends Controller
                 $extension = is_string($mime) ? ($allowedTypes[$mime] ?? null) : null;
                 $originalExtension = strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
                 if ($extension === null && $mime === 'application/zip' && $originalExtension === 'docx'
-                    && class_exists('\\\\ZipArchive')) {
-                    $zip = new \\\\ZipArchive();
+                    && class_exists('\\ZipArchive')) {
+                    $zip = new \\ZipArchive();
                     if ($zip->open($tmpPath) === true) {
                         $isDocx = $zip->locateName('[Content_Types].xml') !== false
                             && $zip->locateName('word/document.xml') !== false;
