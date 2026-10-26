@@ -26,6 +26,9 @@
       <a class="<?= ($active ?? '') === 'websites' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/websites', ENT_QUOTES, 'UTF-8') ?>">
         <i data-lucide="globe-2"></i><span>Websites</span>
       </a>
+      <a class="<?= ($active ?? '') === 'portfolio-templates' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/portfolio-templates', ENT_QUOTES, 'UTF-8') ?>">
+        <i data-lucide="gallery-vertical-end"></i><span>Portfolio templates</span>
+      </a>
       <a class="<?= ($active ?? '') === 'users' ? 'active' : '' ?>" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/users', ENT_QUOTES, 'UTF-8') ?>">
         <i data-lucide="users"></i><span>Users</span>
       </a>
