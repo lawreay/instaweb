@@ -186,7 +186,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
   const ownPreviewUrl = <?= json_encode($ownPreviewUrl) ?>;
   const templatePreviewUrls = <?= json_encode($templatePreviewUrls, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
   function selectedPreviewUrl() {
-    const selected = form.querySelector('input[name="template_choice"]:checked');
+    const selected = document.querySelector('input[name="template_choice"]:checked');
     return (selected && templatePreviewUrls[selected.value]) || ownPreviewUrl;
   }
   function setStatus(message, state) {
@@ -199,7 +199,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
     setStatus('Saving…', 'saving');
     try {
       const body = new FormData(form);
-      const selected = form.querySelector('input[name="template_choice"]:checked');
+      const selected = document.querySelector('input[name="template_choice"]:checked');
       if (selected) body.set('template_key', selected.value);
       const response = await fetch(form.action, { method: 'POST', body, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
       const result = await response.json();
@@ -224,7 +224,15 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
     });
     input.addEventListener('blur', () => { clearTimeout(timer); saveSetup(); });
   });
-  form.querySelectorAll('input[name="template_choice"]').forEach(input => input.addEventListener('change', saveSetup));
+  document.querySelectorAll('input[name="template_choice"][form="portfolio-setup-form"]').forEach(input => input.addEventListener('change', () => {
+    const target = selectedPreviewUrl();
+    if (preview) {
+      const separator = target.includes('?') ? '&' : '?';
+      preview.src = target + separator + '_preview=' + Date.now();
+    }
+    if (previewOpen) previewOpen.href = target;
+    saveSetup();
+  }));
   if (avatarInput) avatarInput.addEventListener('change', () => {
     const file = avatarInput.files && avatarInput.files[0];
     if (!file) return;
