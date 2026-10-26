@@ -87,6 +87,7 @@ return [
         '/dashboard/websites' => [WebsiteController::class, 'store'],
         '/dashboard/websites/update' => [WebsiteController::class, 'update'],
         '/dashboard/websites/portfolio/save' => [PortfolioController::class, 'save'],
+        '/dashboard/websites/portfolio/autosave' => [PortfolioController::class, 'autosave'],
         '/dashboard/websites/portfolio/avatar' => [PortfolioController::class, 'uploadAvatar'],
         '/dashboard/websites/portfolio/advanced/save' => [AdvancedPortfolioController::class, 'save'],
         '/dashboard/websites/portfolio/advanced/items/save' => [AdvancedPortfolioController::class, 'saveItem'],
