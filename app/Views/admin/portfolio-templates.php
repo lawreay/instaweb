@@ -59,7 +59,7 @@ $baseUrl = rtrim((string) (($app ?? [])['base_url'] ?? ''), '/');
             <p class="small text-secondary mb-3"><?= $isBuiltIn ? 'Renderer files are maintained by the application.' : ($renderEngine === 'react' ? 'Editable React component and CSS, rendered in an isolated frame.' : 'Editable, script-free HTML and CSS.') ?></p>
 
             <form method="POST" action="<?= $escape($baseUrl . '/admin/portfolio-templates/tier') ?>" class="border rounded-3 bg-light p-2 mb-3">
-              <?= \\App\\Core\\Csrf::field() ?>
+              <?= \App\Core\Csrf::field() ?>
               <input type="hidden" name="template_key" value="<?= $escape($templateKey) ?>">
               <label class="form-label small fw-semibold mb-1" for="tier_<?= $escape($templateKey) ?>">Availability plan</label>
               <div class="d-flex gap-2">
