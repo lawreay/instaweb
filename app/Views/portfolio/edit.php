@@ -20,6 +20,8 @@ $templateDescriptions = [
     'archive' => 'A paper-led creative catalogue.',
 ];
 $currentTemplate = (string) ($portfolio['template_key'] ?? 'classic');
+$isPremiumUser = (bool) ($isPremiumUser ?? false);
+$premiumTemplateKeys = is_array($premiumTemplateKeys ?? null) ? $premiumTemplateKeys : [];
 $ownPreviewUrl = $baseUrl . '/dashboard/websites/preview?id=' . $websiteId;
 $templatePreviewUrls = is_array($templatePreviewUrls ?? null) ? $templatePreviewUrls : [];
 $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
@@ -138,6 +140,11 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
                 <span class="ps-mini ps-mini--<?= $escape($key) ?>" aria-hidden="true"><span></span><span></span><span></span></span>
                 <span class="ps-template-name"><?= $escape(preg_replace('/\s+[—-].*$/u', '', $label)) ?></span>
                 <span class="ps-template-desc"><?= $escape($templateDescriptions[$key] ?? 'A distinctive portfolio design.') ?></span>
+                <?php if (in_array($key, $premiumTemplateKeys, true) || !in_array($key, ['classic', 'minimal', 'graduate'], true)): ?>
+                  <span class="badge <?= $isPremiumUser ? 'text-bg-warning' : 'text-bg-secondary' ?> mt-2"><?= $isPremiumUser ? 'Premium included' : 'Premium' ?></span>
+                <?php else: ?>
+                  <span class="badge text-bg-success mt-2">Free</span>
+                <?php endif; ?>
                 <span class="ps-template-active" data-active-template="<?= $escape($key) ?>" <?= $currentTemplate === $key ? '' : 'hidden' ?>>✓ Active Template</span>
               </label>
             <?php endforeach; ?>
@@ -145,6 +152,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
           <div class="ps-actions">
             <a class="btn btn-outline-primary" href="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced?id=' . $websiteId) ?>">Edit projects and content</a>
             <a class="btn btn-primary" href="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>" target="_blank" rel="noopener">Open full preview</a>
+            <?php if ($isPremiumUser): ?><a class="btn btn-outline-dark" href="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId . '&export=pdf') ?>" target="_blank" rel="noopener">Export portfolio to PDF</a><?php else: ?><span class="small text-secondary align-self-center">PDF export is included with Premium.</span><?php endif; ?>
           </div>
         </section>
       </div>
