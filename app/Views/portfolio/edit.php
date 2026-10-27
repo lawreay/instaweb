@@ -136,7 +136,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
           <div class="ps-template-grid" role="radiogroup" aria-label="Portfolio templates">
             <?php foreach ($templates as $key => $label): ?>
               <label class="ps-template">
-                <input type="radio" name="template_choice" value="<?= $escape($key) ?>" form="portfolio-setup-form" <?= $currentTemplate === $key ? 'checked' : '' ?>>
+                <input type="radio" name="template_choice" value="<?= $escape($key) ?>" data-premium="<?= in_array($key, $premiumTemplateKeys, true) || !in_array($key, ['classic', 'minimal', 'graduate'], true) ? '1' : '0' ?>" form="portfolio-setup-form" <?= $currentTemplate === $key ? 'checked' : '' ?>>
                 <span class="ps-mini ps-mini--<?= $escape($key) ?>" aria-hidden="true"><span></span><span></span><span></span></span>
                 <span class="ps-template-name"><?= $escape(preg_replace('/\s+[—-].*$/u', '', $label)) ?></span>
                 <span class="ps-template-desc"><?= $escape($templateDescriptions[$key] ?? 'A distinctive portfolio design.') ?></span>
@@ -241,14 +241,14 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
     try {
       const body = new FormData(form);
       const selected = document.querySelector('input[name="template_choice"]:checked');
-      if (selected) body.set('template_key', selected.value);
+      if (selected) body.set('template_key', (!isPremiumUser && selected.dataset.premium === '1' && selected.value !== activeTemplateKey) ? activeTemplateKey : selected.value);
       const response = await fetch(form.action, { method: 'POST', body, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
       const result = await response.json();
       if (currentRequest !== requestNumber) return;
       if (!response.ok || !result.ok) throw new Error(result.message || 'Could not save changes.');
       setStatus('All changes saved', 'saved');
-      const templateChanged = !!selected && selected.value !== activeTemplateKey;
-      if (selected) activeTemplateKey = selected.value;
+      const templateChanged = !!selected && selected.value !== activeTemplateKey && (isPremiumUser || selected.dataset.premium !== '1');
+      if (selected && (isPremiumUser || selected.dataset.premium !== '1' || selected.value === activeTemplateKey)) activeTemplateKey = selected.value;
       updateActiveTemplate();
       showToast(templateChanged ? (selected.closest('.ps-template')?.querySelector('.ps-template-name')?.textContent?.trim() || selected.value) + ' is now your active template.' : 'Your portfolio changes were saved successfully.', 'success');
       if (selected && preview) {
@@ -273,13 +273,19 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
     input.addEventListener('blur', () => { clearTimeout(timer); saveSetup(); });
   });
   document.querySelectorAll('input[name="template_choice"][form="portfolio-setup-form"]').forEach(input => input.addEventListener('change', () => {
-    if (activeTemplateButton) activeTemplateButton.textContent = 'Saving template…';
     const target = selectedPreviewUrl();
     if (preview) {
       const separator = target.includes('?') ? '&' : '?';
       preview.src = target + separator + '_preview=' + Date.now();
     }
     if (previewOpen) previewOpen.href = target;
+    if (!isPremiumUser && input.dataset.premium === '1' && input.value !== activeTemplateKey) {
+      setStatus('Previewing a Premium template. Upgrade to activate it.', '');
+      showToast('Premium template preview only. Upgrade to activate and publish this design.', 'error');
+      updateActiveTemplate();
+      return;
+    }
+    if (activeTemplateButton) activeTemplateButton.textContent = 'Saving template…';
     saveSetup();
   }));
   if (avatarInput) avatarInput.addEventListener('change', () => {
