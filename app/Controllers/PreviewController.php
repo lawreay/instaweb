@@ -53,6 +53,8 @@ class PreviewController extends Controller
                 'noirSectionImages' => $advancedModel->noirSectionImages((int) $website['id'], $userId),
                 'customTemplate' => (new PortfolioTemplate())->customByKey((string) ($portfolio['template_key'] ?? '')),
                 'isPreview' => true,
+                'isPremiumUser' => (new Website())->userPlan($userId) === 'premium',
+                'exportPdfRequested' => (string) $this->input('export', '') === 'pdf',
             ], '');
             return;
         }
