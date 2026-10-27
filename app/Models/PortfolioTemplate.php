@@ -87,10 +87,14 @@ class PortfolioTemplate
         return array_key_exists($templateKey, $this->selectable());
     }
 
-    /** Custom templates are Premium by default; built-ins use the explicit tier list. */
+    /** Built-ins use the explicit tier lists; administrator-created templates are Premium by default. */
     public function isPremiumTemplate(string $templateKey): bool
     {
-        return !in_array($templateKey, self::FREE_BUILT_INS, true);
+        if (array_key_exists($templateKey, self::BUILT_INS)) {
+            return in_array($templateKey, self::PREMIUM_BUILT_INS, true);
+        }
+
+        return true;
     }
 
     /**
