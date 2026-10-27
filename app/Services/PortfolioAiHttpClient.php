@@ -40,20 +40,24 @@ final class PortfolioAiHttpClient
             CURLOPT_POSTFIELDS => $json,
             CURLOPT_HTTPHEADER => $requestHeaders,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 8,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 20,
             CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
             CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
             CURLOPT_FOLLOWLOCATION => false,
         ]);
         $body = curl_exec($curl);
         $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+        $curlError = curl_errno($curl);
         $curlFailed = $body === false;
         curl_close($curl);
 
+        if ($curlFailed && in_array($curlError, [CURLE_OPERATION_TIMEDOUT, CURLE_COULDNT_CONNECT], true)) {
+            throw new RuntimeException('The AI provider took too long to respond. Check your internet connection and provider availability, then try again.');
+        }
         if ($curlFailed || $status < 200 || $status >= 300) {
-            // Do not forward provider bodies: they can contain request metadata.
-            throw new RuntimeException('The AI provider could not complete this request.');
+            // Do not forward provider bodies or secrets to the browser.
+            throw new RuntimeException('The AI provider rejected or could not complete this request. Check the selected provider, API key, model, and usage limits.');
         }
 
         $decoded = json_decode((string) $body, true);
