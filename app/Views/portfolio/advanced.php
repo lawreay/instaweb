@@ -981,11 +981,28 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       }
     };
     const requestJson = async (url, data) => {
-      const response = await fetch(url, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' }, body: data });
-      let body;
-      try { body = await response.json(); } catch (error) { body = { ok: false, message: 'The server returned an unexpected response.' }; }
-      if (!response.ok || !body.ok) throw new Error(body.message || 'The request could not be completed.');
-      return body;
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 25000);
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
+          body: data,
+          signal: controller.signal
+        });
+        let body;
+        try { body = await response.json(); } catch (error) { body = { ok: false, message: 'The server returned an unexpected response.' }; }
+        if (!response.ok || !body.ok) throw new Error(body.message || 'The request could not be completed.');
+        return body;
+      } catch (error) {
+        if (error && error.name === 'AbortError') {
+          throw new Error('This request took more than 25 seconds. Check that your provider API key is valid, has available quota, and that your local server can reach the AI provider.');
+        }
+        throw error;
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
     };
 
     aiOpen?.addEventListener('click', openAi);
@@ -1002,7 +1019,8 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       proposal = null;
       hide(aiResult);
       aiGenerate.disabled = true;
-      setMessage('Creating your suggestion…', 'loading');
+      aiGenerate.setAttribute('aria-busy', 'true');
+      setMessage('Creating your suggestion… This can take up to 25 seconds.', 'loading');
       try {
         const result = await requestJson(proposeUrl, new FormData(aiForm));
         proposal = result.proposal;
@@ -1013,6 +1031,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
         setMessage(error instanceof Error ? error.message : 'Unable to create a suggestion.', 'error');
       } finally {
         if (aiKey) aiKey.value = '';
+        aiGenerate.removeAttribute('aria-busy');
         aiGenerate.disabled = aiOperation?.value === 'rewrite_item' ? !optionForSection() : false;
       }
     });
