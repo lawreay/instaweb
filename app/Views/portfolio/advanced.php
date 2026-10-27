@@ -982,7 +982,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
     };
     const requestJson = async (url, data) => {
       const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 25000);
+      const timeoutId = window.setTimeout(() => controller.abort(), 15000);
       try {
         const response = await fetch(url, {
           method: 'POST',
@@ -997,7 +997,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
         return body;
       } catch (error) {
         if (error && error.name === 'AbortError') {
-          throw new Error('This request took more than 25 seconds. Check that your provider API key is valid, has available quota, and that your local server can reach the AI provider.');
+          throw new Error('This request took more than 15 seconds. Check that your provider API key is valid, has available quota, and that your local server can reach the AI provider.');
         }
         throw error;
       } finally {
@@ -1020,7 +1020,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       hide(aiResult);
       aiGenerate.disabled = true;
       aiGenerate.setAttribute('aria-busy', 'true');
-      setMessage('Creating your suggestion… This can take up to 25 seconds.', 'loading');
+      setMessage('Creating your suggestion… This can take up to 15 seconds.', 'loading');
       try {
         const result = await requestJson(proposeUrl, new FormData(aiForm));
         proposal = result.proposal;
@@ -1032,7 +1032,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       } finally {
         if (aiKey) aiKey.value = '';
         aiGenerate.removeAttribute('aria-busy');
-        aiGenerate.disabled = aiOperation?.value === 'rewrite_item' ? !optionForSection() : false;
+        aiGenerate.disabled = !aiStatus.enabled || (aiOperation?.value === 'rewrite_item' && !optionForSection());
       }
     });
     aiApply?.addEventListener('click', async () => {
