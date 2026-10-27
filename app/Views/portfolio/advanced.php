@@ -58,6 +58,10 @@ $sectionFields = [
     'partnerships' => [['title', 'Partner or organisation', true], ['details', 'Partnership details (optional)', false, 'textarea'], ['link', 'Website (optional)', false, 'url'], ['start_date', 'Start date (optional)', false, 'date'], ['end_date', 'End date (optional)', false, 'date']],
     'cv' => [['title', 'Document title', true], ['details', 'Short note (optional)', false, 'textarea'], ['year', 'Year or issuer (optional)', false], ['cv_file', 'Upload CV (PDF, DOC, DOCX; max 5 MB)', false, 'file']],
 ];
+$aiStatus = is_array($aiStatus ?? null) ? $aiStatus : ['enabled' => false, 'defaultProvider' => 'openai', 'allowRequestKey' => false, 'providers' => []];
+$aiStatusJson = json_encode($aiStatus, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+$aiStatusJson = $aiStatusJson === false ? '{}' : $aiStatusJson;
+$aiRewritableSections = ['goals', 'interests', 'challenges', 'experience', 'education', 'news', 'partnerships'];
 
 /* One field renderer shared by the "add" and "edit" forms. */
 $renderField = static function (array $field, $value, array $payload, bool $edit, string $placeholder) use ($escape): string {
@@ -134,6 +138,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       <p class="ap-sub"><?= $escape($website['website_name'] ?? 'Portfolio') ?></p>
     </div>
     <div class="ap-header-actions">
+      <button class="ap-button ap-button-ai" type="button" data-ai-open><i data-lucide="sparkles"></i>AI Enhance</button>
       <a class="ap-button ap-button-quiet" href="<?= $escape($baseUrl . '/dashboard/websites/show?id=' . $websiteId) ?>">Manage site</a>
       <a class="ap-button ap-button-primary" href="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>" target="_blank" rel="noopener"><i data-lucide="eye"></i>Preview</a>
     </div>
@@ -463,6 +468,71 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
   </div>
 </section>
 
+<div class="ap-ai-modal" data-ai-modal hidden aria-hidden="true">
+  <section class="ap-ai-dialog" role="dialog" aria-modal="true" aria-labelledby="ap-ai-title">
+    <header class="ap-ai-head">
+      <div><p class="ap-kicker">Portfolio assistant</p><h2 id="ap-ai-title">Enhance with AI</h2><p>Review every suggestion before it changes your portfolio.</p></div>
+      <button class="ap-ai-close" type="button" aria-label="Close AI Enhance" data-ai-close><i data-lucide="x"></i></button>
+    </header>
+    <form class="ap-ai-form" data-ai-form>
+      <?= \App\Core\Csrf::field() ?>
+      <input type="hidden" name="id" value="<?= $websiteId ?>">
+      <label class="ap-field"><span class="ap-label">What would you like to do?</span>
+        <select name="operation" data-ai-operation>
+          <option value="generate_items">Add new entries to a section</option>
+          <option value="rewrite_profile">Rewrite my profile text</option>
+          <option value="rewrite_item">Rewrite an existing entry</option>
+        </select>
+      </label>
+      <div class="ap-field-grid" data-ai-generate-fields>
+        <label class="ap-field"><span class="ap-label">Portfolio section</span>
+          <select name="section_key" data-ai-section>
+            <?php foreach ($sectionLabels as $sectionKey => $sectionLabel): if ($sectionKey === 'cv') continue; ?>
+              <option value="<?= $escape($sectionKey) ?>"><?= $escape($sectionLabel) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+        <label class="ap-field"><span class="ap-label">How many?</span>
+          <select name="count"><option value="1">1 suggestion</option><option value="2" selected>2 suggestions</option><option value="3">3 suggestions</option></select>
+        </label>
+      </div>
+      <label class="ap-field" data-ai-profile-field><span class="ap-label">Profile text</span>
+        <select name="field"><option value="bio">About you</option><option value="headline">Headline / role</option></select>
+      </label>
+      <label class="ap-field" data-ai-item-field><span class="ap-label">Existing entry</span>
+        <select name="item_id" data-ai-item>
+          <?php foreach ($items as $item): $itemSection = (string) ($item['section_key'] ?? ''); if (!in_array($itemSection, $aiRewritableSections, true)) continue; ?>
+            <option value="<?= (int) ($item['id'] ?? 0) ?>" data-ai-section="<?= $escape($itemSection) ?>"><?= $escape(($sectionLabels[$itemSection] ?? ucfirst($itemSection)) . ' — ' . ($item['title'] ?? 'Untitled entry')) ?></option>
+          <?php endforeach; ?>
+        </select>
+        <small class="ap-note" data-ai-item-empty hidden>Add a written entry first, then AI can help refine it.</small>
+      </label>
+      <label class="ap-field"><span class="ap-label">Tone</span>
+        <select name="tone"><option value="professional">Professional</option><option value="warm">Warm and approachable</option><option value="concise">Concise</option></select>
+      </label>
+      <label class="ap-field"><span class="ap-label">Context or instructions <span class="ap-optional">(optional)</span></span>
+        <textarea name="instructions" rows="4" maxlength="2000" placeholder="For example: emphasise my problem-solving work, use a confident but friendly tone, and do not add facts not already in my portfolio."></textarea>
+      </label>
+      <div class="ap-ai-provider">
+        <label class="ap-field"><span class="ap-label">AI provider</span>
+          <select name="provider" data-ai-provider><option value="openai">OpenAI</option><option value="gemini">Google Gemini</option></select>
+        </label>
+        <label class="ap-field"><span class="ap-label">API key <span class="ap-optional">(only if needed)</span></span>
+          <input type="password" name="api_key" data-ai-key maxlength="500" autocomplete="off" spellcheck="false" placeholder="Paste a provider key for this request">
+          <small class="ap-note" data-ai-key-note></small>
+        </label>
+      </div>
+      <p class="ap-ai-status" data-ai-status role="status" aria-live="polite"></p>
+      <div class="ap-ai-actions"><button class="ap-button ap-button-primary" type="submit" data-ai-generate><i data-lucide="sparkles"></i>Generate suggestions</button></div>
+    </form>
+    <section class="ap-ai-result" data-ai-result hidden aria-live="polite">
+      <div class="ap-ai-result-head"><div><p class="ap-kicker">Suggestion</p><h3>Review before applying</h3></div><span class="ap-ai-ready">Nothing is saved yet</span></div>
+      <div class="ap-ai-output" data-ai-output></div>
+      <div class="ap-ai-actions"><button class="ap-button ap-button-primary" type="button" data-ai-apply><i data-lucide="check"></i>Apply suggestion</button></div>
+    </section>
+  </section>
+</div>
+
 <style>
 .ap-studio{--ap-ink:#17191d;--ap-muted:#667085;--ap-line:#e4e7ec;--ap-soft:#f8fafc;--ap-accent:#f97316;--ap-accent-ink:#9a3412;--ap-accent-soft:#fff4ea;--ap-ok:#166534;--ap-ok-soft:#e8f7ee;--ap-danger:#b42318;color:var(--ap-ink)}
 .ap-studio *{box-sizing:border-box}
@@ -484,6 +554,8 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
 .ap-button-quiet:hover{background:var(--ap-soft);border-color:#98a2b3;color:var(--ap-ink)}
 .ap-button-danger{background:#fff;color:var(--ap-danger);border-color:#fecdca}
 .ap-button-danger:hover{background:#fef3f2;border-color:#fda29b}
+.ap-button-ai{background:#fff7ed;color:#9a3412;border-color:#fdba74}
+.ap-button-ai:hover{background:#ffedd5;color:#7c2d12;border-color:#fb923c}
 .ap-studio a:focus-visible,.ap-studio button:focus-visible,.ap-studio summary:focus-visible{outline:3px solid #f9731666;outline-offset:2px}
 
 /* shell */
@@ -621,6 +693,16 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
 .ap-noir-image-card .ap-form{gap:.65rem;margin-top:.75rem}
 .ap-noir-remove{margin-top:.65rem}
 
+/* AI review dialog */
+.ap-ai-modal[hidden],.ap-ai-result[hidden]{display:none}
+.ap-ai-modal{--ap-ink:#17191d;--ap-muted:#667085;--ap-line:#e4e7ec;--ap-soft:#f8fafc;--ap-accent:#f97316;--ap-danger:#b42318;position:fixed;z-index:1060;inset:0;display:grid;place-items:center;padding:1rem;background:rgba(15,23,42,.54);overflow:auto}
+.ap-ai-dialog{width:min(100%,44rem);max-height:calc(100vh - 2rem);overflow:auto;padding:clamp(1rem,3vw,1.6rem);border:1px solid #e4e7ec;border-radius:1rem;background:var(--bs-body-bg,#fff);box-shadow:0 1.5rem 4rem rgba(15,23,42,.3);color:var(--ap-ink)}
+.ap-ai-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding-bottom:1rem;border-bottom:1px solid var(--ap-line)}
+.ap-ai-head h2{margin:0;font-size:1.35rem;font-weight:800;letter-spacing:-.025em}.ap-ai-head p:not(.ap-kicker){margin:.3rem 0 0;color:var(--ap-muted);font-size:.88rem}
+.ap-ai-close{display:grid;place-items:center;flex:0 0 auto;width:2.25rem;height:2.25rem;border:1px solid var(--ap-line);border-radius:.6rem;background:#fff;color:#475467;cursor:pointer}.ap-ai-close:hover{background:var(--ap-soft)}.ap-ai-close svg{width:1.1rem;height:1.1rem}
+.ap-ai-form{display:grid;gap:1rem;padding-top:1rem}.ap-ai-provider{display:grid;grid-template-columns:9rem minmax(0,1fr);gap:1rem;align-items:start}.ap-optional{color:var(--ap-muted);font-weight:500}.ap-ai-status{min-height:1.25rem;margin:0;color:var(--ap-muted);font-size:.84rem;line-height:1.45}.ap-ai-status.is-error{color:var(--ap-danger)}.ap-ai-status.is-loading{color:#9a3412}
+.ap-ai-actions{display:flex;justify-content:flex-end;gap:.65rem}.ap-ai-actions .ap-button:disabled{cursor:wait;opacity:.65}.ap-ai-result{margin-top:1rem;padding:1rem;border:1px solid #fed7aa;border-radius:.85rem;background:#fffaf5}.ap-ai-result-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}.ap-ai-result-head h3{margin:0;font-size:1rem;font-weight:800}.ap-ai-ready{flex:0 0 auto;padding:.25rem .5rem;border-radius:999px;background:#fff0df;color:#9a3412;font-size:.68rem;font-weight:800}.ap-ai-output{display:grid;gap:.75rem;margin:1rem 0}.ap-ai-summary{margin:0;color:var(--ap-muted);font-size:.86rem}.ap-ai-rewrite{margin:0;padding:.85rem;border-left:3px solid var(--ap-accent);border-radius:.35rem;background:#fff;white-space:pre-wrap;line-height:1.6}.ap-ai-suggestion{padding:.85rem;border:1px solid #fed7aa;border-radius:.65rem;background:#fff}.ap-ai-suggestion strong{display:block}.ap-ai-suggestion p{margin:.35rem 0 0;color:#475467;white-space:pre-wrap;line-height:1.5}
+
 @media(max-width:1000px){
   .ap-shell{grid-template-columns:minmax(0,1fr)}
   .ap-nav{position:sticky;top:0;z-index:5;flex-direction:row;gap:.3rem;padding:.5rem;border-radius:.8rem;overflow-x:auto;max-height:none}
@@ -630,6 +712,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
   .ap-avatar-card{position:static}
   .ap-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ap-noir-image-grid{grid-template-columns:minmax(0,1fr)}
+  .ap-ai-provider{grid-template-columns:minmax(0,1fr)}
 }
 @media(max-width:640px){
   .ap-field-grid,.ap-colours,.ap-switches{grid-template-columns:minmax(0,1fr)}
@@ -773,5 +856,183 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
   }
   [bgInput, textInput].forEach(input => input && input.addEventListener('input', updateContrast));
   updateContrast();
+
+  /* ---------- AI enhancement (review before apply; no key persistence) ---------- */
+  const aiModal = document.querySelector('[data-ai-modal]');
+  if (aiModal) {
+    const aiStatus = <?= $aiStatusJson ?>;
+    const aiOpen = studio.querySelector('[data-ai-open]');
+    const aiClose = aiModal.querySelector('[data-ai-close]');
+    const aiForm = aiModal.querySelector('[data-ai-form]');
+    const aiOperation = aiModal.querySelector('[data-ai-operation]');
+    const aiSection = aiModal.querySelector('[data-ai-section]');
+    const aiItem = aiModal.querySelector('[data-ai-item]');
+    const aiItemEmpty = aiModal.querySelector('[data-ai-item-empty]');
+    const aiProvider = aiModal.querySelector('[data-ai-provider]');
+    const aiKey = aiModal.querySelector('[data-ai-key]');
+    const aiKeyNote = aiModal.querySelector('[data-ai-key-note]');
+    const aiStatusMessage = aiModal.querySelector('[data-ai-status]');
+    const aiGenerate = aiModal.querySelector('[data-ai-generate]');
+    const aiResult = aiModal.querySelector('[data-ai-result]');
+    const aiOutput = aiModal.querySelector('[data-ai-output]');
+    const aiApply = aiModal.querySelector('[data-ai-apply]');
+    const aiGenerateFields = aiModal.querySelector('[data-ai-generate-fields]');
+    const aiProfileField = aiModal.querySelector('[data-ai-profile-field]');
+    const aiItemField = aiModal.querySelector('[data-ai-item-field]');
+    const proposeUrl = <?= json_encode($baseUrl . '/dashboard/websites/portfolio/ai/propose', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    const applyUrl = <?= json_encode($baseUrl . '/dashboard/websites/portfolio/ai/apply', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    const editorUrl = <?= json_encode($baseUrl . '/dashboard/websites/portfolio/advanced', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    const editorId = <?= (int) $websiteId ?>;
+    let proposal = null;
+    let priorFocus = null;
+
+    const show = element => { if (element) element.hidden = false; };
+    const hide = element => { if (element) element.hidden = true; };
+    const setMessage = (message, state = '') => {
+      aiStatusMessage.textContent = message || '';
+      aiStatusMessage.className = 'ap-ai-status' + (state ? ' is-' + state : '');
+    };
+    const optionForSection = () => {
+      if (!aiItem) return false;
+      const requested = aiSection ? aiSection.value : '';
+      let first = null;
+      Array.from(aiItem.options).forEach(option => {
+        const usable = option.dataset.aiSection === requested;
+        option.hidden = !usable;
+        option.disabled = !usable;
+        if (usable && !first) first = option;
+      });
+      if (first && aiItem.selectedOptions[0]?.disabled) aiItem.value = first.value;
+      if (aiItemEmpty) aiItemEmpty.hidden = Boolean(first);
+      if (aiGenerate) aiGenerate.disabled = !aiStatus.enabled || (!first && aiOperation?.value === 'rewrite_item');
+      return Boolean(first);
+    };
+    const syncAiForm = () => {
+      const operation = aiOperation?.value || 'generate_items';
+      const rewritingItem = operation === 'rewrite_item';
+      const generating = operation === 'generate_items';
+      aiGenerateFields.hidden = !generating && !rewritingItem;
+      aiProfileField.hidden = operation !== 'rewrite_profile';
+      aiItemField.hidden = !rewritingItem;
+      if (rewritingItem) optionForSection();
+      else if (aiGenerate) aiGenerate.disabled = !aiStatus.enabled;
+
+      updateKeyNote();
+    };
+    const updateKeyNote = () => {
+      const provider = aiProvider?.value || 'openai';
+      const configured = Boolean(aiStatus.providers?.[provider]?.configured);
+      if (!aiStatus.enabled) {
+        aiKeyNote.textContent = 'AI enhancement is disabled for this installation.';
+      } else if (configured) {
+        aiKeyNote.textContent = 'A platform key is available. Leave this blank to use it; a pasted key is used for this request only.';
+      } else if (aiStatus.allowRequestKey) {
+        aiKeyNote.textContent = 'No platform key is configured. Paste your own key for this request only; it is never saved.';
+      } else {
+        aiKeyNote.textContent = 'No key is configured for this provider. Ask an administrator to configure one.';
+      }
+    };
+    const closeAi = () => {
+      aiModal.hidden = true;
+      aiModal.setAttribute('aria-hidden', 'true');
+      if (aiKey) aiKey.value = '';
+      if (priorFocus && typeof priorFocus.focus === 'function') priorFocus.focus();
+    };
+    const openAi = () => {
+      priorFocus = document.activeElement;
+      aiModal.hidden = false;
+      aiModal.setAttribute('aria-hidden', 'false');
+      proposal = null;
+      hide(aiResult);
+      setMessage(aiStatus.enabled ? '' : 'AI enhancement is disabled for this installation.', aiStatus.enabled ? '' : 'error');
+      if (aiProvider) aiProvider.value = aiStatus.defaultProvider === 'gemini' ? 'gemini' : 'openai';
+      syncAiForm();
+      window.setTimeout(() => aiOperation?.focus(), 0);
+      if (window.lucide) window.lucide.createIcons();
+    };
+    const renderProposal = value => {
+      aiOutput.replaceChildren();
+      if (value.summary) {
+        const summary = document.createElement('p');
+        summary.className = 'ap-ai-summary';
+        summary.textContent = value.summary;
+        aiOutput.appendChild(summary);
+      }
+      if (value.operation === 'rewrite_profile' || value.operation === 'rewrite_item') {
+        const rewrite = document.createElement('p');
+        rewrite.className = 'ap-ai-rewrite';
+        rewrite.textContent = value.rewrite || '';
+        aiOutput.appendChild(rewrite);
+      } else {
+        (value.items || []).forEach((item, index) => {
+          const card = document.createElement('article');
+          card.className = 'ap-ai-suggestion';
+          const title = document.createElement('strong');
+          title.textContent = (index + 1) + '. ' + (item.title || 'Untitled suggestion');
+          card.appendChild(title);
+          const details = [item.organisation, item.field_of_study, item.details, item.outcome].filter(Boolean).join('\n');
+          if (details) {
+            const copy = document.createElement('p');
+            copy.textContent = details;
+            card.appendChild(copy);
+          }
+          aiOutput.appendChild(card);
+        });
+      }
+    };
+    const requestJson = async (url, data) => {
+      const response = await fetch(url, { method: 'POST', credentials: 'same-origin', headers: { Accept: 'application/json' }, body: data });
+      let body;
+      try { body = await response.json(); } catch (error) { body = { ok: false, message: 'The server returned an unexpected response.' }; }
+      if (!response.ok || !body.ok) throw new Error(body.message || 'The request could not be completed.');
+      return body;
+    };
+
+    aiOpen?.addEventListener('click', openAi);
+    aiClose?.addEventListener('click', closeAi);
+    aiModal.addEventListener('click', event => { if (event.target === aiModal) closeAi(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !aiModal.hidden) closeAi(); });
+    aiOperation?.addEventListener('change', syncAiForm);
+    aiSection?.addEventListener('change', optionForSection);
+    aiProvider?.addEventListener('change', updateKeyNote);
+    aiForm?.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!aiStatus.enabled) { setMessage('AI enhancement is disabled for this installation.', 'error'); return; }
+      if (aiOperation?.value === 'rewrite_item' && !optionForSection()) return;
+      proposal = null;
+      hide(aiResult);
+      aiGenerate.disabled = true;
+      setMessage('Creating your suggestion…', 'loading');
+      try {
+        const result = await requestJson(proposeUrl, new FormData(aiForm));
+        proposal = result.proposal;
+        renderProposal(proposal);
+        show(aiResult);
+        setMessage('Suggestion ready. Review it, then choose Apply suggestion.');
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : 'Unable to create a suggestion.', 'error');
+      } finally {
+        if (aiKey) aiKey.value = '';
+        aiGenerate.disabled = aiOperation?.value === 'rewrite_item' ? !optionForSection() : false;
+      }
+    });
+    aiApply?.addEventListener('click', async () => {
+      if (!proposal) return;
+      aiApply.disabled = true;
+      setMessage('Applying your approved suggestion…', 'loading');
+      try {
+        const data = new FormData();
+        data.append('_csrf', aiForm.querySelector('input[name="_csrf"]')?.value || '');
+        data.append('id', String(editorId));
+        data.append('proposal', JSON.stringify(proposal));
+        const result = await requestJson(applyUrl, data);
+        const tab = result.tab || 'overview';
+        window.location.assign(editorUrl + '?id=' + encodeURIComponent(String(editorId)) + '&tab=' + encodeURIComponent(tab));
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : 'Unable to apply the suggestion.', 'error');
+        aiApply.disabled = false;
+      }
+    });
+  }
 })();
 </script>

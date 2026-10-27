@@ -23,10 +23,27 @@ function readRequiredFile(string $path): string
     return $content;
 }
 
+/**
+ * Remove formatting whitespace while preserving whitespace inside PHP string
+ * literals. This keeps source-integrity assertions independent of formatting.
+ */
+function compactPhpSource(string $source): string
+{
+    $compact = '';
+    foreach (token_get_all($source) as $token) {
+        $compact .= is_array($token) && $token[0] === T_WHITESPACE
+            ? ''
+            : (is_array($token) ? $token[1] : $token);
+    }
+
+    return $compact;
+}
+
 $root = dirname(__DIR__);
 $registry = array_keys(PortfolioController::TEMPLATES);
 $publicView = readRequiredFile($root . '/app/Views/portfolio/public.php');
 $editorView = readRequiredFile($root . '/app/Views/portfolio/advanced.php');
+$editorViewCompact = compactPhpSource($editorView);
 $reactCss = readRequiredFile($root . '/public/assets/portfolio-template/react-portfolio.css');
 $router = readRequiredFile($root . '/app/Core/Router.php');
 $rootHtaccess = readRequiredFile($root . '/.htaccess');
@@ -288,16 +305,16 @@ if (!str_contains($portfolioController, '$previousAvatar = (string) ($portfolio[
     failCheck('Avatar replacement must safely remove the previous file only from the owning website upload directory.');
 }
 
-if (!str_contains($editorView, "'interests' => [['title','Interest',true],['details','Short explanation (optional)',false,'textarea']]")) {
+if (!str_contains($editorViewCompact, "'interests'=>[['title','Interest',true],['details','Short explanation (optional)',false,'textarea']]")) {
     failCheck('Interests editor must not require organisation, period, or link fields.');
 }
-if (!str_contains($editorView, "'skills' => [['title','Skill name',true],['category','Category (optional)',false],['proficiency','Proficiency (optional)',false,'select'")) {
+if (!str_contains($editorViewCompact, "'skills'=>[['title','Skill name',true],['category','Category (optional)',false],['proficiency','Proficiency (optional)',false,'select'")) {
     failCheck('Skills editor must use skill-specific fields rather than the generic content form.');
 }
 if (!str_contains($advancedPortfolioController, "'interests' => ['details']") || !str_contains($advancedPortfolioController, "'skills' => ['category', 'proficiency']")) {
     failCheck('Portfolio controller must validate section-specific content fields.');
 }
-if (!str_contains($editorView, "'cv' => [['title','Document title',true]")) {
+if (!str_contains($editorViewCompact, "'cv'=>[['title','Document title',true]")) {
     failCheck('CV section must not present organisation, period, and link as generic required concepts.');
 }
 echo '[portfolio-check] PASS: template registry, React variants, editor selector, hidden items, public route, publication gating, owner-only preview, publish/unpublish wiring, root access rules, and advanced-data cleanup are consistent.' . PHP_EOL;

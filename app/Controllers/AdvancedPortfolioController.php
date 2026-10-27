@@ -12,6 +12,7 @@ use App\Models\Portfolio;
 use App\Models\PortfolioTemplate;
 use App\Models\Website;
 use App\Services\AuthService;
+use App\Services\PortfolioAiService;
 
 /**
  * Advanced presentation and content editor. All content is website-scoped.
@@ -63,6 +64,7 @@ class AdvancedPortfolioController extends Controller
             'projects' => (new Portfolio())->projects((int) $portfolio['id']),
             'templates' => $this->availableTemplates((string) ($portfolio['template_key'] ?? 'classic')),
             'sectionLabels' => self::SECTIONS,
+            'aiStatus' => PortfolioAiService::publicStatus(),
             'active' => 'websites',
         ], 'layouts/dashboard');
     }
