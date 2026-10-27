@@ -172,6 +172,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
 (function () {
   const form = document.getElementById('portfolio-setup-form');
   if (!form) return;
+  const isPremiumUser = <?= $isPremiumUser ? 'true' : 'false' ?>;
   const status = document.getElementById('portfolio-save-status');
   const toast = document.getElementById('portfolio-toast');
   const toastMessage = document.getElementById('portfolio-toast-message');
