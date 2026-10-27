@@ -37,6 +37,11 @@ class PortfolioController extends Controller
         $settings = (new Setting())->all();
         $isPremiumUser = (new Website())->userPlan($userId) === 'premium';
         $templates = $this->availableTemplates((string) ($portfolio['template_key'] ?? 'classic'), $userId);
+        $templateCatalog = new PortfolioTemplate();
+        $premiumTemplateKeys = array_values(array_filter(
+            array_keys($templates),
+            static fn (string $templateKey): bool => $templateCatalog->isPremiumTemplate($templateKey)
+        ));
         $templatePreviewUrls = [];
         $portfolioModel = new Portfolio();
         foreach (array_keys($templates) as $templateKey) {
@@ -56,7 +61,7 @@ class PortfolioController extends Controller
             'portfolio' => $portfolio,
             'templates' => $templates,
             'isPremiumUser' => $isPremiumUser,
-            'premiumTemplateKeys' => PortfolioTemplate::PREMIUM_BUILT_INS,
+            'premiumTemplateKeys' => $premiumTemplateKeys,
             'premiumPlanPrice' => (string) ($settings['premium_plan_price'] ?? 'MWK 5,000/mo'),
             'premiumUpgradeEnabled' => ($settings['premium_plan_enabled'] ?? '1') === '1'
                 && trim((string) ($settings['paychangu_secret_key'] ?? '')) !== '',
