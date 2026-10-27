@@ -1,5 +1,8 @@
 <?php
 $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
+$isPremiumUser = (bool) ($isPremiumUser ?? false);
+$isPreview = (bool) ($isPreview ?? false);
+$exportPdfRequested = (bool) ($exportPdfRequested ?? false);
 $escape = static fn ($value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
 $name = trim((string) ($portfolio['display_name'] ?? 'Portfolio'));
 $headline = trim((string) ($portfolio['headline'] ?? ''));
@@ -707,5 +710,17 @@ $customReactPayload = $isCustomReactTemplate ? [
   <?php if (in_array($template, $reactTemplates, true)): ?>
     <script type="module" src="<?= $escape($baseUrl . '/assets/portfolio-template/react-portfolio.js?v=' . $reactScriptVersion) ?>"></script>
   <?php endif; ?>
+  <?php if (!$isPremiumUser): ?>
+    <a class="instaweb-watermark" href="<?= $escape($baseUrl) ?>" target="_blank" rel="noopener">Powered by InstaWeb</a>
+  <?php endif; ?>
+  <?php if ($isPreview && $isPremiumUser): ?>
+    <button type="button" class="instaweb-export-pdf" onclick="window.print()">Export to PDF</button>
+  <?php endif; ?>
+  <style>
+    .instaweb-watermark{position:fixed;right:16px;bottom:14px;z-index:99999;padding:7px 11px;border:1px solid #d1d5db;border-radius:999px;background:rgba(255,255,255,.94);color:#334155!important;font:600 12px/1.2 system-ui,sans-serif;text-decoration:none!important;box-shadow:0 3px 14px #0001}
+    .instaweb-export-pdf{position:fixed;right:16px;top:16px;z-index:99999;border:0;border-radius:999px;padding:11px 16px;background:#111827;color:#fff;font:700 13px system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px #0003}
+    @media print{.instaweb-watermark,.instaweb-export-pdf,.portfolio-contact-dialog,dialog{display:none!important}body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}a{color:inherit}}
+  </style>
+  <?php if ($exportPdfRequested && $isPremiumUser): ?><script>window.addEventListener('load',function(){setTimeout(function(){window.print()},500)});</script><?php endif; ?>
 </body>
 </html>
