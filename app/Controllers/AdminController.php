@@ -1080,6 +1080,24 @@ class AdminController extends Controller
         $this->redirectTo('/admin/portfolio-templates');
     }
 
+    /** Set a built-in or custom portfolio template to Free or Premium. */
+    public function setPortfolioTemplateTier(): void
+    {
+        $this->adminOnly();
+        $this->validateTemplateCsrf();
+
+        $templateKey = trim((string) $this->input('template_key', ''));
+        $tier = strtolower(trim((string) $this->input('plan_tier', '')));
+        if (!in_array($tier, ['free', 'premium'], true)
+            || !(new PortfolioTemplate())->setTemplateTier($templateKey, $tier)) {
+            Session::flash('error', 'Choose a valid template and plan tier.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        Session::flash('success', ucfirst($templateKey) . ' is now classified as ' . ucfirst($tier) . '.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
     /** Delete an unused custom template. Built-in renderer files stay protected. */
     public function deletePortfolioTemplate(): void
     {
