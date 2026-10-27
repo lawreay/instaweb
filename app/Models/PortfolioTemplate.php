@@ -40,6 +40,7 @@ class PortfolioTemplate
     public function all(): array
     {
         $statuses = $this->builtInStatuses();
+        $tiers = $this->templateTiers();
         $templates = [];
         foreach (self::BUILT_INS as $key => $label) {
             $templates[] = [
@@ -49,6 +50,7 @@ class PortfolioTemplate
                 'description' => 'Built-in portfolio layout',
                 'render_engine' => 'built_in',
                 'status' => $statuses[$key] ?? 'active',
+                'plan_tier' => $tiers[$key] ?? $this->defaultTier($key),
                 'is_builtin' => true,
                 'html_code' => '',
                 'css_code' => '',
@@ -62,6 +64,7 @@ class PortfolioTemplate
              ORDER BY created_at DESC, id DESC'
         );
         foreach ($statement->fetchAll() as $template) {
+            $template['plan_tier'] = $tiers[(string) $template['template_key']] ?? 'premium';
             $template['is_builtin'] = false;
             $templates[] = $template;
         }
@@ -87,14 +90,69 @@ class PortfolioTemplate
         return array_key_exists($templateKey, $this->selectable());
     }
 
-    /** Built-ins use the explicit tier lists; administrator-created templates are Premium by default. */
+    /** The administrator can override the Free/Premium tier for any built-in or custom layout. */
     public function isPremiumTemplate(string $templateKey): bool
     {
-        if (array_key_exists($templateKey, self::BUILT_INS)) {
-            return in_array($templateKey, self::PREMIUM_BUILT_INS, true);
+        $tier = $this->templateTiers()[$templateKey] ?? $this->defaultTier($templateKey);
+        return $tier === 'premium';
+    }
+
+    public function setTemplateTier(string $templateKey, string $tier): bool
+    {
+        if (!in_array($tier, ['free', 'premium'], true)) {
+            return false;
         }
 
+        $known = array_key_exists($templateKey, self::BUILT_INS);
+        if (!$known) {
+            $statement = $this->database->prepare(
+                'SELECT 1 FROM portfolio_template_definitions WHERE template_key = :template_key LIMIT 1'
+            );
+            $statement->execute(['template_key' => $templateKey]);
+            $known = (bool) $statement->fetchColumn();
+        }
+        if (!$known) {
+            return false;
+        }
+
+        $statement = $this->database->prepare(
+            'INSERT INTO platform_settings (setting_key, setting_value, setting_group)
+             VALUES (:setting_key, :setting_value, :setting_group)
+             ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), setting_group = VALUES(setting_group), updated_at = CURRENT_TIMESTAMP'
+        );
+        $statement->execute([
+            'setting_key' => 'portfolio_template_tier_' . $templateKey,
+            'setting_value' => $tier,
+            'setting_group' => 'portfolio_templates',
+        ]);
+
         return true;
+    }
+
+    private function defaultTier(string $templateKey): string
+    {
+        if (array_key_exists($templateKey, self::BUILT_INS)) {
+            return in_array($templateKey, self::PREMIUM_BUILT_INS, true) ? 'premium' : 'free';
+        }
+
+        return 'premium';
+    }
+
+    private function templateTiers(): array
+    {
+        $statement = $this->database->query(
+            "SELECT setting_key, setting_value FROM platform_settings
+             WHERE setting_key LIKE 'portfolio_template_tier_%'"
+        );
+        $tiers = [];
+        foreach ($statement->fetchAll() as $setting) {
+            $key = substr((string) $setting['setting_key'], strlen('portfolio_template_tier_'));
+            if (in_array($setting['setting_value'], ['free', 'premium'], true)) {
+                $tiers[$key] = (string) $setting['setting_value'];
+            }
+        }
+
+        return $tiers;
     }
 
     /**
