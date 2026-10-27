@@ -34,6 +34,17 @@ class PreviewController extends Controller
                 return;
             }
 
+            // A template query changes only the preview render, never the saved portfolio.
+            $requestedTemplate = trim((string) $this->input('template', ''));
+            if ($requestedTemplate !== '') {
+                $templateCatalog = new PortfolioTemplate();
+                $isKnownBuiltIn = array_key_exists($requestedTemplate, PortfolioTemplate::BUILT_INS);
+                $isActiveCustom = $templateCatalog->isSelectable($requestedTemplate);
+                if ($isKnownBuiltIn || $isActiveCustom) {
+                    $portfolio['template_key'] = $requestedTemplate;
+                }
+            }
+
             // Portfolio previews contain private draft data. Keep browsers and shared
             // proxies from retaining a response that is only available to the owner.
             header('Content-Type: text/html; charset=UTF-8');
