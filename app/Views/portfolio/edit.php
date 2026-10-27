@@ -228,7 +228,9 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
   const templatePreviewUrls = <?= json_encode($templatePreviewUrls, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
   function selectedPreviewUrl() {
     const selected = document.querySelector('input[name="template_choice"]:checked');
-    return (selected && templatePreviewUrls[selected.value]) || ownPreviewUrl;
+    if (!selected) return ownPreviewUrl;
+    if (templatePreviewUrls[selected.value]) return templatePreviewUrls[selected.value];
+    return ownPreviewUrl + '&template=' + encodeURIComponent(selected.value);
   }
   function setStatus(message, state) {
     status.textContent = message;
