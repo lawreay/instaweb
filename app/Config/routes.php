@@ -126,6 +126,7 @@ return [
         '/admin/portfolio-templates/create' => [AdminController::class, 'storePortfolioTemplate'],
         '/admin/portfolio-templates/update' => [AdminController::class, 'updatePortfolioTemplate'],
         '/admin/portfolio-templates/status' => [AdminController::class, 'setPortfolioTemplateStatus'],
+        '/admin/portfolio-templates/tier' => [AdminController::class, 'setPortfolioTemplateTier'],
         '/admin/portfolio-templates/delete' => [AdminController::class, 'deletePortfolioTemplate'],
         '/admin/settings/test-email' => [AdminController::class, 'sendTestEmail'],
         '/admin/media/upload' => [AdminController::class, 'uploadMedia'],
