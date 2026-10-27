@@ -19,10 +19,21 @@ class MailerService
     /**
      * Send an HTML email with a plain text fallback.
      */
-    public function send(string $toEmail, string $toName, string $subject, string $htmlBody, string $textBody = ''): bool
+    public function send(
+        string $toEmail,
+        string $toName,
+        string $subject,
+        string $htmlBody,
+        string $textBody = '',
+        ?string $replyToEmail = null,
+        ?string $replyToName = null
+    ): bool
     {
         $mail = $this->buildMailer();
         $mail->addAddress($toEmail, $toName);
+        if ($replyToEmail !== null && filter_var($replyToEmail, FILTER_VALIDATE_EMAIL)) {
+            $mail->addReplyTo($replyToEmail, $replyToName ?? '');
+        }
         $mail->Subject = $subject;
         $mail->isHTML(true);
         $mail->Body = $htmlBody;

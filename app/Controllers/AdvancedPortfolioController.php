@@ -9,8 +9,10 @@ use App\Core\Csrf;
 use App\Core\Session;
 use App\Models\AdvancedPortfolio;
 use App\Models\Portfolio;
+use App\Models\PortfolioTemplate;
 use App\Models\Website;
 use App\Services\AuthService;
+use App\Services\PortfolioAiService;
 
 /**
  * Advanced presentation and content editor. All content is website-scoped.
@@ -60,8 +62,9 @@ class AdvancedPortfolioController extends Controller
             'items' => $model->items((int) $website['id'], $userId),
             'noirSectionImages' => $model->noirSectionImages((int) $website['id'], $userId),
             'projects' => (new Portfolio())->projects((int) $portfolio['id']),
-            'templates' => PortfolioController::TEMPLATES,
+            'templates' => $this->availableTemplates((string) ($portfolio['template_key'] ?? 'classic')),
             'sectionLabels' => self::SECTIONS,
+            'aiStatus' => PortfolioAiService::publicStatus(),
             'active' => 'websites',
         ], 'layouts/dashboard');
     }
@@ -102,7 +105,7 @@ class AdvancedPortfolioController extends Controller
         }
 
         $templateKey = trim((string) $this->input('template_key', (string) ($portfolio['template_key'] ?? 'classic')));
-        if (!array_key_exists($templateKey, PortfolioController::TEMPLATES)) {
+        if (!array_key_exists($templateKey, $this->availableTemplates((string) ($portfolio['template_key'] ?? 'classic')))) {
             Session::flash('error', 'Choose one of the available portfolio templates.');
             $this->backToEditor((int) $website['id']);
             return;
@@ -437,6 +440,22 @@ class AdvancedPortfolioController extends Controller
             Session::flash('success', 'Custom Noir image removed. The default visual will be used again.');
         }
         $this->backToEditor($websiteId);
+    }
+
+    private function availableTemplates(string $currentTemplate = ''): array
+    {
+        $catalog = new PortfolioTemplate();
+        $templates = $catalog->selectable();
+        if ($currentTemplate !== '' && !isset($templates[$currentTemplate])) {
+            foreach ($catalog->all() as $template) {
+                if ((string) ($template['template_key'] ?? '') === $currentTemplate) {
+                    $templates[$currentTemplate] = (string) ($template['display_name'] ?? $currentTemplate) . ' (currently suspended)';
+                    break;
+                }
+            }
+        }
+
+        return $templates;
     }
 
     private function deleteNoirImageFile(string $relativePath, int $websiteId): void

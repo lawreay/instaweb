@@ -11,7 +11,9 @@ use App\Controllers\MarketingController;
 use App\Controllers\AdminController;
 use App\Controllers\WebsiteController;
 use App\Controllers\PortfolioController;
+use App\Controllers\PortfolioContactController;
 use App\Controllers\AdvancedPortfolioController;
+use App\Controllers\PortfolioAiController;
 use App\Controllers\FileManagerController;
 use App\Controllers\EditorController;
 use App\Controllers\PreviewController;
@@ -42,6 +44,7 @@ return [
         '/dashboard/websites/edit' => [WebsiteController::class, 'edit'],
         '/dashboard/websites/portfolio' => [PortfolioController::class, 'edit'],
         '/dashboard/websites/portfolio/advanced' => [AdvancedPortfolioController::class, 'edit'],
+        '/dashboard/websites/portfolio/ai/status' => [PortfolioAiController::class, 'status'],
         '/dashboard/websites/files' => [FileManagerController::class, 'index'],
         '/dashboard/websites/files/download' => [FileManagerController::class, 'download'],
         '/dashboard/websites/files/export' => [FileManagerController::class, 'exportZip'],
@@ -63,6 +66,9 @@ return [
         '/admin/reports' => [AdminController::class, 'reports'],
         '/admin/notifications' => [AdminController::class, 'notifications'],
         '/admin/settings' => [AdminController::class, 'settings'],
+        '/admin/portfolio-templates' => [AdminController::class, 'portfolioTemplates'],
+        '/admin/portfolio-templates/new' => [AdminController::class, 'createPortfolioTemplate'],
+        '/admin/portfolio-templates/edit' => [AdminController::class, 'editPortfolioTemplate'],
         '/admin/settings/maintenance-preview' => [AdminController::class, 'previewMaintenance'],
         '/admin/legal' => [LegalController::class, 'adminIndex'],
         '/admin/legal/edit' => [LegalController::class, 'editPolicy'],
@@ -87,16 +93,20 @@ return [
         '/dashboard/websites' => [WebsiteController::class, 'store'],
         '/dashboard/websites/update' => [WebsiteController::class, 'update'],
         '/dashboard/websites/portfolio/save' => [PortfolioController::class, 'save'],
+        '/dashboard/websites/portfolio/autosave' => [PortfolioController::class, 'autosave'],
         '/dashboard/websites/portfolio/avatar' => [PortfolioController::class, 'uploadAvatar'],
         '/dashboard/websites/portfolio/advanced/save' => [AdvancedPortfolioController::class, 'save'],
         '/dashboard/websites/portfolio/advanced/items/save' => [AdvancedPortfolioController::class, 'saveItem'],
         '/dashboard/websites/portfolio/advanced/items/toggle' => [AdvancedPortfolioController::class, 'toggleItem'],
         '/dashboard/websites/portfolio/advanced/items/delete' => [AdvancedPortfolioController::class, 'deleteItem'],
+        '/dashboard/websites/portfolio/ai/propose' => [PortfolioAiController::class, 'propose'],
+        '/dashboard/websites/portfolio/ai/apply' => [PortfolioAiController::class, 'apply'],
         '/dashboard/websites/portfolio/advanced/noir-image/upload' => [AdvancedPortfolioController::class, 'uploadNoirSectionImage'],
         '/dashboard/websites/portfolio/advanced/noir-image/remove' => [AdvancedPortfolioController::class, 'removeNoirSectionImage'],
         '/dashboard/websites/portfolio/projects/add' => [PortfolioController::class, 'addProject'],
         '/dashboard/websites/portfolio/projects/save' => [PortfolioController::class, 'saveProject'],
         '/dashboard/websites/portfolio/projects/delete' => [PortfolioController::class, 'deleteProject'],
+        '/portfolio/contact' => [PortfolioContactController::class, 'send'],
         '/dashboard/websites/delete' => [WebsiteController::class, 'delete'],
         '/dashboard/websites/files/upload' => [FileManagerController::class, 'upload'],
         '/dashboard/websites/files/import' => [FileManagerController::class, 'importZip'],
@@ -116,6 +126,12 @@ return [
         '/profile/deactivate' => [DashboardController::class, 'requestDeactivation'],
         '/payments/paychangu/premium' => [PaymentController::class, 'startPremiumCheckout'],
         '/admin/settings' => [AdminController::class, 'saveSettings'],
+        '/admin/portfolio-templates/save' => [AdminController::class, 'savePortfolioTemplates'],
+        '/admin/portfolio-templates/create' => [AdminController::class, 'storePortfolioTemplate'],
+        '/admin/portfolio-templates/update' => [AdminController::class, 'updatePortfolioTemplate'],
+        '/admin/portfolio-templates/status' => [AdminController::class, 'setPortfolioTemplateStatus'],
+        '/admin/portfolio-templates/tier' => [AdminController::class, 'setPortfolioTemplateTier'],
+        '/admin/portfolio-templates/delete' => [AdminController::class, 'deletePortfolioTemplate'],
         '/admin/settings/test-email' => [AdminController::class, 'sendTestEmail'],
         '/admin/media/upload' => [AdminController::class, 'uploadMedia'],
         '/admin/media/delete' => [AdminController::class, 'deleteMedia'],

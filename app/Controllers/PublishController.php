@@ -80,6 +80,12 @@ class PublishController extends Controller
             return;
         }
 
+        if ((new Website())->isSystemTemplate($website)) {
+            Session::flash('error', 'This protected default portfolio stays published for template previews.');
+            $this->redirectTo('/dashboard/websites/show?id=' . (int) $website['id']);
+            return;
+        }
+
         try {
             $websiteModel = new Website();
             $publishingService = new PublishingService();

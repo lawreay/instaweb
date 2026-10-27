@@ -101,6 +101,7 @@ CREATE TABLE websites (
     website_name VARCHAR(120),
     slug VARCHAR(150) UNIQUE,
     template_key VARCHAR(40) NOT NULL DEFAULT 'blank',
+    is_system_template BOOLEAN NOT NULL DEFAULT FALSE,
     subdomain VARCHAR(100),
     custom_domain VARCHAR(255),
     storage_used BIGINT DEFAULT 0,

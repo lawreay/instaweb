@@ -268,6 +268,11 @@ class WebsiteController extends Controller
             $this->redirectTo('/dashboard/websites');
         }
 
+        if ($websiteModel->isSystemTemplate($website)) {
+            Session::flash('error', 'This protected default portfolio cannot be deleted.');
+            $this->redirectTo('/dashboard/websites/show?id=' . $websiteId);
+        }
+
         if (($website['status'] ?? '') === 'published') {
             (new PublishingService())->unpublish((int) $website['id'], $website['slug']);
         }

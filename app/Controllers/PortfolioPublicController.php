@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Core\View;
 use App\Models\Portfolio;
 use App\Models\AdvancedPortfolio;
+use App\Models\PortfolioTemplate;
 use App\Models\Website;
 
 /**
@@ -47,6 +48,8 @@ class PortfolioPublicController extends Controller
             'advancedSettings' => $advancedModel->settings((int) $website['id'], (int) $website['user_id']),
             'advancedItems' => $advancedModel->visibleItems((int) $website['id'], (int) $website['user_id']),
             'noirSectionImages' => $advancedModel->noirSectionImages((int) $website['id'], (int) $website['user_id']),
+            'customTemplate' => (new PortfolioTemplate())->customByKey((string) ($portfolio['template_key'] ?? '')),
+            'isPremiumUser' => (new Website())->userPlan((int) $website['user_id']) === 'premium',
         ], '');
     }
 }

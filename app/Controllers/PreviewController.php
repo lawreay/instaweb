@@ -6,6 +6,7 @@ use App\Core\Controller;
 use App\Core\View;
 use App\Models\Portfolio;
 use App\Models\AdvancedPortfolio;
+use App\Models\PortfolioTemplate;
 use App\Core\Session;
 use App\Models\Website;
 use App\Services\AuthService;
@@ -33,6 +34,17 @@ class PreviewController extends Controller
                 return;
             }
 
+            // A template query changes only the preview render, never the saved portfolio.
+            $requestedTemplate = trim((string) $this->input('template', ''));
+            if ($requestedTemplate !== '') {
+                $templateCatalog = new PortfolioTemplate();
+                $isKnownBuiltIn = array_key_exists($requestedTemplate, PortfolioTemplate::BUILT_INS);
+                $isActiveCustom = $templateCatalog->isSelectable($requestedTemplate);
+                if ($isKnownBuiltIn || $isActiveCustom) {
+                    $portfolio['template_key'] = $requestedTemplate;
+                }
+            }
+
             // Portfolio previews contain private draft data. Keep browsers and shared
             // proxies from retaining a response that is only available to the owner.
             header('Content-Type: text/html; charset=UTF-8');
@@ -50,7 +62,10 @@ class PreviewController extends Controller
                 'advancedSettings' => $advancedModel->settings((int) $website['id'], $userId),
                 'advancedItems' => $advancedModel->visibleItems((int) $website['id'], $userId),
                 'noirSectionImages' => $advancedModel->noirSectionImages((int) $website['id'], $userId),
+                'customTemplate' => (new PortfolioTemplate())->customByKey((string) ($portfolio['template_key'] ?? '')),
                 'isPreview' => true,
+                'isPremiumUser' => (new Website())->userPlan($userId) === 'premium',
+                'exportPdfRequested' => (string) $this->input('export', '') === 'pdf',
             ], '');
             return;
         }

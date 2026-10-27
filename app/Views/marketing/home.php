@@ -134,7 +134,7 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
   <div class="nx-wrap nx-hero-grid">
     <div data-r>
       <h1>Launch your website<br>in <em>minutes</em>, not weeks.</h1>
-      <p class="nx-lede">Instaweb is Malawi-built hosting with a code editor in your browser, a file manager and one-click publishing. Start with a static site or a WordPress project.</p>
+      <p class="nx-lede">Instaweb is Malawi-built hosting for static websites, WordPress projects and custom portfolios. Build, publish and manage your online presence from one dashboard.</p>
       <div class="nx-actions">
         <a href="<?= $primaryUrl ?>" class="nx-btn p">Start Building Free</a>
         <a href="#how" class="nx-btn g">See how it works</a>
@@ -154,7 +154,7 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
       </div></div></div>
       <span class="nx-chip" style="left:2%;top:26%;--t:5.5s">Static sites</span>
       <span class="nx-chip" style="right:0;top:40%;--t:6.5s">WordPress</span>
-      <span class="nx-chip" style="left:10%;bottom:12%;--t:7s">Analytics</span>
+      <span class="nx-chip" style="left:10%;bottom:12%;--t:7s">Custom portfolios</span>
     </div>
   </div>
   <div class="nx-scroll" aria-hidden="true"></div>
@@ -184,7 +184,7 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
   <div class="nx-wrap">
     <div class="nx-feat" style="--k:#2dd4bf">
       <div data-r="left"><h2 class="nx-h2">Create, upload, <em>publish</em>.</h2>
-        <p class="nx-lede">Start a project, add your files and publish to your Instaweb address. Static hosting covers HTML, CSS, JavaScript, images and other assets.</p>
+        <p class="nx-lede">Start a project, add your files and publish to your Instaweb address. Publish static sites built with HTML, CSS, JavaScript, images and other assets.</p>
         <ul><li>Beginner-friendly controls</li><li>Drag in files and go live</li><li>Custom domains on Premium</li></ul></div>
       <div class="nx-vis" data-r="right"><div class="bk" data-p=".08"></div>
         <div class="nx-win" data-p="-.05"><div class="bar"><i></i><i></i><i></i></div>
@@ -234,7 +234,7 @@ body .nx h1,body .nx h2,body .nx h3{font-family:'Space Grotesk','DM Sans',sans-s
     <div class="nx-stats">
       <div class="nx-stat" data-r><strong data-n="3">0</strong><span>steps to go live</span></div>
       <div class="nx-stat" data-r data-d=".1"><strong data-n="7">0</strong><span>built-in tools</span></div>
-      <div class="nx-stat" data-r data-d=".2"><strong data-n="2">0</strong><span>site types</span></div>
+      <div class="nx-stat" data-r data-d=".2"><strong data-n="3">0</strong><span>ways to publish</span></div>
       <div class="nx-stat" data-r data-d=".3"><strong data-n="1">0</strong><span>dashboard for everything</span></div>
     </div>
   </div>

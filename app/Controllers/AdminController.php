@@ -9,6 +9,8 @@ use App\Core\Session;
 use App\Core\Validator;
 use App\Models\AdminRepository;
 use App\Models\LegalPolicy;
+use App\Models\Portfolio;
+use App\Models\PortfolioTemplate;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\User;
@@ -300,6 +302,11 @@ class AdminController extends Controller
 
         if (!$user) {
             Session::flash('error', 'User account not found.');
+            $this->redirectTo('/admin/users');
+        }
+
+        if ((new AdminRepository())->userOwnsSystemWebsite($userId)) {
+            Session::flash('error', 'This account owns a protected default portfolio and cannot be deleted.');
             $this->redirectTo('/admin/users');
         }
 
@@ -635,6 +642,11 @@ class AdminController extends Controller
             $this->redirectTo('/admin/websites');
         }
 
+        if (!empty($website['is_system_template'])) {
+            Session::flash('error', 'This protected default portfolio must remain published.');
+            $this->redirectTo('/admin/websites');
+        }
+
         (new PublishingService())->unpublish((int) $website['id'], $website['slug']);
         $repository->updateWebsiteStatus((int) $website['id'], 'suspended');
         try {
@@ -690,6 +702,11 @@ class AdminController extends Controller
 
         if (!$website) {
             Session::flash('error', 'Website not found.');
+            $this->redirectTo('/admin/websites');
+        }
+
+        if (!empty($website['is_system_template'])) {
+            Session::flash('error', 'This protected default portfolio cannot be deleted.');
             $this->redirectTo('/admin/websites');
         }
 
@@ -903,6 +920,401 @@ class AdminController extends Controller
         }
 
         $this->redirectTo('/admin/settings');
+    }
+
+    /**
+     * Configure the administrator-owned published portfolio used as the
+     * sample preview for each portfolio template.
+     */
+    public function portfolioTemplates(): void
+    {
+        $this->adminOnly();
+        $settings = (new Setting())->all();
+        $portfolios = (new Portfolio())->ownedPortfolioOptions((int) AuthService::id());
+        $templateCatalog = new PortfolioTemplate();
+        $templates = $templateCatalog->all();
+        $defaults = [];
+        foreach ($templates as $template) {
+            $templateKey = (string) $template['template_key'];
+            $defaults[$templateKey] = (int) ($settings['portfolio_template_default_' . $templateKey] ?? 0);
+        }
+
+        $this->view('admin/portfolio-templates', [
+            'title' => 'Portfolio Templates',
+            'active' => 'portfolio-templates',
+            'templates' => $templates,
+            'portfolios' => $portfolios,
+            'defaults' => $defaults,
+        ], 'layouts/admin');
+    }
+
+    public function savePortfolioTemplates(): void
+    {
+        $this->adminOnly();
+        if (!Csrf::validate($this->input('_csrf'))) {
+            Session::flash('error', 'Your session expired. Please try again.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        $userId = (int) AuthService::id();
+        $portfolioModel = new Portfolio();
+        $owned = $portfolioModel->ownedPortfolioOptions($userId);
+        $ownedById = [];
+        foreach ($owned as $portfolio) {
+            $ownedById[(int) $portfolio['id']] = (string) ($portfolio['template_key'] ?? '');
+        }
+
+        $settingsToSave = [];
+        foreach ((new PortfolioTemplate())->all() as $template) {
+            $templateKey = (string) $template['template_key'];
+            $portfolioId = (int) $this->input('default_' . $templateKey, 0);
+            if ($portfolioId !== 0 && (($ownedById[$portfolioId] ?? null) !== $templateKey)) {
+                Session::flash('error', 'Choose a portfolio you own that uses the matching template. Each sample must match its template.');
+                $this->redirectTo('/admin/portfolio-templates');
+            }
+            $settingsToSave['portfolio_template_default_' . $templateKey] = [
+                'value' => (string) $portfolioId,
+                'group' => 'portfolio_templates',
+            ];
+        }
+
+        (new Setting())->saveMany($settingsToSave);
+        Session::flash('success', 'Default portfolio template previews saved.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    /** Show the safe HTML/CSS editor for a new custom portfolio template. */
+    public function createPortfolioTemplate(): void
+    {
+        $this->adminOnly();
+        $this->view('admin/portfolio-template-form', [
+            'title' => 'Add Portfolio Template',
+            'active' => 'portfolio-templates',
+            'mode' => 'create',
+            'template' => [
+                'display_name' => '',
+                'description' => '',
+                'render_engine' => 'html',
+                'html_code' => $this->defaultTemplateHtml(),
+                'css_code' => $this->defaultTemplateCss(),
+                'react_code' => $this->defaultTemplateReact(),
+            ],
+        ], 'layouts/admin');
+    }
+
+    /** Show the code editor for a custom template. Built-ins are code-owned. */
+    public function editPortfolioTemplate(): void
+    {
+        $this->adminOnly();
+        $template = (new PortfolioTemplate())->findCustom((int) $this->input('id', 0));
+        if (!$template) {
+            Session::flash('error', 'That custom template was not found. Built-in template code is managed by the application.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        $this->view('admin/portfolio-template-form', [
+            'title' => 'Edit Portfolio Template',
+            'active' => 'portfolio-templates',
+            'mode' => 'edit',
+            'template' => $template,
+        ], 'layouts/admin');
+    }
+
+    public function storePortfolioTemplate(): void
+    {
+        $this->adminOnly();
+        $this->validateTemplateCsrf();
+        $data = $this->templateInput();
+        $catalog = new PortfolioTemplate();
+        $data['template_key'] = $this->nextCustomTemplateKey($data['display_name'], $catalog->all());
+        $data['status'] = 'active';
+        $catalog->create($data, (int) AuthService::id());
+
+        Session::flash('success', 'Custom template added. It is now available in Portfolio Studio.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    public function updatePortfolioTemplate(): void
+    {
+        $this->adminOnly();
+        $this->validateTemplateCsrf();
+        $catalog = new PortfolioTemplate();
+        $templateId = (int) $this->input('id', 0);
+        if (!$catalog->findCustom($templateId)) {
+            Session::flash('error', 'That custom template no longer exists.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        $catalog->update($templateId, $this->templateInput());
+        Session::flash('success', 'Template code saved.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    /** Suspend or activate either a built-in or custom template. */
+    public function setPortfolioTemplateStatus(): void
+    {
+        $this->adminOnly();
+        $this->validateTemplateCsrf();
+        $status = (string) $this->input('status', '');
+        if (!in_array($status, ['active', 'suspended'], true)) {
+            Session::flash('error', 'Choose a valid template status.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        $catalog = new PortfolioTemplate();
+        $templateKey = trim((string) $this->input('template_key', ''));
+        if ($catalog->isBuiltIn($templateKey)) {
+            $catalog->setBuiltInStatus($templateKey, $status);
+        } else {
+            $templateId = (int) $this->input('id', 0);
+            if (!$catalog->findCustom($templateId)) {
+                Session::flash('error', 'That custom template was not found.');
+                $this->redirectTo('/admin/portfolio-templates');
+            }
+            $catalog->setCustomStatus($templateId, $status);
+        }
+
+        Session::flash('success', $status === 'suspended'
+            ? 'Template suspended. It is hidden from new Portfolio Studio selections; portfolios already using it still render.'
+            : 'Template activated and available in Portfolio Studio.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    /** Set a built-in or custom portfolio template to Free or Premium. */
+    public function setPortfolioTemplateTier(): void
+    {
+        $this->adminOnly();
+        $this->validateTemplateCsrf();
+
+        $templateKey = trim((string) $this->input('template_key', ''));
+        $tier = strtolower(trim((string) $this->input('plan_tier', '')));
+        if (!in_array($tier, ['free', 'premium'], true)
+            || !(new PortfolioTemplate())->setTemplateTier($templateKey, $tier)) {
+            Session::flash('error', 'Choose a valid template and plan tier.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        Session::flash('success', ucfirst($templateKey) . ' is now classified as ' . ucfirst($tier) . '.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    /** Delete an unused custom template. Built-in renderer files stay protected. */
+    public function deletePortfolioTemplate(): void
+    {
+        $this->adminOnly();
+        $this->validateTemplateCsrf();
+        $catalog = new PortfolioTemplate();
+        $template = $catalog->findCustom((int) $this->input('id', 0));
+        if (!$template) {
+            Session::flash('error', 'Only custom templates can be deleted.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+        if ($catalog->isInUse((string) $template['template_key'])) {
+            Session::flash('error', 'This template is currently used by a portfolio and cannot be deleted. Switch those portfolios to another template first.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        $catalog->deleteCustom((int) $template['id']);
+        Session::flash('success', 'Custom template deleted.');
+        $this->redirectTo('/admin/portfolio-templates');
+    }
+
+    private function validateTemplateCsrf(): void
+    {
+        if (!Csrf::validate($this->input('_csrf'))) {
+            Session::flash('error', 'Your session expired. Please try again.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+    }
+
+    /** Validate the source that is stored for a public-facing custom template. */
+    private function templateInput(): array
+    {
+        $displayName = trim((string) $this->input('display_name', ''));
+        $description = trim((string) $this->input('description', ''));
+        $renderEngine = (string) $this->input('render_engine', 'html');
+        $html = trim((string) $this->input('html_code', ''));
+        $css = trim((string) $this->input('css_code', ''));
+        $react = trim((string) $this->input('react_code', ''));
+
+        $unsafeHtml = '/<\/?(?:script|iframe|object|embed|base|form|meta|link)\b|<\?|\bon[a-z]+\s*=|(?:javascript|vbscript|data)\s*:/i';
+        $unsafeCss = '/<\/?(?:style|script|iframe|object|embed|base|form|meta|link)\b|@import|expression\s*\(|(?:javascript|vbscript|data)\s*:|behavior\s*:/i';
+        // Keep `function Portfolio()` valid. The dynamic Function constructor is
+        // deliberately checked separately and case-sensitively, because this
+        // expression otherwise considers the `function` keyword unsafe too.
+        $unsafeReact = '/\b(?:import|export|require|fetch|XMLHttpRequest|WebSocket|EventSource|Worker|navigator|localStorage|sessionStorage|indexedDB|eval)\b|<\/?(?:script|iframe|object|embed|base|form|meta|link)\b|(?:javascript|vbscript|data)\s*:/i';
+        $unsafeReactFunctionConstructor = '/\bFunction\s*\(/';
+        $invalidBasics = $displayName === '' || mb_strlen($displayName) > 120 || mb_strlen($description) > 500
+            || !in_array($renderEngine, ['html', 'react'], true) || strlen($css) > 90000 || preg_match($unsafeCss, $css);
+        $invalidHtml = $renderEngine === 'html' && ($html === '' || strlen($html) > 180000 || preg_match($unsafeHtml, $html));
+        $invalidReact = $renderEngine === 'react' && ($react === '' || strlen($react) > 180000
+            || !preg_match('/\b(?:function|const|let|var)\s+Portfolio\b/', $react)
+            || preg_match($unsafeReact, $react) || preg_match($unsafeReactFunctionConstructor, $react));
+        if ($invalidBasics || $invalidHtml || $invalidReact) {
+            Session::flash('error', $renderEngine === 'react'
+                ? 'Use a valid React component named Portfolio. Imports, network APIs, browser storage, frames, and dynamic code execution are not allowed.'
+                : 'Use a name, safe HTML, and safe CSS. Scripts, embedded pages, event handlers, imports, and executable URLs are not allowed.');
+            $this->redirectTo('/admin/portfolio-templates');
+        }
+
+        return [
+            'display_name' => $displayName,
+            'description' => $description,
+            'render_engine' => $renderEngine,
+            'html_code' => $renderEngine === 'html' ? $html : '',
+            'css_code' => $css,
+            'react_code' => $renderEngine === 'react' ? $react : '',
+        ];
+    }
+
+    private function nextCustomTemplateKey(string $displayName, array $templates): string
+    {
+        $slug = strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $displayName), '-'));
+        $slug = $slug !== '' ? $slug : 'portfolio';
+        $base = substr('custom-' . $slug, 0, 36);
+        $keys = [];
+        foreach ($templates as $template) {
+            $keys[(string) ($template['template_key'] ?? '')] = true;
+        }
+        $key = $base;
+        $suffix = 2;
+        while (isset($keys[$key])) {
+            $suffixText = '-' . $suffix++;
+            $key = substr($base, 0, 40 - strlen($suffixText)) . $suffixText;
+        }
+
+        return $key;
+    }
+
+    private function defaultTemplateHtml(): string
+    {
+        return <<<'HTML'
+<main class="custom-portfolio">
+  <header class="custom-site-header">
+    <a class="custom-wordmark" href="#home">{{name}}</a>
+    {{navigation}}
+  </header>
+  <header class="custom-hero" id="home">
+    <div>
+      <p class="custom-eyebrow">{{location}}</p>
+      <h1>{{name}}</h1>
+      <p class="custom-headline">{{headline}}</p>
+      <p>{{bio}}</p>
+      <a class="custom-button" href="#contact">Get in touch</a>
+    </div>
+    {{avatar}}
+  </header>
+  <section class="custom-section custom-about" id="about">
+    <p class="custom-eyebrow">About</p>
+    <h2>Useful work, clearly presented.</h2>
+    <p>{{bio}}</p>
+  </section>
+  {{sections}}
+  {{projects}}
+  {{contact}}
+  <footer>© {{year}} {{name}}</footer>
+</main>
+HTML;
+    }
+
+    private function defaultTemplateCss(): string
+    {
+        return <<<'CSS'
+.custom-portfolio { max-width: 1120px; margin: 0 auto; padding: 108px 28px 28px; }
+.custom-site-header { position: fixed; z-index: 20; top: 0; right: 0; left: 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 72px; padding: 14px max(28px, calc((100vw - 1120px) / 2 + 28px)); border-bottom: 1px solid rgba(15,23,42,.12); background: rgba(255,255,255,.9); backdrop-filter: blur(14px); }
+.custom-wordmark { min-width: 0; color: #172b3a; font-weight: 900; overflow: hidden; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }.custom-site-nav { display: flex; align-items: center; gap: 18px; overflow-x: auto; scrollbar-width: none; }.custom-site-nav::-webkit-scrollbar { display: none; }.custom-site-nav a { color: #475569; font-size: .9rem; font-weight: 750; text-decoration: none; white-space: nowrap; }.custom-site-nav a:hover,.custom-site-nav a:focus-visible { color: var(--portfolio-accent); }
+.custom-hero { min-height: 72vh; display: grid; grid-template-columns: 1fr minmax(240px, .72fr); align-items: center; gap: 56px; }
+.custom-hero h1 { margin: 0; font-size: clamp(3rem, 10vw, 7rem); letter-spacing: -.07em; line-height: .92; }
+.custom-eyebrow { color: var(--portfolio-accent); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.custom-headline { font-size: 1.3rem; font-weight: 700; }
+.custom-avatar { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.custom-section { padding: 78px 0; border-top: 1px solid rgba(15, 23, 42, .15); scroll-margin-top: 92px; }
+.custom-section h2 { font-size: clamp(2rem, 5vw, 3.5rem); margin: 0 0 28px; }
+.custom-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.custom-card { padding: 22px; background: rgba(255,255,255,.72); border: 1px solid rgba(15,23,42,.12); border-radius: 14px; }
+.custom-card h3 { margin-top: 0; }.custom-button { display:inline-block; padding: 12px 18px; background: #172b3a; color: #fff; text-decoration:none; }
+.custom-portfolio footer { padding: 32px 0; color: #64748b; }
+@media (max-width: 720px) { .custom-portfolio { padding: 96px 20px 20px; } .custom-site-header { min-height: 64px; padding: 10px 20px; } .custom-site-nav { gap: 14px; } .custom-hero { grid-template-columns: 1fr; min-height: auto; padding: 60px 0; gap: 28px; } }
+.react-custom-template { max-width: 1120px; margin: 0 auto; padding: 108px 28px 28px; color: #172b3a; }
+.react-custom-site-header { position: fixed; z-index: 20; top: 0; right: 0; left: 0; display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 72px; padding: 14px max(28px, calc((100vw - 1120px) / 2 + 28px)); border-bottom: 1px solid rgba(15,23,42,.12); background: rgba(255,255,255,.9); backdrop-filter: blur(14px); }.react-custom-wordmark { min-width: 0; color: #172b3a; font-weight: 900; overflow: hidden; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }.react-custom-nav { display: flex; align-items: center; gap: 18px; overflow-x: auto; scrollbar-width: none; }.react-custom-nav::-webkit-scrollbar { display: none; }.react-custom-nav a { color: #475569; font-size: .9rem; font-weight: 750; text-decoration: none; white-space: nowrap; }.react-custom-nav a:hover,.react-custom-nav a:focus-visible { color: #b45309; }
+.react-custom-hero { min-height: 72vh; display: grid; grid-template-columns: 1fr minmax(240px, .72fr); align-items: center; gap: 56px; }
+.react-custom-hero h1 { margin: 0; font-size: clamp(3rem, 10vw, 7rem); letter-spacing: -.07em; line-height: .92; }
+.react-custom-kicker { color: #b45309; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.react-custom-headline { font-size: 1.3rem; font-weight: 700; }.react-custom-avatar { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.react-custom-section { padding: 78px 0; border-top: 1px solid rgba(15, 23, 42, .15); scroll-margin-top: 92px; }.react-custom-section h2 { font-size: clamp(2rem, 5vw, 3.5rem); margin: 0 0 28px; }
+.react-custom-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }.react-custom-card { padding: 22px; background: rgba(255,255,255,.8); border: 1px solid rgba(15,23,42,.12); border-radius: 14px; }
+.react-custom-card h3 { margin-top: 0; }.react-custom-card a { color: #b45309; font-weight: 800; }.react-custom-button,.react-custom-toggle { display:inline-block; padding: 12px 18px; border: 0; background: #172b3a; color: #fff; text-decoration:none; font-weight:800; cursor:pointer; }.react-custom-toggle { margin-top: 20px; }
+@media (max-width: 720px) { .react-custom-template { padding: 96px 20px 20px; } .react-custom-site-header { min-height: 64px; padding: 10px 20px; } .react-custom-nav { gap: 14px; } .react-custom-hero { grid-template-columns: 1fr; min-height: auto; padding: 60px 0; gap: 28px; } }
+CSS;
+    }
+
+    private function defaultTemplateReact(): string
+    {
+        return <<<'JSX'
+function Portfolio({ data }) {
+  const [showAllProjects, setShowAllProjects] = React.useState(false);
+  const allProjects = Array.isArray(data.projects) ? data.projects : [];
+  const sections = Array.isArray(data.sections) ? data.sections : [];
+  const projects = showAllProjects ? allProjects : allProjects.slice(0, 3);
+  const sectionLabels = {};
+  sections.forEach(section => { sectionLabels[section.key] = section.label; });
+  const navigation = [
+    { key: 'about', label: 'About', available: true },
+    { key: 'experience', label: 'Experience', available: Boolean(sectionLabels.experience) },
+    { key: 'projects', label: 'Projects', available: data.showProjects && allProjects.length > 0 },
+    { key: 'skills', label: 'Skills', available: Boolean(sectionLabels.skills) },
+    { key: 'contact', label: 'Contact', available: data.showContact && Boolean(data.email || (data.socials || []).length) },
+    { key: 'education', label: sectionLabels.education || 'Education', available: Boolean(sectionLabels.education) },
+    { key: 'goals', label: sectionLabels.goals || 'Goals', available: Boolean(sectionLabels.goals) },
+    { key: 'interests', label: sectionLabels.interests || 'Interests', available: Boolean(sectionLabels.interests) },
+    { key: 'challenges', label: sectionLabels.challenges || 'Challenges', available: Boolean(sectionLabels.challenges) },
+    { key: 'partnerships', label: sectionLabels.partnerships || 'Partnerships', available: Boolean(sectionLabels.partnerships) },
+    { key: 'news', label: sectionLabels.news || 'News and updates', available: Boolean(sectionLabels.news) },
+    { key: 'cv', label: sectionLabels.cv || 'CV / Resume', available: Boolean(sectionLabels.cv) }
+  ].filter(item => item.available).slice(0, 5);
+
+  return (
+    <main className="react-custom-template">
+      <header className="react-custom-site-header">
+        <a className="react-custom-wordmark" href="#home">{data.name || 'Portfolio'}</a>
+        <nav className="react-custom-nav" aria-label="Portfolio navigation">
+          {navigation.map(item => <a href={`#${item.key}`} key={item.key}>{item.label}</a>)}
+        </nav>
+      </header>
+      <header className="react-custom-hero" id="home">
+        <div>
+          <p className="react-custom-kicker">{data.location || 'Portfolio'}</p>
+          <h1>{data.name}</h1>
+          <p className="react-custom-headline">{data.headline}</p>
+          <p>{data.bio}</p>
+          {data.contactAvailable && <a className="react-custom-button" href="#portfolio-contact-dialog" data-portfolio-contact>Start a conversation</a>}
+        </div>
+        {data.avatar && <img className="react-custom-avatar" src={data.avatar} alt={data.name} />}
+      </header>
+
+      <section className="react-custom-section" id="about">
+        <p className="react-custom-kicker">About</p>
+        <h2>Useful work, clearly presented.</h2>
+        <p>{data.bio}</p>
+      </section>
+
+      {sections.map(section => (
+        <section className="react-custom-section" id={section.key} key={section.key}>
+          <p className="react-custom-kicker">Portfolio</p>
+          <h2>{section.label}</h2>
+          <div className="react-custom-grid">
+            {section.items.map((item, index) => <article className="react-custom-card" key={`${section.key}-${index}`}><h3>{item.title}</h3><p>{item.organisation}</p><p>{item.details}</p></article>)}
+          </div>
+        </section>
+      ))}
+
+      {data.showProjects && <section className="react-custom-section" id="projects"><p className="react-custom-kicker">Selected work</p><h2>Projects</h2><div className="react-custom-grid">{projects.map((project, index) => <article className="react-custom-card" key={project.id || index}><h3>{project.title}</h3><p>{project.summary}</p>{project.project_url && <a href={project.project_url} target="_blank" rel="noreferrer">View project ↗</a>}</article>)}</div>{allProjects.length > 3 && <button type="button" className="react-custom-toggle" onClick={() => setShowAllProjects(!showAllProjects)}>{showAllProjects ? 'Show fewer projects' : 'Show all projects'}</button>}</section>}
+
+      {data.showContact && data.contactAvailable && <section className="react-custom-section react-custom-contact" id="contact"><p className="react-custom-kicker">Contact</p><h2>Let’s work together.</h2><a className="react-custom-button" href="#portfolio-contact-dialog" data-portfolio-contact>Email {data.name}</a></section>}
+    </main>
+  );
+}
+JSX;
     }
 
     /**

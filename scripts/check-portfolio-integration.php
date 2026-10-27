@@ -23,14 +23,36 @@ function readRequiredFile(string $path): string
     return $content;
 }
 
+/**
+ * Remove formatting whitespace while preserving whitespace inside PHP string
+ * literals. This keeps source-integrity assertions independent of formatting.
+ */
+function compactPhpSource(string $source): string
+{
+    $compact = '';
+    foreach (token_get_all($source) as $token) {
+        $compact .= is_array($token) && $token[0] === T_WHITESPACE
+            ? ''
+            : (is_array($token) ? $token[1] : $token);
+    }
+
+    return $compact;
+}
+
 $root = dirname(__DIR__);
 $registry = array_keys(PortfolioController::TEMPLATES);
 $publicView = readRequiredFile($root . '/app/Views/portfolio/public.php');
 $editorView = readRequiredFile($root . '/app/Views/portfolio/advanced.php');
+$editorViewCompact = compactPhpSource($editorView);
 $reactCss = readRequiredFile($root . '/public/assets/portfolio-template/react-portfolio.css');
 $router = readRequiredFile($root . '/app/Core/Router.php');
 $rootHtaccess = readRequiredFile($root . '/.htaccess');
 $websiteModel = readRequiredFile($root . '/app/Models/Website.php');
+$websiteController = readRequiredFile($root . '/app/Controllers/WebsiteController.php');
+$adminRepository = readRequiredFile($root . '/app/Models/AdminRepository.php');
+$adminWebsitesView = readRequiredFile($root . '/app/Views/admin/websites.php');
+$websiteListView = readRequiredFile($root . '/app/Views/websites/index.php');
+$seedScript = readRequiredFile($root . '/scripts/seed-default-admin-portfolio.php');
 $portfolioModel = readRequiredFile($root . '/app/Models/Portfolio.php');
 $publicController = readRequiredFile($root . '/app/Controllers/PortfolioPublicController.php');
 $previewController = readRequiredFile($root . '/app/Controllers/PreviewController.php');
@@ -39,6 +61,8 @@ $publishController = readRequiredFile($root . '/app/Controllers/PublishControlle
 $portfolioController = readRequiredFile($root . '/app/Controllers/PortfolioController.php');
 $advancedPortfolioController = readRequiredFile($root . '/app/Controllers/AdvancedPortfolioController.php');
 $routes = readRequiredFile($root . '/app/Config/routes.php');
+$portfolioContactController = readRequiredFile($root . '/app/Controllers/PortfolioContactController.php');
+$portfolioContactMigration = readRequiredFile($root . '/database/migrations/20261026_004_create_portfolio_contact_rate_limits.php');
 
 if (!preg_match('/\$availableTemplates\s*=\s*\[(.*?)\];/s', $publicView, $templateMatch)) {
     failCheck('Public renderer does not declare its supported template list.');
@@ -53,7 +77,7 @@ if (!preg_match('/\$reactTemplates\s*=\s*\[(.*?)\];/s', $publicView, $reactMatch
     failCheck('Public renderer does not declare its React template list.');
 }
 preg_match_all("/'([a-z0-9]+)'/", $reactMatch[1], $reactKeys);
-$expectedReact = ['aurora', 'studio', 'orbit', 'prism', 'archive'];
+$expectedReact = ['aurora', 'studio', 'orbit', 'prism', 'archive', 'ledger', 'graduate'];
 if ($expectedReact !== $reactKeys[1]) {
     failCheck('React template allowlist differs from the expected five template keys.');
 }
@@ -80,6 +104,8 @@ $dedicatedReactTemplates = [
     'orbit' => ['OrbitApp', '.ro-console', '.ro-route'],
     'prism' => ['PrismApp', '.rpz-hero', '.rpz-items'],
     'archive' => ['ArchiveApp', '.ra-masthead', '.ra-catalogue'],
+    'ledger' => ['LedgerApp', '.ld-header', '.ld-ledger'],
+    'graduate' => ['GraduateApp', '.gp-header', '.gp-path'],
 ];
 foreach ($dedicatedReactTemplates as $template => [$renderer, $firstSelector, $secondSelector]) {
     if (!str_contains($reactJs, 'function ' . $renderer)
@@ -112,8 +138,59 @@ if (!str_contains($routes, 'noir-image/upload') || !str_contains($routes, 'noir-
     failCheck('Noir image dashboard routes or public rendering are incomplete.');
 }
 
+$setupView = readRequiredFile($root . '/app/Views/portfolio/edit.php');
+if (!str_contains($setupView, 'name="display_name"')
+    || !str_contains($setupView, 'name="headline"')
+    || !str_contains($setupView, 'portfolio-avatar-preview')
+    || !str_contains($setupView, 'portfolio-template-preview')
+    || !str_contains($setupView, 'Changes save automatically')
+    || !str_contains($setupView, 'template_choice')
+    || !str_contains($routes, "'/dashboard/websites/portfolio/autosave' => [PortfolioController::class, 'autosave']")) {
+    failCheck('Portfolio setup page is missing its basic profile, photo preview, template preview, or autosave wiring.');
+}
+if (str_contains($setupView, 'projects/add') || str_contains($setupView, 'project_title')) {
+    failCheck('Project management must remain in the Advanced Editor, not the setup page.');
+}
+if (!str_contains($portfolioController, 'public function autosave(): void')
+    || !str_contains($portfolioController, 'Csrf::validate($this->input(\'_csrf\'))')) {
+    failCheck('Portfolio setup autosave endpoint must validate the session token.');
+}
+
+$adminTemplateView = readRequiredFile($root . '/app/Views/admin/portfolio-templates.php');
+$adminController = readRequiredFile($root . '/app/Controllers/AdminController.php');
+$customTemplateModel = readRequiredFile($root . '/app/Models/PortfolioTemplate.php');
+$customTemplateForm = readRequiredFile($root . '/app/Views/admin/portfolio-template-form.php');
+$customReactFrame = readRequiredFile($root . '/public/assets/portfolio-template/custom-react-template-frame.html');
+$customReactRuntime = readRequiredFile($root . '/public/assets/portfolio-template/custom-react-template-runtime.js');
+if (!str_contains($routes, "'/admin/portfolio-templates' => [AdminController::class, 'portfolioTemplates']")
+    || !str_contains($routes, "'/admin/portfolio-templates/save' => [AdminController::class, 'savePortfolioTemplates']")
+    || !str_contains($adminController, 'public function savePortfolioTemplates(): void')
+    || !str_contains($adminController, 'ownedPortfolioOptions((int) AuthService::id())')
+    || !str_contains($adminTemplateView, 'Save template previews')
+    || !str_contains($portfolioModel, 'function findPublishedTemplatePreview')
+    || !str_contains($portfolioModel, 'function ownedPortfolioOptions')
+    || !str_contains($portfolioController, 'portfolio_template_default_')) {
+    failCheck('Admin-managed, owner-scoped default template preview workflow is incomplete.');
+}
+
 if (!str_contains($editorView, 'foreach ($templates as $templateKey => $templateLabel)')) {
     failCheck('Advanced Editor selector is not generated from the server-side template registry.');
+}
+
+if (!str_contains($customTemplateModel, 'render_engine')
+    || !str_contains($customTemplateModel, 'react_code')
+    || !str_contains($customTemplateForm, 'React + JSX')
+    || !str_contains($customTemplateForm, 'function Portfolio({ data })')
+    || !str_contains($adminController, 'defaultTemplateReact')
+    || !str_contains($adminController, '$unsafeReact')
+    || !str_contains($publicView, '$isCustomReactTemplate')
+    || !str_contains($publicView, 'custom-react-template-frame')
+    || !str_contains($publicView, 'sandbox="allow-scripts"')
+    || !str_contains($customReactFrame, 'react.production.min.js')
+    || !str_contains($customReactFrame, 'babel.min.js')
+    || !str_contains($customReactRuntime, "Babel.transform")
+    || !str_contains($customReactRuntime, "instaweb-react-template-height")) {
+    failCheck('Admin-authored React/JSX template support is incomplete.');
 }
 
 if (!str_contains($advancedPortfolioController, 'updateTemplateForOwner((int) $website[\'id\'], $userId, $templateKey)')
@@ -137,6 +214,16 @@ foreach (['portfolio_advanced_items', 'portfolio_advanced_settings', 'portfolio_
     if (!str_contains($websiteModel, $table)) {
         failCheck("Website deletion does not clean advanced portfolio table '{$table}'.");
     }
+}
+
+if (!str_contains($websiteModel, 'is_system_template')
+    || !str_contains($websiteModel, 'function isSystemTemplate')
+    || !str_contains($websiteController, 'This protected default portfolio cannot be deleted.')
+    || !str_contains($adminRepository, 'DELETE FROM websites WHERE id = :id AND is_system_template = 0')
+    || !str_contains($adminWebsitesView, 'Protected system portfolio')
+    || !str_contains($websiteListView, 'Default template')
+    || !str_contains($seedScript, "'john-doe-bba-accounting'")) {
+    failCheck('Protected John Doe default portfolio wiring is incomplete.');
 }
 
 
@@ -167,8 +254,27 @@ if (!str_contains($publicView, "!empty(\$isPreview) ? 'noindex,nofollow' : 'inde
     failCheck('Private portfolio preview must be marked noindex,nofollow while published pages remain indexable.');
 }
 
-if (!str_contains($reactJs, "(data.showContact && (data.email || (data.socials || []).length)) ? { id: 'contact', label: 'Contact' } : null")) {
-    failCheck('React Contact navigation must only appear when the Contact section can render.');
+if (!str_contains($reactJs, 'function rankedNavigation(data)')
+    || !str_contains($reactJs, "const navigationPriority = ['about', 'experience', 'projects', 'skills', 'contact'")
+    || !str_contains($reactJs, 'data.showContact && (data.contactAvailable || (data.socials || []).length)')
+    || !str_contains($reactJs, '.slice(0, 5)')
+    || !str_contains($publicView, '$navigationPriority =')
+    || !str_contains($publicView, 'array_slice($navigationItems, 0, 5)')) {
+    failCheck('Portfolio navigation must rank available destinations and keep only five links.');
+}
+
+if (!str_contains($routes, "'/portfolio/contact' => [PortfolioContactController::class, 'send']")
+    || !str_contains($publicView, 'data-portfolio-contact-form')
+    || !str_contains($publicView, 'portfolio-contact-dialog')
+    || !str_contains($publicView, "'contactAvailable' => \$portfolioContactAvailable")
+    || !str_contains($portfolioContactController, 'Csrf::validate')
+    || !str_contains($portfolioContactController, 'findPublishedPortfolioBySlug')
+    || !str_contains($portfolioContactController, 'withinRateLimit')
+    || !str_contains($portfolioContactMigration, 'portfolio_contact_rate_limits')) {
+    failCheck('Portfolio contact modal, SMTP endpoint, publication checks, or rate limiting are incomplete.');
+}
+if (str_contains($reactJs, 'mailto:')) {
+    failCheck('Built-in React portfolio contacts must use the SMTP contact modal, not mailto links.');
 }
 
 if (!str_contains($publishController, 'updateStatus((int) $website[\'id\'], $userId, \'published\')')
@@ -199,16 +305,16 @@ if (!str_contains($portfolioController, '$previousAvatar = (string) ($portfolio[
     failCheck('Avatar replacement must safely remove the previous file only from the owning website upload directory.');
 }
 
-if (!str_contains($editorView, "'interests' => [['title','Interest',true],['details','Short explanation (optional)',false,'textarea']]")) {
+if (!str_contains($editorViewCompact, "'interests'=>[['title','Interest',true],['details','Short explanation (optional)',false,'textarea']]")) {
     failCheck('Interests editor must not require organisation, period, or link fields.');
 }
-if (!str_contains($editorView, "'skills' => [['title','Skill name',true],['category','Category (optional)',false],['proficiency','Proficiency (optional)',false,'select'")) {
+if (!str_contains($editorViewCompact, "'skills'=>[['title','Skill name',true],['category','Category (optional)',false],['proficiency','Proficiency (optional)',false,'select'")) {
     failCheck('Skills editor must use skill-specific fields rather than the generic content form.');
 }
 if (!str_contains($advancedPortfolioController, "'interests' => ['details']") || !str_contains($advancedPortfolioController, "'skills' => ['category', 'proficiency']")) {
     failCheck('Portfolio controller must validate section-specific content fields.');
 }
-if (!str_contains($editorView, "'cv' => [['title','Document title',true]")) {
+if (!str_contains($editorViewCompact, "'cv'=>[['title','Document title',true]")) {
     failCheck('CV section must not present organisation, period, and link as generic required concepts.');
 }
 echo '[portfolio-check] PASS: template registry, React variants, editor selector, hidden items, public route, publication gating, owner-only preview, publish/unpublish wiring, root access rules, and advanced-data cleanup are consistent.' . PHP_EOL;
