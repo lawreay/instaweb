@@ -22,6 +22,8 @@ $templateDescriptions = [
 $currentTemplate = (string) ($portfolio['template_key'] ?? 'classic');
 $isPremiumUser = (bool) ($isPremiumUser ?? false);
 $premiumTemplateKeys = is_array($premiumTemplateKeys ?? null) ? $premiumTemplateKeys : [];
+$premiumPlanPrice = trim((string) ($premiumPlanPrice ?? '')) ?: 'See plan pricing';
+$premiumUpgradeEnabled = (bool) ($premiumUpgradeEnabled ?? false);
 $ownPreviewUrl = $baseUrl . '/dashboard/websites/preview?id=' . $websiteId;
 $templatePreviewUrls = is_array($templatePreviewUrls ?? null) ? $templatePreviewUrls : [];
 $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
@@ -80,10 +82,57 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
 .portfolio-setup .ps-preview-stage-label{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.5rem .7rem;background:#f5f6f8;border-bottom:1px solid var(--ps-line);font-size:.72rem;color:var(--ps-muted);}
 .portfolio-setup .ps-preview-note{font-size:.8rem;color:var(--ps-muted);margin:.65rem 0 0}
 .portfolio-setup .ps-actions{display:flex;flex-wrap:wrap;gap:.65rem;margin-top:1rem}
+.portfolio-setup .ps-upgrade-trigger{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;border:1px solid #f97316;background:#fff7ed;color:#9a3412;border-radius:.65rem;padding:.65rem .9rem;font-weight:800;text-decoration:none}
+.portfolio-setup .ps-upgrade-trigger:hover{background:#ffedd5;color:#7c2d12}
+.portfolio-setup .ps-modal[hidden]{display:none}
+.portfolio-setup .ps-modal{position:fixed;inset:0;z-index:3000;display:grid;place-items:center;padding:1rem}
+.portfolio-setup .ps-modal-backdrop{position:absolute;inset:0;background:#111827b8;backdrop-filter:blur(3px)}
+.portfolio-setup .ps-modal-card{position:relative;width:min(100%,31rem);max-height:min(90vh,48rem);overflow:auto;background:#fff;color:#17191d;border-radius:1.15rem;padding:1.5rem;box-shadow:0 24px 80px #0004}
+.portfolio-setup .ps-modal-close{border:0;background:#f3f4f6;border-radius:999px;width:2.25rem;height:2.25rem;font-size:1.2rem;line-height:1;cursor:pointer}
+.portfolio-setup .ps-modal-kicker{display:inline-flex;align-items:center;gap:.4rem;font-size:.75rem;font-weight:850;text-transform:uppercase;letter-spacing:.1em;color:#9a3412;background:#fff1e8;border-radius:999px;padding:.35rem .65rem}
+.portfolio-setup .ps-modal-price{font-size:1.8rem;font-weight:900;letter-spacing:-.04em;margin:.6rem 0}
+.portfolio-setup .ps-modal-benefits{display:grid;gap:.7rem;list-style:none;padding:0;margin:1.25rem 0}
+.portfolio-setup .ps-modal-benefits li{display:flex;gap:.65rem;align-items:flex-start}
+.portfolio-setup .ps-modal-benefits li:before{content:'✓';font-weight:900;color:#15803d}
+.portfolio-setup .ps-modal-footnote{font-size:.78rem;color:#6b7280;line-height:1.5}
+.portfolio-setup .ps-modal-primary{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;border:0;border-radius:.75rem;background:#f97316;color:#fff;font-weight:850;padding:.9rem 1rem}
+.portfolio-setup .ps-modal-primary:disabled{opacity:.55;cursor:not-allowed}
+body.ps-modal-open{overflow:hidden}
 @media(max-width:1000px){.portfolio-setup .ps-layout{grid-template-columns:1fr}}
 @media(max-width:560px){.portfolio-setup .ps-heading{display:block}.portfolio-setup .ps-heading .ps-actions{margin-top:1rem}.portfolio-setup .ps-template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.portfolio-setup .ps-profile-row{grid-template-columns:76px minmax(0,1fr)}.portfolio-setup .ps-avatar{width:76px;height:96px}}
 </style>
 <div class="ps-toast" id="portfolio-toast" role="status" aria-live="polite" data-state="success"><span id="portfolio-toast-icon" aria-hidden="true">✓</span><span id="portfolio-toast-message">Changes saved successfully.</span></div>
+<?php if (!$isPremiumUser): ?>
+<div class="ps-modal" id="portfolio-upgrade-modal" hidden aria-hidden="true">
+  <div class="ps-modal-backdrop" data-upgrade-close></div>
+  <section class="ps-modal-card" role="dialog" aria-modal="true" aria-labelledby="portfolio-upgrade-title" aria-describedby="portfolio-upgrade-description">
+    <div class="d-flex align-items-start justify-content-between gap-3">
+      <span class="ps-modal-kicker"><i data-lucide="crown" aria-hidden="true"></i> InstaWeb Premium</span>
+      <button type="button" class="ps-modal-close" data-upgrade-close aria-label="Close upgrade dialog">×</button>
+    </div>
+    <h2 id="portfolio-upgrade-title" class="mt-3 mb-2 fw-bold">Make your portfolio stand out.</h2>
+    <p id="portfolio-upgrade-description" class="text-secondary mb-2">Unlock every design and publish a polished portfolio without the Free-plan watermark.</p>
+    <div class="ps-modal-price"><?= $escape($premiumPlanPrice) ?></div>
+    <ul class="ps-modal-benefits">
+      <li>Access all Premium and administrator-created templates</li>
+      <li>Remove the Powered by InstaWeb watermark</li>
+      <li>Export your portfolio to PDF</li>
+      <li>Unlock the other benefits included in your Premium plan</li>
+    </ul>
+    <?php if ($premiumUpgradeEnabled): ?>
+      <form method="post" action="<?= $escape($baseUrl . '/payments/paychangu/premium') ?>">
+        <?= \App\Core\Csrf::field() ?>
+        <button class="ps-modal-primary" type="submit"><i data-lucide="lock-keyhole" aria-hidden="true"></i> Upgrade securely with PayChangu</button>
+      </form>
+      <p class="ps-modal-footnote mt-3 mb-0">You'll continue to PayChangu to complete payment. Premium access is activated only after the payment is verified.</p>
+    <?php else: ?>
+      <button class="ps-modal-primary" type="button" disabled>Upgrades temporarily unavailable</button>
+      <p class="ps-modal-footnote mt-3 mb-0">Premium checkout is not currently configured or enabled. You can review plan details on the <a href="<?= $escape($baseUrl . '/pricing') ?>">pricing page</a>.</p>
+    <?php endif; ?>
+    <p class="text-center small mt-3 mb-0"><a href="<?= $escape($baseUrl . '/pricing') ?>">Compare all plan features</a></p>
+  </section>
+</div>
+<?php endif; ?>
 <section class="client-dashboard iw-client-page portfolio-setup">
   <div class="client-main">
     <header class="ps-heading">
@@ -132,7 +181,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
         </section>
 
         <section class="ps-panel">
-          <div class="ps-panel-head"><h2>Choose a template</h2><button type="button" class="ps-active-control" id="portfolio-active-template" disabled>✓ Active: <?= $escape(preg_replace('/\s+[—-].*$/u', '', $templates[$currentTemplate] ?? ucfirst($currentTemplate))) ?></button></div>
+          <div class="ps-panel-head"><h2>Choose a template</h2><div class="d-flex flex-wrap align-items-center gap-2"><button type="button" class="ps-active-control" id="portfolio-active-template" disabled>✓ Active: <?= $escape(preg_replace('/\s+[—-].*$/u', '', $templates[$currentTemplate] ?? ucfirst($currentTemplate))) ?></button><?php if (!$isPremiumUser): ?><button type="button" class="ps-upgrade-trigger" data-upgrade-open><i data-lucide="crown"></i> Upgrade to Premium</button><?php endif; ?></div></div>
           <div class="ps-template-grid" role="radiogroup" aria-label="Portfolio templates">
             <?php foreach ($templates as $key => $label): ?>
               <label class="ps-template">
@@ -152,7 +201,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
           <div class="ps-actions">
             <a class="btn btn-outline-primary" href="<?= $escape($baseUrl . '/dashboard/websites/portfolio/advanced?id=' . $websiteId) ?>">Edit projects and content</a>
             <a class="btn btn-primary" href="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId) ?>" target="_blank" rel="noopener">Open full preview</a>
-            <?php if ($isPremiumUser): ?><a class="btn btn-outline-dark" href="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId . '&export=pdf') ?>" target="_blank" rel="noopener">Export portfolio to PDF</a><?php else: ?><span class="small text-secondary align-self-center">PDF export is included with Premium.</span><?php endif; ?>
+            <?php if ($isPremiumUser): ?><a class="btn btn-outline-dark" href="<?= $escape($baseUrl . '/dashboard/websites/preview?id=' . $websiteId . '&export=pdf') ?>" target="_blank" rel="noopener">Export portfolio to PDF</a><?php else: ?><button type="button" class="btn btn-outline-dark" data-upgrade-open><i data-lucide="file-down"></i> Unlock PDF export</button><?php endif; ?>
           </div>
         </section>
       </div>
@@ -178,6 +227,29 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
   const toastMessage = document.getElementById('portfolio-toast-message');
   const toastIcon = document.getElementById('portfolio-toast-icon');
   const activeTemplateButton = document.getElementById('portfolio-active-template');
+  const upgradeModal = document.getElementById('portfolio-upgrade-modal');
+  let upgradeReturnFocus = null;
+  function openUpgradeModal() {
+    if (!upgradeModal) return;
+    upgradeReturnFocus = document.activeElement;
+    upgradeModal.hidden = false;
+    upgradeModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('ps-modal-open');
+    const closeButton = upgradeModal.querySelector('[data-upgrade-close]');
+    if (closeButton) closeButton.focus();
+  }
+  function closeUpgradeModal() {
+    if (!upgradeModal) return;
+    upgradeModal.hidden = true;
+    upgradeModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('ps-modal-open');
+    if (upgradeReturnFocus && typeof upgradeReturnFocus.focus === 'function') upgradeReturnFocus.focus();
+  }
+  document.querySelectorAll('[data-upgrade-open]').forEach(button => button.addEventListener('click', openUpgradeModal));
+  if (upgradeModal) {
+    upgradeModal.querySelectorAll('[data-upgrade-close]').forEach(button => button.addEventListener('click', closeUpgradeModal));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !upgradeModal.hidden) closeUpgradeModal(); });
+  }
   let activeTemplateKey = <?= json_encode($currentTemplate) ?>;
   let toastTimer = null;
   function showToast(message, state) {
@@ -286,6 +358,7 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
       setStatus('Previewing a Premium template. Upgrade to activate it.', '');
       showToast('Premium template preview only. Upgrade to activate and publish this design.', 'error');
       updateActiveTemplate();
+      openUpgradeModal();
       return;
     }
     if (activeTemplateButton) activeTemplateButton.textContent = 'Saving template…';
