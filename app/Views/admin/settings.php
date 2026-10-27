@@ -5,7 +5,60 @@ $checked = static fn (string $key, string $default = '0'): string => (($settings
 <div class="admin-pro-shell">
   <?php $active = 'settings'; include APP_PATH . '/Views/admin/partials/sidebar.php'; ?>
 
-  <section class="admin-pro-main">
+  <section class="admin-pro-main iw-settings">
+    <style>
+      .iw-settings { --iw-ink:#14201A; --iw-muted:#5B675F; --iw-line:#E4EAE5; --iw-soft:#F6F9F6; --iw-green:#1F7A4D; --iw-green-dark:#14532D; --iw-tint:#E3F2E8; }
+      .iw-settings .admin-pro-topbar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+      .iw-settings .admin-pro-kicker { margin:0 0 4px; font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--iw-green); }
+      .iw-settings .admin-pro-topbar h1 { margin:0; font-size:30px; font-weight:800; letter-spacing:-.01em; color:var(--iw-ink); }
+      .iw-settings .admin-pro-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+      .iw-settings .admin-pro-actions .btn { min-height:44px; display:inline-flex; align-items:center; gap:6px; border-radius:10px; font-weight:600; font-size:14px; }
+      .iw-settings .admin-pro-actions .btn-primary { background:var(--iw-green); border-color:var(--iw-green); }
+      .iw-settings .admin-pro-actions .btn-primary:hover { background:var(--iw-green-dark); border-color:var(--iw-green-dark); }
+      .iw-settings .admin-settings-status { border-radius:12px; }
+
+      .iw-settings .settings-pro-card { display:grid; grid-template-columns:248px minmax(0,1fr); gap:0; background:#fff; border:1px solid var(--iw-line); border-radius:20px; overflow:hidden; }
+      .iw-settings .settings-pro-tabs { display:flex; flex-direction:column; gap:4px; padding:16px; background:var(--iw-soft); border-right:1px solid var(--iw-line); position:sticky; top:0; align-self:start; max-height:100vh; overflow-y:auto; }
+      .iw-settings .settings-pro-tab { display:flex; align-items:center; gap:12px; width:100%; min-height:44px; padding:0 14px; border:0; border-radius:12px; background:transparent; color:#3F4B44; font-size:14px; font-weight:500; text-align:left; cursor:pointer; }
+      .iw-settings .settings-pro-tab svg { width:18px; height:18px; flex:none; }
+      .iw-settings .settings-pro-tab:hover { background:#EAF1EB; }
+      .iw-settings .settings-pro-tab.active { background:var(--iw-tint); color:var(--iw-green-dark); font-weight:700; }
+      .iw-settings .settings-pro-content { padding:28px 32px 36px; min-width:0; }
+      .iw-settings .settings-pro-panel h2 { margin:0 0 20px; padding-bottom:14px; border-bottom:1px solid var(--iw-line); font-size:22px; font-weight:800; color:var(--iw-ink); }
+
+      .iw-settings .form-label { font-size:13px; font-weight:600; color:#26382E; margin-bottom:6px; }
+      .iw-settings .form-control, .iw-settings .form-select { min-height:44px; border-radius:10px; border:1px solid #D8E0DA; font-size:14px; color:var(--iw-ink); }
+      .iw-settings textarea.form-control { min-height:96px; }
+      .iw-settings .form-control:focus, .iw-settings .form-select:focus { border-color:var(--iw-green); box-shadow:0 0 0 3px rgba(31,122,77,.15); }
+      .iw-settings .form-control-color { width:100%; min-height:44px; padding:4px; }
+      .iw-settings .form-text { font-size:12px; color:var(--iw-muted); }
+      .iw-settings .settings-check { display:flex; align-items:center; gap:12px; min-height:44px; padding:8px 14px; border:1px solid var(--iw-line); border-radius:12px; background:#fff; font-size:14px; font-weight:600; color:var(--iw-ink); cursor:pointer; margin:0; }
+      .iw-settings .settings-check:hover { background:var(--iw-soft); }
+      .iw-settings .settings-check input { width:18px; height:18px; flex:none; accent-color:var(--iw-green); }
+      .iw-settings .settings-toggle-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
+      .iw-settings .settings-fieldset { border:1px solid var(--iw-line); border-radius:16px; padding:18px 20px 20px; margin-bottom:20px; background:#fff; }
+      .iw-settings .settings-fieldset h3 { margin:0 0 14px; font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--iw-green-dark); }
+      .iw-settings .settings-note { border-radius:14px; border:1px solid #D5E8DC; background:#F2F8F4; color:#26382E; font-size:13px; margin-bottom:20px; }
+      .iw-settings .settings-note ul { margin:8px 0 0; padding-left:18px; }
+      .iw-settings .settings-pro-panel .table { font-size:14px; }
+      .iw-settings .settings-pro-panel .btn, .iw-settings .admin-pro-card .btn { min-height:44px; border-radius:10px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+      .iw-settings .settings-pro-panel .btn-sm { min-height:36px; }
+      .iw-settings .settings-pro-panel .btn-primary, .iw-settings .admin-pro-card .btn-primary { background:var(--iw-green); border-color:var(--iw-green); }
+      .iw-settings .appearance-preview { border:1px solid var(--iw-line); border-radius:16px; overflow:hidden; }
+      .iw-settings .admin-pro-card { background:#fff; border:1px solid var(--iw-line); border-radius:20px; padding:24px; margin-top:24px; }
+      .iw-settings .admin-pro-card h2 { font-weight:800; }
+      .iw-settings .admin-pro-footer { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:16px 4px; font-size:13px; color:var(--iw-muted); }
+      .iw-settings .admin-pro-footer a { color:var(--iw-green); font-weight:600; text-decoration:none; display:inline-flex; align-items:center; min-height:44px; }
+
+      @media (max-width: 900px) {
+        .iw-settings .settings-pro-card { grid-template-columns:1fr; }
+        .iw-settings .settings-pro-tabs { position:static; flex-direction:row; overflow-x:auto; max-height:none; border-right:0; border-bottom:1px solid var(--iw-line); padding:10px; }
+        .iw-settings .settings-pro-tab { width:auto; white-space:nowrap; flex:none; }
+        .iw-settings .settings-pro-content { padding:20px 16px 28px; }
+        .iw-settings .admin-pro-topbar h1 { font-size:24px; }
+      }
+    </style>
+
     <form method="POST" action="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/settings', ENT_QUOTES, 'UTF-8') ?>" enctype="multipart/form-data">
       <?= \App\Core\Csrf::field() ?>
       <header class="admin-pro-topbar">
