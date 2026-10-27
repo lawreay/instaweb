@@ -91,7 +91,8 @@ final class PortfolioAiController extends Controller
         } catch (InvalidArgumentException $exception) {
             $this->json(422, ['ok' => false, 'message' => $exception->getMessage()]);
         } catch (RuntimeException $exception) {
-            $this->json(502, ['ok' => false, 'message' => 'The AI service could not create a suggestion. Check the provider key and try again.']);
+            // Provider/client exceptions contain safe, deliberately generic diagnostics; never expose raw provider bodies.
+            $this->json(502, ['ok' => false, 'message' => $exception->getMessage()]);
         } catch (\Throwable $exception) {
             $this->json(500, ['ok' => false, 'message' => 'Unable to create an AI suggestion right now.']);
         }
