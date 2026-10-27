@@ -57,6 +57,9 @@ class PortfolioController extends Controller
             'templates' => $templates,
             'isPremiumUser' => $isPremiumUser,
             'premiumTemplateKeys' => PortfolioTemplate::PREMIUM_BUILT_INS,
+            'premiumPlanPrice' => (string) ($settings['premium_plan_price'] ?? 'MWK 5,000/mo'),
+            'premiumUpgradeEnabled' => ($settings['premium_plan_enabled'] ?? '1') === '1'
+                && trim((string) ($settings['paychangu_secret_key'] ?? '')) !== '',
             'templatePreviewUrls' => $templatePreviewUrls,
             'active' => 'websites',
         ], 'layouts/dashboard');
