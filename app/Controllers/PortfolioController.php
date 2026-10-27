@@ -35,7 +35,8 @@ class PortfolioController extends Controller
     {
         [$userId, $website, $portfolio] = $this->ownedPortfolio();
         $settings = (new Setting())->all();
-        $templates = $this->availableTemplates((string) ($portfolio['template_key'] ?? 'classic'));
+        $isPremiumUser = (new Website())->userPlan($userId) === 'premium';
+        $templates = $this->availableTemplates((string) ($portfolio['template_key'] ?? 'classic'), $userId);
         $templatePreviewUrls = [];
         $portfolioModel = new Portfolio();
         foreach (array_keys($templates) as $templateKey) {
@@ -54,6 +55,8 @@ class PortfolioController extends Controller
             'website' => $website,
             'portfolio' => $portfolio,
             'templates' => $templates,
+            'isPremiumUser' => $isPremiumUser,
+            'premiumTemplateKeys' => PortfolioTemplate::PREMIUM_BUILT_INS,
             'templatePreviewUrls' => $templatePreviewUrls,
             'active' => 'websites',
         ], 'layouts/dashboard');
@@ -81,7 +84,7 @@ class PortfolioController extends Controller
         $templateKey = trim((string) $this->input('template_key', (string) ($portfolio['template_key'] ?? 'classic')));
 
         if ($displayName === '' || mb_strlen($displayName) > 120 || mb_strlen($headline) > 180
-            || !$this->canUseTemplate($templateKey, (string) ($portfolio['template_key'] ?? 'classic'))) {
+            || !$this->canUseTemplate($templateKey, (string) ($portfolio['template_key'] ?? 'classic'), $userId)) {
             http_response_code(422);
             echo json_encode(['ok' => false, 'message' => 'Enter a full name and choose an available template.']);
             return;
@@ -141,7 +144,7 @@ class PortfolioController extends Controller
             || strlen($bio) > 10000
             || strlen($email) > 190
             || strlen($location) > 120
-            || !$this->canUseTemplate($templateKey, (string) ($portfolio['template_key'] ?? 'classic'))
+            || !$this->canUseTemplate($templateKey, (string) ($portfolio['template_key'] ?? 'classic'), $userId)
             || ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false)) {
             Session::flash('error', 'Check the profile fields. The name is required, the email must be valid, and the selected template must be available.');
             $this->redirectTo($this->editorPath((int) $website['id']));
@@ -499,26 +502,37 @@ class PortfolioController extends Controller
         $this->redirectTo($this->editorPath((int) $website['id']));
     }
 
-    /** Active templates are selectable; a current suspended template stays visible for its owner. */
-    private function availableTemplates(string $currentTemplate = ''): array
+    /** Active templates are filtered by plan; the current layout remains available so existing work is not broken. */
+    private function availableTemplates(string $currentTemplate = '', int $userId = 0): array
     {
         $catalog = new PortfolioTemplate();
-        $templates = $catalog->selectable();
-        if ($currentTemplate !== '' && !isset($templates[$currentTemplate])) {
-            foreach ($catalog->all() as $template) {
-                if ((string) ($template['template_key'] ?? '') === $currentTemplate) {
-                    $templates[$currentTemplate] = (string) ($template['display_name'] ?? $currentTemplate) . ' (currently suspended)';
-                    break;
-                }
+        $isPremiumUser = $userId > 0 && (new Website())->userPlan($userId) === 'premium';
+        $templates = [];
+        foreach ($catalog->all() as $template) {
+            $key = (string) ($template['template_key'] ?? '');
+            if ($key === '' || (($template['status'] ?? '') !== 'active' && $key !== $currentTemplate)) {
+                continue;
             }
+            if (!$isPremiumUser && $key !== $currentTemplate && $catalog->isPremiumTemplate($key)) {
+                continue;
+            }
+            $label = (string) ($template['display_name'] ?? $key);
+            if (($template['status'] ?? '') !== 'active') {
+                $label .= ' (currently suspended)';
+            }
+            $templates[$key] = $label;
         }
-
         return $templates;
     }
 
-    private function canUseTemplate(string $templateKey, string $currentTemplate): bool
+    private function canUseTemplate(string $templateKey, string $currentTemplate, int $userId): bool
     {
-        return array_key_exists($templateKey, $this->availableTemplates($currentTemplate));
+        if ($templateKey === $currentTemplate) {
+            return array_key_exists($templateKey, $this->availableTemplates($currentTemplate, $userId));
+        }
+        $isPremiumUser = (new Website())->userPlan($userId) === 'premium';
+        return array_key_exists($templateKey, $this->availableTemplates($currentTemplate, $userId))
+            && ($isPremiumUser || !(new PortfolioTemplate())->isPremiumTemplate($templateKey));
     }
 
     /**
