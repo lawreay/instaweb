@@ -33,6 +33,9 @@ class PlanService
                     '100MB storage',
                     sprintf('%d days hosting', $this->freeHostingDays()),
                     'Instaweb subdomain',
+                    'Create and preview a portfolio',
+                    'Selected free portfolio templates',
+                    'Published portfolios display Powered by InstaWeb',
                 ]),
             ],
             'premium' => [
@@ -44,6 +47,9 @@ class PlanService
                     'Custom domains',
                     'No expiry',
                     'Analytics and priority support',
+                    'Access to all premium portfolio templates',
+                    'Remove the Powered by InstaWeb watermark',
+                    'Export portfolios to PDF',
                 ]),
             ],
         ];
