@@ -7,7 +7,7 @@ $baseUrl = rtrim((string) (($app ?? [])['base_url'] ?? ''), '/');
     <div>
       <p class="text-uppercase small fw-bold text-secondary mb-1">Portfolio Studio</p>
       <h1 class="h3 mb-2">Template manager</h1>
-      <p class="text-secondary mb-0">Control which layouts are available, create custom HTML/CSS or React/JSX layouts, and choose sample portfolios for template previews.</p>
+      <p class="text-secondary mb-0">Control template availability and Free/Premium access, create custom HTML/CSS or React/JSX layouts, and choose sample portfolios for template previews.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a class="btn btn-primary" href="<?= $escape($baseUrl . '/admin/portfolio-templates/new') ?>"><i data-lucide="plus"></i> Add custom template</a>
@@ -46,6 +46,7 @@ $baseUrl = rtrim((string) (($app ?? [])['base_url'] ?? ''), '/');
                   <span class="badge text-bg-light"><?= $escape($isBuiltIn ? 'BUILT-IN' : 'CUSTOM') ?></span>
                   <?php if (!$isBuiltIn): ?><span class="badge text-bg-info"><?= $escape($renderEngine === 'react' ? 'REACT / JSX' : 'HTML / CSS') ?></span><?php endif; ?>
                   <span class="badge text-bg-<?= $isActive ? 'success' : 'warning' ?>"><?= $escape(ucfirst((string) ($template['status'] ?? 'suspended'))) ?></span>
+                  <span class="badge text-bg-<?= ($template['plan_tier'] ?? 'premium') === 'premium' ? 'dark' : 'success' ?>"><?= $escape(ucfirst((string) ($template['plan_tier'] ?? 'premium'))) ?> plan</span>
                 </div>
                 <h2 class="h5 mb-1"><?= $escape($template['display_name'] ?? '') ?></h2>
                 <p class="small text-secondary mb-0"><code><?= $escape($templateKey) ?></code><?= !empty($template['description']) ? ' · ' . $escape($template['description']) : '' ?></p>
@@ -57,6 +58,18 @@ $baseUrl = rtrim((string) (($app ?? [])['base_url'] ?? ''), '/');
 
             <p class="small text-secondary mb-3"><?= $isBuiltIn ? 'Renderer files are maintained by the application.' : ($renderEngine === 'react' ? 'Editable React component and CSS, rendered in an isolated frame.' : 'Editable, script-free HTML and CSS.') ?></p>
 
+            <form method="POST" action="<?= $escape($baseUrl . '/admin/portfolio-templates/tier') ?>" class="border rounded-3 bg-light p-2 mb-3">
+              <?= \\App\\Core\\Csrf::field() ?>
+              <input type="hidden" name="template_key" value="<?= $escape($templateKey) ?>">
+              <label class="form-label small fw-semibold mb-1" for="tier_<?= $escape($templateKey) ?>">Availability plan</label>
+              <div class="d-flex gap-2">
+                <select class="form-select form-select-sm" id="tier_<?= $escape($templateKey) ?>" name="plan_tier">
+                  <option value="free" <?= ($template['plan_tier'] ?? 'premium') === 'free' ? 'selected' : '' ?>>Free</option>
+                  <option value="premium" <?= ($template['plan_tier'] ?? 'premium') === 'premium' ? 'selected' : '' ?>>Premium</option>
+                </select>
+                <button class="btn btn-sm btn-outline-primary text-nowrap" type="submit">Save tier</button>
+              </div>
+            </form>
             <div class="mt-auto d-flex flex-wrap gap-2">
               <form method="POST" action="<?= $escape($baseUrl . '/admin/portfolio-templates/status') ?>">
                 <?= \App\Core\Csrf::field() ?>
