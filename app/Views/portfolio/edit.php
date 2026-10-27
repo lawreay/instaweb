@@ -97,7 +97,6 @@ $initialPreviewUrl = $templatePreviewUrls[$currentTemplate] ?? $ownPreviewUrl;
 .portfolio-setup .ps-modal-footnote{font-size:.78rem;color:#6b7280;line-height:1.5}
 .portfolio-setup .ps-modal-primary{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;border:0;border-radius:.75rem;background:#f97316;color:#fff;font-weight:850;padding:.9rem 1rem}
 .portfolio-setup .ps-modal-primary:disabled{opacity:.55;cursor:not-allowed}
-body.ps-modal-open{overflow:hidden}
 @media(max-width:1000px){.portfolio-setup .ps-layout{grid-template-columns:1fr}}
 @media(max-width:560px){.portfolio-setup .ps-heading{display:block}.portfolio-setup .ps-heading .ps-actions{margin-top:1rem}.portfolio-setup .ps-template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.portfolio-setup .ps-profile-row{grid-template-columns:76px minmax(0,1fr)}.portfolio-setup .ps-avatar{width:76px;height:96px}}
 </style>
@@ -234,7 +233,6 @@ body.ps-modal-open{overflow:hidden}
     upgradeReturnFocus = document.activeElement;
     upgradeModal.hidden = false;
     upgradeModal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('ps-modal-open');
     const closeButton = upgradeModal.querySelector('[data-upgrade-close]');
     if (closeButton) closeButton.focus();
   }
@@ -242,8 +240,7 @@ body.ps-modal-open{overflow:hidden}
     if (!upgradeModal) return;
     upgradeModal.hidden = true;
     upgradeModal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('ps-modal-open');
-    if (upgradeReturnFocus && typeof upgradeReturnFocus.focus === 'function') upgradeReturnFocus.focus();
+    if (upgradeReturnFocus && typeof upgradeReturnFocus.focus === 'function' && document.contains(upgradeReturnFocus)) upgradeReturnFocus.focus();
   }
   document.querySelectorAll('[data-upgrade-open]').forEach(button => button.addEventListener('click', openUpgradeModal));
   if (upgradeModal) {
