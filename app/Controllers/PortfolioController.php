@@ -513,9 +513,6 @@ class PortfolioController extends Controller
             if ($key === '' || (($template['status'] ?? '') !== 'active' && $key !== $currentTemplate)) {
                 continue;
             }
-            if (!$isPremiumUser && $key !== $currentTemplate && $catalog->isPremiumTemplate($key)) {
-                continue;
-            }
             $label = (string) ($template['display_name'] ?? $key);
             if (($template['status'] ?? '') !== 'active') {
                 $label .= ' (currently suspended)';
