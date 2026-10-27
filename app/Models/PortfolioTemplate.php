@@ -25,6 +25,10 @@ class PortfolioTemplate
         'graduate' => 'Graduate Path — confident early-career portfolio',
     ];
 
+    /** Built-in layouts available to Free accounts; all other layouts require Premium. */
+    public const FREE_BUILT_INS = ['classic', 'minimal', 'graduate'];
+    public const PREMIUM_BUILT_INS = ['editorial', '3d', 'noir', 'aurora', 'studio', 'orbit', 'prism', 'archive', 'ledger'];
+
     private PDO $database;
 
     public function __construct(?PDO $database = null)
@@ -81,6 +85,12 @@ class PortfolioTemplate
     public function isSelectable(string $templateKey): bool
     {
         return array_key_exists($templateKey, $this->selectable());
+    }
+
+    /** Custom templates are Premium by default; built-ins use the explicit tier list. */
+    public function isPremiumTemplate(string $templateKey): bool
+    {
+        return !in_array($templateKey, self::FREE_BUILT_INS, true);
     }
 
     /**
