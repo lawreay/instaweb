@@ -49,6 +49,7 @@ class PortfolioPublicController extends Controller
             'advancedItems' => $advancedModel->visibleItems((int) $website['id'], (int) $website['user_id']),
             'noirSectionImages' => $advancedModel->noirSectionImages((int) $website['id'], (int) $website['user_id']),
             'customTemplate' => (new PortfolioTemplate())->customByKey((string) ($portfolio['template_key'] ?? '')),
+            'isPremiumUser' => (new Website())->userPlan((int) $website['user_id']) === 'premium',
         ], '');
     }
 }
