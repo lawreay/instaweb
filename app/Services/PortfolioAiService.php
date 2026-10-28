@@ -103,7 +103,11 @@ PROMPT;
             throw new RuntimeException('Could not prepare portfolio context.');
         }
 
-        return "Create a portfolio enhancement from the following context. For a rewrite, return one polished replacement in `rewrite` and an empty `items` list. For new entries, return an empty `rewrite` and up to the requested number of concrete entries in `items`. Use only the supplied facts.\n\n<portfolio-context>\n" . $encoded . "\n</portfolio-context>";
+        $operation = (string) ($context['operation'] ?? '');
+        $instruction = $operation === 'enhance_portfolio'
+            ? 'Enhance the whole existing portfolio in one coordinated pass. Return a polished replacement of the existing bio in rewrite (leave it empty if there is no bio). For each supplied portfolio_items entry, return one item with the same item_id and section_key and improved details, preserving meaning and all facts. Do not create entries or invent missing facts. Keep details empty only when the source details are empty. Do not change titles, organisations, dates, or other fields. Return at most 30 items.'
+            : 'For a rewrite, return one polished replacement in rewrite and an empty items list. For new entries, return an empty rewrite and up to the requested number of concrete entries in items.';
+        return "Create a portfolio enhancement from the following context. " . $instruction . " Use only the supplied facts.\n\n<portfolio-context>\n" . $encoded . "\n</portfolio-context>";
     }
 
     /** @return array<string, mixed> */
@@ -111,6 +115,7 @@ PROMPT;
     {
         $itemProperties = [
             'title' => ['type' => 'string'], 'details' => ['type' => 'string'], 'organisation' => ['type' => 'string'],
+            'section_key' => ['type' => 'string'], 'item_id' => ['type' => 'integer'],
             'field_of_study' => ['type' => 'string'], 'category' => ['type' => 'string'], 'proficiency' => ['type' => 'string'],
             'outcome' => ['type' => 'string'], 'link' => ['type' => 'string'], 'start_date' => ['type' => 'string'],
             'end_date' => ['type' => 'string'], 'current' => ['type' => 'string'], 'published_date' => ['type' => 'string'],
@@ -147,20 +152,26 @@ PROMPT;
         $rewrite = $this->text($response['rewrite'] ?? '', 5000);
         $items = [];
         foreach (($response['items'] ?? []) as $item) {
-            if (!is_array($item) || count($items) >= 4) {
+            $maxItems = $operation === 'enhance_portfolio' ? 30 : 4;
+            if (!is_array($item) || count($items) >= $maxItems) {
                 continue;
             }
             $normalised = [];
-            foreach (['title', 'details', 'organisation', 'field_of_study', 'category', 'proficiency', 'outcome', 'link', 'start_date', 'end_date', 'current', 'published_date', 'year'] as $field) {
+            foreach (['title', 'details', 'organisation', 'field_of_study', 'category', 'proficiency', 'outcome', 'link', 'start_date', 'end_date', 'current', 'published_date', 'year', 'section_key'] as $field) {
                 $normalised[$field] = $this->text($item[$field] ?? '', $field === 'details' ? 5000 : ($field === 'link' ? 500 : 190));
             }
+            $normalised['item_id'] = max(0, (int) ($item['item_id'] ?? 0));
             if ($normalised['title'] !== '') {
                 $items[] = $normalised;
             }
         }
 
-        if (str_starts_with($operation, 'rewrite') && $rewrite === '') {
+        if (($operation === 'enhance_portfolio' && $rewrite === '' && $items === []) || (str_starts_with($operation, 'rewrite') && $rewrite === '')) {
             throw new RuntimeException('The AI did not return a usable rewrite.');
+        }
+        if ($operation === 'enhance_portfolio') {
+            $items = array_values(array_filter($items, static fn (array $item): bool => $item['item_id'] > 0 && $item['section_key'] !== '' && $item['details'] !== ''));
+            if ($rewrite === '' && $items === []) throw new RuntimeException('The AI did not return usable whole-portfolio improvements.');
         }
         if ($operation === 'generate_items' && $items === []) {
             throw new RuntimeException('The AI did not return usable portfolio entries.');
