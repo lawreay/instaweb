@@ -1014,7 +1014,11 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
     aiClose?.addEventListener('click', closeAi);
     aiModal.addEventListener('click', event => { if (event.target === aiModal) closeAi(); });
     document.addEventListener('keydown', event => { if (event.key === 'Escape' && !aiModal.hidden) closeAi(); });
-    aiOperation?.addEventListener('change', syncAiForm);
+    aiOperation?.addEventListener('change', () => {
+      syncAiForm();
+      if (aiGenerate) aiGenerate.lastChild.textContent = aiOperation.value === 'enhance_portfolio' ? 'Enhance whole portfolio' : 'Generate suggestions';
+      if (aiApply) aiApply.lastChild.textContent = aiOperation.value === 'enhance_portfolio' ? 'Apply all improvements' : 'Apply suggestion';
+    });
     aiSection?.addEventListener('change', optionForSection);
     aiProvider?.addEventListener('change', updateKeyNote);
     aiForm?.addEventListener('submit', async event => {
