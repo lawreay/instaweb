@@ -479,6 +479,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       <input type="hidden" name="id" value="<?= $websiteId ?>">
       <label class="ap-field"><span class="ap-label">What would you like to do?</span>
         <select name="operation" data-ai-operation>
+          <option value="enhance_portfolio">Enhance my whole portfolio</option>
           <option value="generate_items">Add new entries to a section</option>
           <option value="rewrite_profile">Rewrite my profile text</option>
           <option value="rewrite_item">Rewrite an existing entry</option>
@@ -911,7 +912,8 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       const operation = aiOperation?.value || 'generate_items';
       const rewritingItem = operation === 'rewrite_item';
       const generating = operation === 'generate_items';
-      aiGenerateFields.hidden = !generating && !rewritingItem;
+      const enhancingWhole = operation === 'enhance_portfolio';
+      aiGenerateFields.hidden = enhancingWhole || (!generating && !rewritingItem);
       aiProfileField.hidden = operation !== 'rewrite_profile';
       aiItemField.hidden = !rewritingItem;
       if (rewritingItem) optionForSection();
@@ -958,7 +960,10 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
         summary.textContent = value.summary;
         aiOutput.appendChild(summary);
       }
-      if (value.operation === 'rewrite_profile' || value.operation === 'rewrite_item') {
+      if (value.operation === 'enhance_portfolio') {
+        if (value.rewrite) { const card=document.createElement('article'); card.className='ap-ai-suggestion'; const title=document.createElement('strong'); title.textContent='Profile biography'; card.appendChild(title); const copy=document.createElement('p'); copy.textContent=value.rewrite; card.appendChild(copy); aiOutput.appendChild(card); }
+        (value.items||[]).forEach((item,index)=>{ const card=document.createElement('article'); card.className='ap-ai-suggestion'; const title=document.createElement('strong'); title.textContent=(index+1)+'. '+(item.title||('Portfolio entry #'+item.item_id)); card.appendChild(title); const copy=document.createElement('p'); copy.textContent=item.details||''; card.appendChild(copy); const section=document.createElement('small'); section.textContent='Section: '+(item.section_key||'Portfolio'); card.appendChild(section); aiOutput.appendChild(card); });
+      } else if (value.operation === 'rewrite_profile' || value.operation === 'rewrite_item') {
         const rewrite = document.createElement('p');
         rewrite.className = 'ap-ai-rewrite';
         rewrite.textContent = value.rewrite || '';
