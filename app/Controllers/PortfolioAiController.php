@@ -134,7 +134,7 @@ final class PortfolioAiController extends Controller
     private function proposalContext(int $websiteId, int $userId, array $portfolio): array
     {
         $operation = trim((string) $this->input('operation', ''));
-        if (!in_array($operation, ['rewrite_profile', 'rewrite_item', 'generate_items'], true)) {
+        if (!in_array($operation, ['rewrite_profile', 'rewrite_item', 'generate_items', 'enhance_portfolio'], true)) {
             throw new InvalidArgumentException('Choose an AI enhancement type.');
         }
 
@@ -155,6 +155,28 @@ final class PortfolioAiController extends Controller
                 'location' => $this->text($portfolio['location'] ?? '', 120),
             ],
         ];
+
+        if ($operation === 'enhance_portfolio') {
+            $context['profile']['headline'] = $this->text($portfolio['headline'] ?? '', 180);
+            $context['profile']['bio'] = $this->text($portfolio['bio'] ?? '', 5000);
+            $context['portfolio_items'] = [];
+            $items = (new AdvancedPortfolio())->items($websiteId, $userId);
+            foreach (array_slice($items, 0, 30) as $item) {
+                $payload = json_decode((string) ($item['payload'] ?? '{}'), true);
+                $payload = is_array($payload) ? $payload : [];
+                $context['portfolio_items'][] = [
+                    'item_id' => (int) ($item['id'] ?? 0),
+                    'section_key' => $this->text($item['section_key'] ?? '', 40),
+                    'title' => $this->text($item['title'] ?? '', 190),
+                    'details' => $this->text($payload['details'] ?? '', 1500),
+                    'organisation' => $this->text($payload['organisation'] ?? '', 190),
+                ];
+            }
+            if ($context['profile']['bio'] === '' && $context['portfolio_items'] === []) {
+                throw new InvalidArgumentException('Add a profile bio or portfolio entries before using whole-portfolio enhancement.');
+            }
+            return $context;
+        }
 
         if ($operation === 'rewrite_profile') {
             $field = trim((string) $this->input('field', 'bio'));
@@ -224,6 +246,43 @@ final class PortfolioAiController extends Controller
     private function applyProposal(array $proposal, int $websiteId, int $userId, array $portfolio): array
     {
         $operation = (string) ($proposal['operation'] ?? '');
+        if ($operation === 'enhance_portfolio') {
+            $bio = $this->text($proposal['rewrite'] ?? '', 5000);
+            $model = new AdvancedPortfolio();
+            $changed = 0;
+            if ($bio !== '') {
+                $socialLinks = json_decode((string) ($portfolio['social_links'] ?? '{}'), true);
+                (new Portfolio())->updateProfile((int) $portfolio['id'], $websiteId, $userId, [
+                    'display_name' => (string) ($portfolio['display_name'] ?? ''),
+                    'headline' => (string) ($portfolio['headline'] ?? ''),
+                    'bio' => $bio,
+                    'email' => ($portfolio['email'] ?? '') !== '' ? $portfolio['email'] : null,
+                    'location' => ($portfolio['location'] ?? '') !== '' ? $portfolio['location'] : null,
+                    'template_key' => (string) ($portfolio['template_key'] ?? 'classic'),
+                    'social_links' => is_array($socialLinks) ? $socialLinks : [],
+                ]);
+                $changed++;
+            }
+            $currentItems = $model->items($websiteId, $userId);
+            $byId = [];
+            foreach ($currentItems as $current) $byId[(int) ($current['id'] ?? 0)] = $current;
+            foreach (array_slice(is_array($proposal['items'] ?? null) ? $proposal['items'] : [], 0, 30) as $candidate) {
+                if (!is_array($candidate)) continue;
+                $itemId = (int) ($candidate['item_id'] ?? 0);
+                $current = $byId[$itemId] ?? null;
+                if (!$current || ($candidate['section_key'] ?? '') !== ($current['section_key'] ?? '')) continue;
+                $details = $this->text($candidate['details'] ?? '', 5000);
+                if ($details === '') continue;
+                $payload = json_decode((string) ($current['payload'] ?? '{}'), true);
+                $payload = is_array($payload) ? $payload : [];
+                $payload['details'] = $details;
+                $model->saveItem($websiteId, $userId, (string) $current['section_key'], (string) $current['title'], $payload, (int) ($current['sort_order'] ?? 0), $itemId);
+                $changed++;
+            }
+            if ($changed === 0) throw new InvalidArgumentException('No usable whole-portfolio changes were returned. Generate suggestions again.');
+            return ['message' => 'Whole-portfolio enhancement applied to ' . $changed . ' profile/entry field(s).', 'tab' => 'overview', 'applied' => $changed];
+        }
+
         if ($operation === 'rewrite_profile') {
             $field = (string) ($proposal['field'] ?? '');
             $limit = $field === 'bio' ? 10000 : 180;
