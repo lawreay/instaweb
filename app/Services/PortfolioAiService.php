@@ -161,7 +161,7 @@ PROMPT;
                 $normalised[$field] = $this->text($item[$field] ?? '', $field === 'details' ? 5000 : ($field === 'link' ? 500 : 190));
             }
             $normalised['item_id'] = max(0, (int) ($item['item_id'] ?? 0));
-            if ($normalised['title'] !== '') {
+            if ($normalised['title'] !== '' || ($operation === 'enhance_portfolio' && $normalised['item_id'] > 0)) {
                 $items[] = $normalised;
             }
         }
