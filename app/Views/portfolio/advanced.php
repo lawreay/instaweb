@@ -701,7 +701,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
 .ap-ai-head h2{margin:0;font-size:1.35rem;font-weight:800;letter-spacing:-.025em}.ap-ai-head p:not(.ap-kicker){margin:.3rem 0 0;color:var(--ap-muted);font-size:.88rem}
 .ap-ai-close{display:grid;place-items:center;flex:0 0 auto;width:2.25rem;height:2.25rem;border:1px solid var(--ap-line);border-radius:.6rem;background:#fff;color:#475467;cursor:pointer}.ap-ai-close:hover{background:var(--ap-soft)}.ap-ai-close svg{width:1.1rem;height:1.1rem}
 .ap-ai-form{display:grid;gap:1rem;padding-top:1rem}.ap-ai-provider{display:grid;grid-template-columns:9rem minmax(0,1fr);gap:1rem;align-items:start}.ap-optional{color:var(--ap-muted);font-weight:500}.ap-ai-status{min-height:1.25rem;margin:0;color:var(--ap-muted);font-size:.84rem;line-height:1.45}.ap-ai-status.is-error{color:var(--ap-danger)}.ap-ai-status.is-loading{color:#9a3412}
-.ap-ai-actions{display:flex;justify-content:flex-end;gap:.65rem}.ap-ai-actions .ap-button:disabled{cursor:wait;opacity:.65}.ap-ai-result{margin-top:1rem;padding:1rem;border:1px solid #fed7aa;border-radius:.85rem;background:#fffaf5}.ap-ai-result-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}.ap-ai-result-head h3{margin:0;font-size:1rem;font-weight:800}.ap-ai-ready{flex:0 0 auto;padding:.25rem .5rem;border-radius:999px;background:#fff0df;color:#9a3412;font-size:.68rem;font-weight:800}.ap-ai-output{display:grid;gap:.75rem;margin:1rem 0}.ap-ai-summary{margin:0;color:var(--ap-muted);font-size:.86rem}.ap-ai-rewrite{margin:0;padding:.85rem;border-left:3px solid var(--ap-accent);border-radius:.35rem;background:#fff;white-space:pre-wrap;line-height:1.6}.ap-ai-suggestion{padding:.85rem;border:1px solid #fed7aa;border-radius:.65rem;background:#fff}.ap-ai-suggestion strong{display:block}.ap-ai-suggestion p{margin:.35rem 0 0;color:#475467;white-space:pre-wrap;line-height:1.5}
+.ap-ai-actions{display:flex;justify-content:flex-end;gap:.65rem}.ap-ai-actions .ap-button:disabled{cursor:wait;opacity:.65}.ap-ai-result{margin-top:1rem;padding:1rem;border:1px solid #fed7aa;border-radius:.85rem;background:#fffaf5}.ap-ai-result-head{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}.ap-ai-result-head h3{margin:0;font-size:1rem;font-weight:800}.ap-ai-ready{flex:0 0 auto;padding:.25rem .5rem;border-radius:999px;background:#fff0df;color:#9a3412;font-size:.68rem;font-weight:800}.ap-ai-output{display:grid;gap:.75rem;margin:1rem 0}.ap-ai-summary{margin:0;color:var(--ap-muted);font-size:.86rem}.ap-ai-rewrite{margin:0;padding:.85rem;border-left:3px solid var(--ap-accent);border-radius:.35rem;background:#fff;white-space:pre-wrap;line-height:1.6}.ap-ai-suggestion-select{display:flex;align-items:center;gap:.65rem;margin-bottom:.8rem;cursor:pointer}.ap-ai-suggestion-select input{width:1rem;height:1rem;accent-color:#f97316}.ap-ai-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}.ap-ai-edit-field{display:grid;gap:.35rem;min-width:0}.ap-ai-edit-field>span{font-size:.78rem;font-weight:750;color:#475467}.ap-ai-edit-field input,.ap-ai-edit-field textarea{width:100%;min-width:0;padding:.65rem .75rem;border:1px solid #d0d5dd;border-radius:.55rem;background:#fff;color:#17191d;font:inherit;font-size:.88rem}.ap-ai-edit-field textarea{resize:vertical}.ap-ai-edit-wide{grid-column:1/-1}.ap-ai-edit-field input:focus,.ap-ai-edit-field textarea:focus{outline:2px solid #f9731666;border-color:#f97316}.ap-ai-result [data-ai-apply]:disabled{opacity:.6;cursor:not-allowed}.ap-ai-suggestion{padding:.85rem;border:1px solid #fed7aa;border-radius:.65rem;background:#fff}.ap-ai-suggestion strong{display:block}.ap-ai-suggestion p{margin:.35rem 0 0;color:#475467;white-space:pre-wrap;line-height:1.5}
 
 @media(max-width:1000px){
   .ap-shell{grid-template-columns:minmax(0,1fr)}
@@ -950,6 +950,12 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       window.setTimeout(() => aiOperation?.focus(), 0);
       if (window.lucide) window.lucide.createIcons();
     };
+    const editableItemFields = [
+      ['title', 'Title'], ['organisation', 'Organisation'], ['details', 'Details'],
+      ['field_of_study', 'Field of study'], ['category', 'Category'], ['proficiency', 'Proficiency'],
+      ['outcome', 'Outcome'], ['link', 'Link'], ['start_date', 'Start date'],
+      ['end_date', 'End date'], ['current', 'Current'], ['published_date', 'Published date'], ['year', 'Year']
+    ];
     const renderProposal = value => {
       aiOutput.replaceChildren();
       if (value.summary) {
@@ -959,26 +965,59 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
         aiOutput.appendChild(summary);
       }
       if (value.operation === 'rewrite_profile' || value.operation === 'rewrite_item') {
-        const rewrite = document.createElement('p');
-        rewrite.className = 'ap-ai-rewrite';
-        rewrite.textContent = value.rewrite || '';
-        aiOutput.appendChild(rewrite);
+        const label = document.createElement('label');
+        label.className = 'ap-ai-edit-field';
+        const caption = document.createElement('span');
+        caption.textContent = 'Proposed text (you can edit before applying)';
+        const rewrite = document.createElement('textarea');
+        rewrite.rows = 5;
+        rewrite.maxLength = value.field === 'bio' ? 10000 : 5000;
+        rewrite.dataset.aiRewrite = '1';
+        rewrite.value = value.rewrite || '';
+        label.append(caption, rewrite);
+        aiOutput.appendChild(label);
       } else {
         (value.items || []).forEach((item, index) => {
           const card = document.createElement('article');
           card.className = 'ap-ai-suggestion';
+          const head = document.createElement('label');
+          head.className = 'ap-ai-suggestion-select';
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = true;
+          checkbox.dataset.aiSelect = String(index);
           const title = document.createElement('strong');
-          title.textContent = (index + 1) + '. ' + (item.title || 'Untitled suggestion');
-          card.appendChild(title);
-          const details = [item.organisation, item.field_of_study, item.details, item.outcome].filter(Boolean).join('\n');
-          if (details) {
-            const copy = document.createElement('p');
-            copy.textContent = details;
-            card.appendChild(copy);
-          }
+          title.textContent = 'Include suggestion ' + (index + 1);
+          head.append(checkbox, title);
+          card.appendChild(head);
+          const fields = document.createElement('div');
+          fields.className = 'ap-ai-edit-grid';
+          editableItemFields.forEach(([key, labelText]) => {
+            const label = document.createElement('label');
+            label.className = 'ap-ai-edit-field' + (key === 'details' || key === 'outcome' ? ' ap-ai-edit-wide' : '');
+            const caption = document.createElement('span');
+            caption.textContent = labelText;
+            const input = key === 'details' || key === 'outcome' ? document.createElement('textarea') : document.createElement('input');
+            if (input.tagName === 'INPUT') input.type = key.endsWith('_date') || key === 'published_date' ? 'date' : 'text';
+            if (key === 'current') {
+              input.type = 'checkbox';
+              input.checked = ['1', 'true', 'yes'].includes(String(item[key] || '').toLowerCase());
+              input.dataset.aiField = key;
+            } else {
+              input.value = item[key] || '';
+              input.dataset.aiField = key;
+              input.maxLength = key === 'details' || key === 'outcome' ? 5000 : key === 'link' ? 500 : 190;
+              if (input.tagName === 'TEXTAREA') input.rows = 3;
+              if (key === 'link') input.placeholder = 'https://...';
+            }
+            label.append(caption, input);
+            fields.appendChild(label);
+          });
+          card.appendChild(fields);
           aiOutput.appendChild(card);
         });
       }
+      if (aiApply) aiApply.disabled = false;
     };
     const requestJson = async (url, data) => {
       const controller = new AbortController();
@@ -1040,10 +1079,35 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       aiApply.disabled = true;
       setMessage('Applying your approved suggestion…', 'loading');
       try {
+        const approved = JSON.parse(JSON.stringify(proposal));
+        const rewriteInput = aiOutput.querySelector('[data-ai-rewrite]');
+        if (rewriteInput) approved.rewrite = rewriteInput.value.trim();
+        if (approved.operation === 'generate_items') {
+          approved.items = (approved.items || []).filter((item, index) => {
+            const selected = aiOutput.querySelector('[data-ai-select="' + index + '"]');
+            if (!selected || !selected.checked) return false;
+            const card = selected.closest('.ap-ai-suggestion');
+            card?.querySelectorAll('[data-ai-field]').forEach(input => {
+              const key = input.dataset.aiField;
+              item[key] = input.type === 'checkbox' ? (input.checked ? '1' : '0') : input.value.trim();
+            });
+            return true;
+          });
+          if (!approved.items.length) {
+            setMessage('Select at least one suggestion to apply.', 'error');
+            aiApply.disabled = false;
+            return;
+          }
+        }
+        if ((approved.operation === 'rewrite_profile' || approved.operation === 'rewrite_item') && !approved.rewrite) {
+          setMessage('The proposed text cannot be empty.', 'error');
+          aiApply.disabled = false;
+          return;
+        }
         const data = new FormData();
         data.append('_csrf', aiForm.querySelector('input[name="_csrf"]')?.value || '');
         data.append('id', String(editorId));
-        data.append('proposal', JSON.stringify(proposal));
+        data.append('proposal', JSON.stringify(approved));
         const result = await requestJson(applyUrl, data);
         const tab = result.tab || 'overview';
         window.location.assign(editorUrl + '?id=' + encodeURIComponent(String(editorId)) + '&tab=' + encodeURIComponent(tab));
