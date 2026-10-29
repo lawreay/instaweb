@@ -48,7 +48,7 @@ foreach ($notifications as $countNotification) {
       .nt .nt-mark-read { border:0; padding:0 8px; margin-left:8px; background:transparent; cursor:pointer; }
       .nt .nt-mark-read:disabled { opacity:.6; cursor:wait; }
       .nt #ntMarkAllRead { border:1px solid #D8E0DA; border-radius:999px; padding:0 14px; background:#fff; color:var(--nt-green-dark); font-size:13px; font-weight:700; cursor:pointer; }
-      .nt #ntMarkAllRead:disabled { opacity:.5; cursor:default; }
+      .nt #ntMarkAllRead:disabled, .nt #ntClearAll:disabled { opacity:.5; cursor:default; }
       .nt .nt-empty { text-align:center; padding:36px 12px; }
       .nt .nt-empty[hidden] { display:none; }
       .nt .nt-empty svg { width:32px; height:32px; color:var(--nt-muted); }
@@ -88,6 +88,7 @@ foreach ($notifications as $countNotification) {
             <button type="button" class="nt-filter" data-filter="unread">Unread</button>
             <button type="button" class="nt-filter" data-filter="read">Read</button>
             <button type="button" class="nt-filter" id="ntMarkAllRead">Read all</button>
+          <button type="button" class="nt-filter" id="ntClearAll">Clear all</button>
           </div>
         <?php endif; ?>
       </div>
@@ -163,6 +164,8 @@ foreach ($notifications as $countNotification) {
     if (small) small.textContent = all.length + ' items · ' + unread + ' unread';
     var button = document.getElementById('ntMarkAllRead');
     if (button) button.disabled = unread === 0;
+    var clearButton = document.getElementById('ntClearAll');
+    if (clearButton) clearButton.disabled = all.length === 0;
   }
   async function post(path, payload) {
     var response = await fetch(baseUrl + path, {
@@ -192,6 +195,19 @@ foreach ($notifications as $countNotification) {
     }
   }
   filters.addEventListener('click', function (event) {
+    var clearAll = event.target.closest('#ntClearAll');
+    if (clearAll) {
+      if (!window.confirm('Clear all your notifications? This cannot be undone.')) return;
+      clearAll.disabled = true;
+      post('/api/notifications/clear-all', {}).then(function () {
+        items().forEach(function (item) { item.remove(); });
+        refreshCounts(); applyFilter();
+      }).catch(function () {
+        clearAll.disabled = false;
+        window.alert('Could not clear notifications. Please retry.');
+      });
+      return;
+    }
     var readAll = event.target.closest('#ntMarkAllRead');
     if (readAll) {
       readAll.disabled = true;
