@@ -760,6 +760,7 @@ class AdminController extends Controller
             'title' => 'Problems & Feature Requests',
             'submissions' => $model->all((string) $this->input('status', ''), (string) $this->input('type', '')),
             'newCount' => $model->countNew(),
+            'navBadges' => ['feedback' => $model->countNew()],
         ], 'layouts/admin');
     }
 
