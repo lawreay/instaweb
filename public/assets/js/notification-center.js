@@ -9,6 +9,7 @@
     var pollUrl = baseUrl + '/api/notifications/poll';
     var markUrl = baseUrl + '/api/notifications/mark-read';
     var markAllUrl = baseUrl + '/api/notifications/mark-all-read';
+    var clearAllUrl = baseUrl + '/api/notifications/clear-all';
     var knownIds = new Set();
     var firstPoll = true;
     var unreadCount = 0;
@@ -18,7 +19,7 @@
     dock.setAttribute('data-iw-notification-center', '');
     dock.innerHTML = '<section class="iw-notification-panel" id="iwNotificationPanel" aria-label="Recent notifications" hidden>' +
       '<header class="iw-notification-panel-head"><div><strong>Notifications</strong><small id="iwNotificationSummary">Checking for updates…</small></div>' +
-      '<div class="iw-notification-actions"><button type="button" id="iwMarkAllRead">Read all</button><button type="button" id="iwCloseNotifications" aria-label="Close notifications">✕</button></div></header>' +
+      '<div class="iw-notification-actions"><button type="button" id="iwMarkAllRead">Read all</button><button type="button" id="iwClearNotifications">Clear all</button><button type="button" id="iwCloseNotifications" aria-label="Close notifications">✕</button></div></header>' +
       '<div class="iw-notification-list" id="iwNotificationList" aria-live="polite"></div>' +
       '<footer class="iw-notification-footer"><a href="' + escapeAttr(baseUrl + '/dashboard/notifications') + '">Open notification center</a></footer></section>' +
       '<button type="button" class="iw-notification-bell" id="iwNotificationBell" aria-label="Notifications" aria-controls="iwNotificationPanel" aria-expanded="false"><i data-lucide="bell"></i><span class="iw-notification-badge" id="iwNotificationBadge" hidden></span></button>';
@@ -141,6 +142,21 @@
       panel.hidden = true;
       bell.setAttribute('aria-expanded', 'false');
       bell.focus();
+    });
+    dock.querySelector('#iwClearNotifications').addEventListener('click', async function () {
+      if (!window.confirm('Clear all your notifications? This cannot be undone.')) return;
+      var clearButton = dock.querySelector('#iwClearNotifications');
+      clearButton.disabled = true;
+      try {
+        await post(clearAllUrl, {});
+        knownIds.clear();
+        setCount(0);
+        render([]);
+      } catch (error) {
+        summary.textContent = 'Could not clear notifications. Please retry.';
+      } finally {
+        clearButton.disabled = false;
+      }
     });
     markAll.addEventListener('click', async function () {
       if (markAll.disabled) return;
