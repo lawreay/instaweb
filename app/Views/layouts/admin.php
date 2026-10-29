@@ -64,6 +64,13 @@
       --app-primary-strong: color-mix(in srgb, var(--app-primary) 18%, black);
     }
   </style>
+
+  <?php if (\\App\\Services\\AuthService::check()): ?>
+    <meta name="instaweb-base-url" content="<?= htmlspecialchars((string) ($app['base_url'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+    <meta name="instaweb-csrf" content="<?= htmlspecialchars(\\App\\Core\\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(rtrim((string) ($app['base_url'] ?? ''), '/') . '/assets/css/notification-center.css?v=20261029-global-notifications', ENT_QUOTES, 'UTF-8') ?>">
+  <?php endif; ?>
+
 </head>
 <body class="admin-body">
   <?php foreach (['success' => 'success', 'warning' => 'warning', 'error' => 'danger'] as $key => $type): ?>
@@ -78,5 +85,10 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <script src="<?= htmlspecialchars(($app['base_url'] ?? '') . '/assets/js/main.js?v=20261022-sidebar-state-fix', ENT_QUOTES, 'UTF-8') ?>"></script>
+
+  <?php if (\\App\\Services\\AuthService::check()): ?>
+    <script src="<?= htmlspecialchars(rtrim((string) ($app['base_url'] ?? ''), '/') . '/assets/js/notification-center.js?v=20261029-global-notifications', ENT_QUOTES, 'UTF-8') ?>"></script>
+  <?php endif; ?>
+
 </body>
 </html>
