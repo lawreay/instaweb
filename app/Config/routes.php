@@ -142,6 +142,7 @@ return [
         '/admin/users/reset-role' => [AdminController::class, 'resetRole'],
         '/admin/notifications/broadcast' => [AdminController::class, 'broadcastNotifications'],
         '/api/notifications/mark-read' => [NotificationController::class, 'markRead'],
+        '/api/notifications/mark-all-read' => [NotificationController::class, 'markAllRead'],
         '/admin/websites/suspend' => [AdminController::class, 'suspendWebsite'],
         '/admin/websites/unsuspend' => [AdminController::class, 'unsuspendWebsite'],
         '/admin/websites/delete' => [AdminController::class, 'deleteWebsite'],
