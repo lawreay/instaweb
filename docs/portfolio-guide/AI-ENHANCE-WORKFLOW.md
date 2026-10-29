@@ -29,16 +29,17 @@ Set these values in the server's private environment file. Never commit real API
 
 ```dotenv
 PORTFOLIO_AI_ENABLED=1
-PORTFOLIO_AI_DEFAULT_PROVIDER=openai
+PORTFOLIO_AI_DEFAULT_PROVIDER=gemini
 PORTFOLIO_AI_ALLOW_REQUEST_KEY=1
 OPENAI_API_KEY=
-OPENAI_MODEL=gpt-5-mini
+OPENAI_MODEL=gpt-5-mini # OpenAI API usage is generally billed separately
 GEMINI_API_KEY=
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-2.5-flash # Confirm free-tier availability and quota for your API project
 ```
 
 - Set `PORTFOLIO_AI_ENABLED=0` to disable the feature.
-- `PORTFOLIO_AI_DEFAULT_PROVIDER` accepts `openai` or `gemini`.
+- `PORTFOLIO_AI_DEFAULT_PROVIDER` accepts `openai` or `gemini`; the application defaults to Gemini for a free-tier-first setup.
+- A free ChatGPT plan does not include free OpenAI API calls. For a no-cost setup, create a Gemini API key and verify the selected model is available under your Google AI Studio project’s current free tier. Free-tier quotas and model access can change.
 - Configure the platform key for the provider you want to offer. The key stays server-side.
 - If request-only keys are allowed, a user can paste a provider key for one request. It is cleared from the form after the request and is not intentionally persisted.
 - PHP cURL must be enabled and the server must be able to reach the provider over HTTPS.
@@ -50,7 +51,9 @@ GEMINI_MODEL=gemini-2.5-flash
 | --- | --- |
 | AI is disabled | Confirm `PORTFOLIO_AI_ENABLED` is enabled and reload the editor. |
 | Key required | Configure the selected provider key or use a request-only key if permitted. |
-| Provider rejected the request | Check the key, model name, provider account quota, and model access. |
+| Authentication error | Check that the API key belongs to the selected provider and has not been revoked. |
+| Rate limit or quota error | Wait for quota to reset or check the provider's current free-tier limits. |
+| Model or request rejected | Confirm the model name and its support for structured JSON output. |
 | Request timed out | Check outbound HTTPS connectivity, cURL, provider health, and server timeout settings. |
 | Suggestions are invalid | Retry with shorter, more specific instructions. The editor validates required fields before saving. |
 | Apply fails | Keep the draft text, verify the entry still exists, and retry. Nothing is saved by generation alone. |

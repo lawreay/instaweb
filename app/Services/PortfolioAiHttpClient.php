@@ -40,8 +40,8 @@ final class PortfolioAiHttpClient
             CURLOPT_POSTFIELDS => $json,
             CURLOPT_HTTPHEADER => $requestHeaders,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 4,
-            CURLOPT_TIMEOUT => 12,
+            CURLOPT_CONNECTTIMEOUT => 8,
+            CURLOPT_TIMEOUT => 38,
             CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
             CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
             CURLOPT_FOLLOWLOCATION => false,
@@ -56,8 +56,20 @@ final class PortfolioAiHttpClient
             throw new RuntimeException('The AI provider took too long to respond. Check your internet connection and provider availability, then try again.');
         }
         if ($curlFailed || $status < 200 || $status >= 300) {
-            // Do not forward provider bodies or secrets to the browser.
-            throw new RuntimeException('The AI provider rejected or could not complete this request. Check the selected provider, API key, model, and usage limits.');
+            // Provider bodies may contain sensitive metadata; expose only safe status-based guidance.
+            if (in_array($status, [401, 403], true)) {
+                throw new RuntimeException('The AI provider rejected the API key or access to this model. Check the selected provider, key, and model permissions.');
+            }
+            if ($status === 429) {
+                throw new RuntimeException('The AI provider free-tier quota or rate limit has been reached. Wait for the limit to reset, then try again.');
+            }
+            if (in_array($status, [400, 404, 422], true)) {
+                throw new RuntimeException('The AI provider rejected this request. Check that the configured model exists and supports the requested response format.');
+            }
+            if ($status >= 500 && $status <= 599) {
+                throw new RuntimeException('The AI provider is temporarily unavailable. Try again later.');
+            }
+            throw new RuntimeException('The AI provider could not complete this request. Check the provider configuration and usage limits.');
         }
 
         $decoded = json_decode((string) $body, true);
