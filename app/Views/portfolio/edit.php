@@ -293,7 +293,7 @@ $doneCount = ($displayName !== '' ? 1 : 0) + ($headline !== '' ? 1 : 0) + ($avat
       </ul>
       <?php if ($premiumUpgradeEnabled): ?>
         <form id="paychangu-premium-form" method="post" action="<?= $escape($baseUrl . '/payments/paychangu/premium') ?>">
-          <?= \\App\\Core\\Csrf::field() ?>
+          <?= \App\Core\Csrf::field() ?>
           <button class="ps-modal-primary" type="submit"><i data-lucide="lock-keyhole" aria-hidden="true"></i> Upgrade securely with PayChangu</button>
         </form>
         <p class="ps-modal-footnote mt-3 mb-0" id="paychangu-checkout-status" role="status" aria-live="polite">Your payment is verified by InstaWeb before Premium is activated.</p>
