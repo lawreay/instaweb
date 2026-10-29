@@ -1029,7 +1029,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
     };
     const requestJson = async (url, data) => {
       const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+      const timeoutId = window.setTimeout(() => controller.abort(), 45000);
       try {
         const response = await fetch(url, {
           method: 'POST',
@@ -1044,7 +1044,10 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
         return body;
       } catch (error) {
         if (error && error.name === 'AbortError') {
-          throw new Error('This request took more than 15 seconds. Check that your provider API key is valid, has available quota, and that your local server can reach the AI provider.');
+          throw new Error('This request took more than 45 seconds. Check your provider API key, available quota, server connectivity, and AI provider configuration.');
+        }
+        if (error instanceof TypeError) {
+          throw new Error('Could not reach InstaWeb. Check your connection, sign-in session, and server status, then try again.');
         }
         throw error;
       } finally {
@@ -1071,7 +1074,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       hide(aiResult);
       aiGenerate.disabled = true;
       aiGenerate.setAttribute('aria-busy', 'true');
-      setMessage('Creating your suggestion… This can take up to 15 seconds.', 'loading');
+      setMessage('Creating your suggestion… This may take up to 45 seconds. Keep this window open.', 'loading');
       try {
         const result = await requestJson(proposeUrl, new FormData(aiForm));
         proposal = result.proposal;
