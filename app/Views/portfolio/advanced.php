@@ -925,7 +925,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       updateKeyNote();
     };
     const updateKeyNote = () => {
-      const provider = aiProvider?.value || 'openai';
+      const provider = aiProvider?.value || 'gemini';
       const configured = Boolean(aiStatus.providers?.[provider]?.configured);
       if (!aiStatus.enabled) {
         aiKeyNote.textContent = 'AI enhancement is disabled for this installation.';
@@ -950,7 +950,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       proposal = null;
       hide(aiResult);
       setMessage(aiStatus.enabled ? '' : 'AI enhancement is disabled for this installation.', aiStatus.enabled ? '' : 'error');
-      if (aiProvider) aiProvider.value = aiStatus.defaultProvider === 'gemini' ? 'gemini' : 'openai';
+      if (aiProvider) aiProvider.value = aiStatus.defaultProvider === 'openai' ? 'openai' : 'gemini';
       syncAiForm();
       window.setTimeout(() => aiOperation?.focus(), 0);
       if (window.lucide) window.lucide.createIcons();
@@ -1029,7 +1029,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
     };
     const requestJson = async (url, data) => {
       const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+      const timeoutId = window.setTimeout(() => controller.abort(), 45000);
       try {
         const response = await fetch(url, {
           method: 'POST',
@@ -1044,7 +1044,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
         return body;
       } catch (error) {
         if (error && error.name === 'AbortError') {
-          throw new Error('This request took more than 15 seconds. Check that your provider API key is valid, has available quota, and that your local server can reach the AI provider.');
+          throw new Error('This request took more than 45 seconds. Check your connection, provider availability, API key, model access, and free-tier quota.');
         }
         throw error;
       } finally {
@@ -1071,7 +1071,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       hide(aiResult);
       aiGenerate.disabled = true;
       aiGenerate.setAttribute('aria-busy', 'true');
-      setMessage('Creating your suggestion… This can take up to 15 seconds.', 'loading');
+      setMessage('Creating your suggestion… This can take up to 45 seconds.', 'loading');
       try {
         const result = await requestJson(proposeUrl, new FormData(aiForm));
         proposal = result.proposal;
