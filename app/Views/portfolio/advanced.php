@@ -915,6 +915,8 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       const generating = operation === 'generate_items';
       const enhancingWhole = operation === 'enhance_portfolio';
       aiGenerateFields.hidden = enhancingWhole || (!generating && !rewritingItem);
+      if (aiGenerate) aiGenerate.lastChild.textContent = enhancingWhole ? 'Enhance whole portfolio' : 'Generate suggestions';
+      if (aiApply) aiApply.lastChild.textContent = enhancingWhole ? 'Apply all improvements' : 'Apply suggestion';
       aiProfileField.hidden = operation !== 'rewrite_profile';
       aiItemField.hidden = !rewritingItem;
       if (rewritingItem) optionForSection();
