@@ -81,8 +81,11 @@
       }
       list.innerHTML = notifications.map(function (n) {
         var isUnread = Number(n.is_read) === 0;
-        return '<button type="button" class="iw-notification-row ' + (isUnread ? 'is-unread' : '') + '" data-notification-id="' + escapeAttr(n.id) + '" data-target="' + escapeAttr(n.target_url || '') + '">' +
-          '<span class="iw-notification-dot" aria-hidden="true"></span><span class="iw-notification-copy"><strong>' + escapeHtml(n.title || 'Notification') + '</strong><span>' + escapeHtml(n.message || '') + '</span><time>' + escapeHtml(n.created_at || '') + '</time></span></button>';
+        return '<div class="iw-notification-entry">' +
+          '<button type="button" class="iw-notification-row ' + (isUnread ? 'is-unread' : '') + '" data-notification-id="' + escapeAttr(n.id) + '" data-target="' + escapeAttr(n.target_url || '') + '">' +
+          '<span class="iw-notification-dot" aria-hidden="true"></span><span class="iw-notification-copy"><strong>' + escapeHtml(n.title || 'Notification') + '</strong><span>' + escapeHtml(n.message || '') + '</span><time>' + escapeHtml(n.created_at || '') + '</time></span></button>' +
+          (isUnread ? '<div class="iw-notification-entry-actions"><button type="button" class="iw-mark-notification-read" data-mark-read-id="' + escapeAttr(n.id) + '">Mark as read</button></div>' : '') +
+          '</div>';
       }).join('');
     }
     async function post(url, payload) {
@@ -102,6 +105,7 @@
         setCount(data.unreadCount);
         var row = list.querySelector('[data-notification-id="' + CSS.escape(String(id)) + '"]');
         if (row) row.classList.remove('is-unread');
+        await poll();
         return data;
       } catch (error) {
         return null;
@@ -152,6 +156,21 @@
       }
     });
     list.addEventListener('click', function (event) {
+      var markButton = event.target.closest('[data-mark-read-id]');
+      if (markButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        var markId = markButton.getAttribute('data-mark-read-id');
+        markButton.disabled = true;
+        markButton.textContent = 'Marking…';
+        markRead(markId).then(function (result) {
+          if (!result) {
+            markButton.disabled = false;
+            markButton.textContent = 'Mark as read';
+          }
+        });
+        return;
+      }
       var row = event.target.closest('[data-notification-id]');
       if (!row) return;
       var id = row.getAttribute('data-notification-id');
