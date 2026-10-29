@@ -107,6 +107,15 @@ class Notification extends Model
         return $statement->rowCount();
     }
 
+    /** Delete all notifications owned by a specific user. */
+    public function clearAllForUser(int $userId): int
+    {
+        $statement = $this->database->prepare('DELETE FROM notifications WHERE user_id = :user_id');
+        $statement->execute(['user_id' => $userId]);
+
+        return $statement->rowCount();
+    }
+
     public function markAsReadByUser(int $notificationId, int $userId): bool
     {
         $statement = $this->database->prepare('UPDATE notifications SET is_read = 1 WHERE id = :id AND user_id = :user_id');
