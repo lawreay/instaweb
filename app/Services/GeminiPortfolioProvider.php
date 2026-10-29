@@ -32,22 +32,27 @@ final class GeminiPortfolioProvider implements PortfolioAiProvider
                 'contents' => [['role' => 'user', 'parts' => [['text' => $prompt]]]],
                 'generationConfig' => [
                     'temperature' => 0.35,
-                    'maxOutputTokens' => 1800,
+                    'maxOutputTokens' => 8192,
                     'responseMimeType' => 'application/json',
                     'responseSchema' => $this->geminiSchema($schema),
                 ],
             ]
         );
 
+        $candidate = $response['candidates'][0] ?? [];
+        if (($candidate['finishReason'] ?? '') === 'MAX_TOKENS') {
+            throw new RuntimeException('The AI response exceeded the output limit. Try enhancing fewer portfolio entries at once.');
+        }
+
         $text = '';
-        foreach (($response['candidates'][0]['content']['parts'] ?? []) as $part) {
+        foreach (($candidate['content']['parts'] ?? []) as $part) {
             if (is_array($part) && is_string($part['text'] ?? null)) {
                 $text .= $part['text'];
             }
         }
         $proposal = json_decode(trim($text), true);
         if (!is_array($proposal)) {
-            throw new RuntimeException('The AI response was not in the expected format.');
+            throw new RuntimeException('The AI response was incomplete or not valid JSON. Try again, or enhance fewer portfolio entries at once.');
         }
 
         return $proposal;
