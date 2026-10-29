@@ -19,6 +19,7 @@ use App\Controllers\EditorController;
 use App\Controllers\PreviewController;
 use App\Controllers\PublishController;
 use App\Controllers\NotificationController;
+use App\Controllers\FeedbackController;
 use App\Controllers\PaymentController;
 use App\Controllers\SitemapController;
 
