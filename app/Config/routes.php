@@ -143,6 +143,7 @@ return [
         '/admin/notifications/broadcast' => [AdminController::class, 'broadcastNotifications'],
         '/api/notifications/mark-read' => [NotificationController::class, 'markRead'],
         '/api/notifications/mark-all-read' => [NotificationController::class, 'markAllRead'],
+        '/api/notifications/clear-all' => [NotificationController::class, 'clearAll'],
         '/admin/websites/suspend' => [AdminController::class, 'suspendWebsite'],
         '/admin/websites/unsuspend' => [AdminController::class, 'unsuspendWebsite'],
         '/admin/websites/delete' => [AdminController::class, 'deleteWebsite'],
