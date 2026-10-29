@@ -51,7 +51,9 @@ GEMINI_MODEL=gemini-2.5-flash # Confirm free-tier availability and quota for you
 | --- | --- |
 | AI is disabled | Confirm `PORTFOLIO_AI_ENABLED` is enabled and reload the editor. |
 | Key required | Configure the selected provider key or use a request-only key if permitted. |
-| Authentication error | Check that the API key belongs to the selected provider and has not been revoked. |\n| Rate limit or quota error | Wait for quota to reset or check the provider's current free-tier limits. |\n| Model or request rejected | Confirm the model name and its support for structured JSON output. |
+| Authentication error | Check that the API key belongs to the selected provider and has not been revoked. |
+| Rate limit or quota error | Wait for quota to reset or check the provider's current free-tier limits. |
+| Model or request rejected | Confirm the model name and its support for structured JSON output. |
 | Request timed out | Check outbound HTTPS connectivity, cURL, provider health, and server timeout settings. |
 | Suggestions are invalid | Retry with shorter, more specific instructions. The editor validates required fields before saving. |
 | Apply fails | Keep the draft text, verify the entry still exists, and retry. Nothing is saved by generation alone. |
