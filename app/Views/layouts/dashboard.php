@@ -49,6 +49,7 @@
     <meta name="instaweb-base-url" content="<?= htmlspecialchars((string) ($app['base_url'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
     <meta name="instaweb-csrf" content="<?= htmlspecialchars(\App\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars(rtrim((string) ($app['base_url'] ?? ''), '/') . '/assets/css/notification-center.css?v=20261029-global-notifications', ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(rtrim((string) ($app['base_url'] ?? ''), '/') . '/assets/css/feedback-widget.css?v=20261029-feedback', ENT_QUOTES, 'UTF-8') ?>">
   <?php endif; ?>
 
 </head>
