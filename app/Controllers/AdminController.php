@@ -862,6 +862,9 @@ class AdminController extends Controller
 
         foreach ($allowed as $key => $group) {
             $value = trim((string) ($brandingUploads[$key] ?? $this->input($key, '')));
+            if ($key === 'payment_checkout_mode' && !in_array($value, ['standard', 'inline', 'dropin'], true)) {
+                $value = 'standard';
+            }
             $payload[$key] = [
                 'group' => $group,
                 'value' => $value,
@@ -1497,6 +1500,7 @@ JSX;
             'paychangu_currency' => 'pricing',
             'paychangu_public_key' => 'pricing',
             'paychangu_secret_key' => 'pricing',
+            'payment_checkout_mode' => 'pricing',
             'mail_host' => 'smtp',
             'mail_port' => 'smtp',
             'mail_username' => 'smtp',
