@@ -13,7 +13,22 @@ foreach ($templates as $countTemplate) {
 }
 $suspendedCount = $totalCount - $activeCount;
 ?>
-<section class="container-fluid py-3 iw-tpl">
+<div class="admin-pro-shell iw-client-shell admin-dashboard-refresh" data-admin-shell>
+  <?php $active = 'portfolio-templates'; include APP_PATH . '/Views/admin/partials/sidebar.php'; ?>
+  <button class="iw-sidebar-backdrop" type="button" data-sidebar-close aria-label="Close navigation" tabindex="-1"></button>
+  <section class="admin-pro-main iw-client-main">
+    <header class="ad-topbar">
+      <button class="ad-topbar-menu" type="button" data-sidebar-open aria-controls="adminSidebar" aria-expanded="false" aria-label="Open navigation"><i data-lucide="menu"></i></button>
+      <div class="ad-topbar-context">
+        <span class="ad-topbar-eyebrow">INSTAWEB WORKSPACE</span>
+        <span class="ad-topbar-page">Portfolio templates</span>
+      </div>
+      <nav class="ad-topbar-actions" aria-label="Account actions">
+        <a class="ad-topbar-link" href="<?= $escape($baseUrl . '/admin/notifications') ?>"><i data-lucide="bell"></i><span>Notifications</span></a>
+        <a class="ad-topbar-link" href="<?= $escape($baseUrl . '/profile') ?>"><i data-lucide="user-round"></i><span>Account</span></a>
+      </nav>
+    </header>
+    <section class="container-fluid py-3 iw-tpl">
   <style>
     .iw-tpl { --iw-ink:#14201A; --iw-muted:#5B675F; --iw-line:#E4EAE5; --iw-green:#1F7A4D; --iw-green-dark:#14532D; --iw-danger:#A32A21; --iw-warn:#8A5A00; color:var(--iw-ink); }
     .iw-tpl .iw-head { display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px; }
@@ -232,6 +247,17 @@ $suspendedCount = $totalCount - $activeCount;
     </form>
   </div>
 </section>
+    <footer class="ad-footer">
+      <span>© <?= $escape(date('Y')) ?> InstaWeb · Administration</span>
+      <nav aria-label="Administrative and legal links">
+        <a href="<?= $escape($baseUrl . '/admin/settings') ?>">System settings</a>
+        <a href="<?= $escape($baseUrl . '/admin/legal') ?>">Policies</a>
+        <a href="<?= $escape($baseUrl . '/terms') ?>">Terms</a>
+        <a href="<?= $escape($baseUrl . '/privacy') ?>">Privacy</a>
+      </nav>
+    </footer>
+  </section>
+</div>
 
 <script>
 (function () {
