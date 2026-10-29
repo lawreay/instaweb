@@ -1,0 +1,27 @@
+/* InstaWeb global notification center */
+.iw-notification-dock{position:fixed;right:22px;bottom:22px;z-index:1080;font-family:inherit}
+.iw-notification-bell{position:relative;display:grid;place-items:center;width:54px;height:54px;border:0;border-radius:50%;background:#14201a;color:#fff;box-shadow:0 8px 28px #14201a35;cursor:pointer}
+.iw-notification-bell:hover{background:#1f7a4d}.iw-notification-bell svg{width:23px;height:23px}
+.iw-notification-badge{position:absolute;top:-4px;right:-5px;min-width:21px;height:21px;padding:0 5px;border:2px solid #fff;border-radius:999px;background:#dc2626;color:#fff;font-size:11px;font-weight:800;line-height:17px;text-align:center}
+.iw-notification-badge[hidden]{display:none}
+.iw-notification-panel{position:absolute;right:0;bottom:66px;width:min(390px,calc(100vw - 28px));max-height:min(560px,calc(100dvh - 110px));display:flex;flex-direction:column;overflow:hidden;border:1px solid #e4eae5;border-radius:18px;background:#fff;color:#14201a;box-shadow:0 18px 55px #14201a26}
+.iw-notification-panel[hidden]{display:none}
+.iw-notification-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px;border-bottom:1px solid #e4eae5}
+.iw-notification-panel-head strong{font-size:16px}.iw-notification-panel-head small{display:block;margin-top:3px;color:#66736b;font-size:12px}
+.iw-notification-actions{display:flex;align-items:center;gap:10px}.iw-notification-actions button,.iw-notification-actions a{border:0;background:none;color:#17643d;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer}
+.iw-notification-actions button:disabled{opacity:.45;cursor:default}
+.iw-notification-list{overflow:auto;padding:8px}
+.iw-notification-row{display:flex;align-items:flex-start;gap:10px;width:100%;padding:12px;border:0;border-radius:12px;background:#fff;text-align:left;color:inherit;cursor:pointer}
+.iw-notification-row:hover{background:#f6f9f6}.iw-notification-row.is-unread{background:#f0f8f2}
+.iw-notification-row .iw-notification-dot{flex:0 0 8px;width:8px;height:8px;margin-top:7px;border-radius:50%;background:#21834f}
+.iw-notification-row:not(.is-unread) .iw-notification-dot{background:#d5ddd7}
+.iw-notification-row .iw-notification-copy{flex:1;min-width:0}.iw-notification-row strong{display:block;font-size:13px;line-height:1.4}.iw-notification-row span{display:block;margin-top:3px;color:#536057;font-size:12px;line-height:1.45;overflow-wrap:anywhere}.iw-notification-row time{display:block;margin-top:5px;color:#7b867e;font-size:11px}
+.iw-notification-empty{padding:28px 16px;text-align:center;color:#66736b;font-size:13px}
+.iw-notification-footer{padding:12px 18px;border-top:1px solid #e4eae5;text-align:center}.iw-notification-footer a{color:#17643d;font-size:13px;font-weight:700;text-decoration:none}
+.iw-notification-toasts{position:fixed;top:18px;right:18px;z-index:1090;display:flex;flex-direction:column;gap:10px;width:min(380px,calc(100vw - 36px));pointer-events:none}
+.iw-notification-toast{display:flex;align-items:flex-start;gap:11px;padding:14px 15px;border:1px solid #dce9df;border-radius:15px;background:#fff;color:#14201a;box-shadow:0 12px 34px #14201a1c;pointer-events:auto;animation:iw-notification-in .18s ease-out}
+.iw-notification-toast-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:#e3f2e8;color:#14532d}.iw-notification-toast-icon svg{width:18px;height:18px}
+.iw-notification-toast-copy{flex:1;min-width:0}.iw-notification-toast-copy strong{display:block;font-size:13px}.iw-notification-toast-copy p{margin:3px 0 0;color:#536057;font-size:12px;line-height:1.45}.iw-notification-toast button{border:0;background:transparent;color:#66736b;cursor:pointer}
+@keyframes iw-notification-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:520px){.iw-notification-dock{right:14px;bottom:14px}.iw-notification-bell{width:50px;height:50px}.iw-notification-panel{right:-3px;bottom:60px}.iw-notification-toasts{top:10px;right:10px;width:calc(100vw - 20px)}}
+@media(prefers-reduced-motion:reduce){.iw-notification-toast{animation:none}}
