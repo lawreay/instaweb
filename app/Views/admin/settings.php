@@ -372,6 +372,15 @@ $checked = static fn (string $key, string $default = '0'): string => (($settings
               </div>
               <div class="col-md-6"><label class="form-label">PayChangu Public Key</label><input class="form-control" name="paychangu_public_key" value="<?= $value('paychangu_public_key') ?>"></div>
               <div class="col-md-6"><label class="form-label">PayChangu Secret Key</label><input class="form-control" type="password" name="paychangu_secret_key" value="<?= $value('paychangu_secret_key') ?>" placeholder="Enter secret key"></div>
+              <div class="col-md-6">
+                <label class="form-label" for="payment_checkout_mode">PayChangu Checkout Mode</label>
+                <select class="form-control" id="payment_checkout_mode" name="payment_checkout_mode">
+                  <option value="standard" <?= $value('payment_checkout_mode', 'standard') === 'standard' ? 'selected' : '' ?>>Standard Checkout (hosted page)</option>
+                  <option value="inline" <?= $value('payment_checkout_mode') === 'inline' ? 'selected' : '' ?>>Inline Checkout (popup)</option>
+                  <option value="dropin" <?= $value('payment_checkout_mode') === 'dropin' ? 'selected' : '' ?>>Drop-in Checkout (embedded form)</option>
+                </select>
+                <small class="text-muted d-block mt-2">Standard is the fallback. Inline and Drop-in require a PayChangu public key. Test each mode before enabling it for customers.</small>
+              </div>
               <div class="col-md-6"><label class="settings-check"><input type="checkbox" name="free_plan_enabled" value="1" <?= $checked('free_plan_enabled', '1') ?>> Free plan available</label></div>
               <div class="col-md-6"><label class="settings-check"><input type="checkbox" name="premium_plan_enabled" value="1" <?= $checked('premium_plan_enabled', '1') ?>> Premium plan available</label></div>
             </div>
