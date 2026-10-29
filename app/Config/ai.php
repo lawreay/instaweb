@@ -6,9 +6,9 @@ declare(strict_types=1);
  * Portfolio AI is deliberately configured outside the database. Provider keys
  * are deployment secrets and must never be exposed in an editor response.
  */
-$defaultProvider = strtolower(trim((string) env('PORTFOLIO_AI_DEFAULT_PROVIDER', 'openai')));
+$defaultProvider = strtolower(trim((string) env('PORTFOLIO_AI_DEFAULT_PROVIDER', 'gemini')));
 if (!in_array($defaultProvider, ['openai', 'gemini'], true)) {
-    $defaultProvider = 'openai';
+    $defaultProvider = 'gemini';
 }
 
 return [
