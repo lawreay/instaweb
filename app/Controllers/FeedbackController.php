@@ -67,7 +67,7 @@ class FeedbackController extends Controller
 
         $pageUrl = mb_substr($pageUrl, 0, 500);
         $settings = (new Setting())->all();
-        $userEmail = $email !== '' ? $email : (string) ($settings['unused'] ?? '');
+        $userEmail = $email;
         $name = trim((string) ($payload['name'] ?? ''));
         $userId = (int) AuthService::id();
 
@@ -95,6 +95,7 @@ class FeedbackController extends Controller
             $recipient = trim((string) ($settings['admin_login_notification_email'] ?? $settings['site_email'] ?? ''));
         }
         $emailSent = false;
+        $emailStatus = 'not_configured';
         if (filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
             $safe = static fn (string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
             $kind = $type === 'feature' ? 'Feature request' : 'Problem report';
@@ -108,11 +109,14 @@ class FeedbackController extends Controller
             try {
                 $mailer = new MailerService($mailConfig, $this->config);
                 $emailSent = $mailer->send($recipient, 'InstaWeb Admin', '[InstaWeb] ' . $kind . ': ' . $subject, $html);
+                $emailStatus = $emailSent ? 'sent' : 'failed';
             } catch (\Throwable $exception) {
+                $emailStatus = 'failed';
                 error_log('Feedback email notification failed: ' . $exception->getMessage());
             }
         }
 
+        (new FeedbackSubmission())->setEmailStatus($id, $emailStatus);
         echo json_encode([
             'success' => true,
             'id' => $id,
