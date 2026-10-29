@@ -81,6 +81,7 @@ return [
         '/sitemap.xml' => [SitemapController::class, 'show'],
         '/legal/accept' => [LegalController::class, 'showAcceptancePage'],
         '/api/notifications/poll' => [NotificationController::class, 'poll'],
+        '/admin/feedback' => [AdminController::class, 'feedback'],
          '/contact' => [MarketingController::class, 'contact'],
     ],
     'POST' => [
@@ -144,6 +145,8 @@ return [
         '/api/notifications/mark-read' => [NotificationController::class, 'markRead'],
         '/api/notifications/mark-all-read' => [NotificationController::class, 'markAllRead'],
         '/api/notifications/clear-all' => [NotificationController::class, 'clearAll'],
+        '/feedback/submit' => [FeedbackController::class, 'submit'],
+        '/admin/feedback/status' => [AdminController::class, 'updateFeedbackStatus'],
         '/admin/websites/suspend' => [AdminController::class, 'suspendWebsite'],
         '/admin/websites/unsuspend' => [AdminController::class, 'unsuspendWebsite'],
         '/admin/websites/delete' => [AdminController::class, 'deleteWebsite'],
