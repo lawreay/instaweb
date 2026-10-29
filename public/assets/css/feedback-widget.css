@@ -1,4 +1,4 @@
-.iw-feedback-launcher{position:fixed;right:22px;bottom:92px;z-index:1075;display:flex;align-items:center;gap:9px;min-height:48px;padding:0 16px;border:0;border-radius:999px;background:#17643d;color:#fff;box-shadow:0 10px 28px #14201a2b;font:700 13px/1.2 inherit;cursor:pointer;transition:transform .15s,background .15s}
+.iw-feedback-launcher{position:fixed;right:22px;bottom:92px;z-index:1075;display:flex;align-items:center;gap:9px;min-height:48px;padding:0 16px;border:0;border-radius:999px;background:#17643d;color:#fff;box-shadow:0 10px 28px #14201a2b;font:inherit;font-size:13px;font-weight:700;line-height:1.2;cursor:pointer;transition:transform .15s,background .15s}
 .iw-feedback-launcher:hover{transform:translateY(-2px);background:#14532d}
 .iw-feedback-launcher svg{width:18px;height:18px}
 .iw-feedback-overlay{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:18px;background:rgba(12,20,15,.52);backdrop-filter:blur(3px)}
