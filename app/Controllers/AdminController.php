@@ -755,7 +755,7 @@ class AdminController extends Controller
     public function feedback(): void
     {
         $this->adminOnly();
-        $model = new \\App\\Models\\FeedbackSubmission();
+        $model = new \App\Models\FeedbackSubmission();
         $this->view('admin/feedback', [
             'title' => 'Problems & Feature Requests',
             'submissions' => $model->all((string) $this->input('status', ''), (string) $this->input('type', '')),
@@ -779,7 +779,7 @@ class AdminController extends Controller
             $this->redirectTo('/admin/feedback');
         }
 
-        (new \\App\\Models\\FeedbackSubmission())->updateStatus($id, $status, $note);
+        (new \App\Models\FeedbackSubmission())->updateStatus($id, $status, $note);
         Session::flash('success', 'Feedback status updated.');
         $this->redirectTo('/admin/feedback');
     }
