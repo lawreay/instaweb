@@ -6,7 +6,22 @@ $action = $isEditing ? '/admin/portfolio-templates/update' : '/admin/portfolio-t
 $engine = (string) ($template['render_engine'] ?? 'html');
 if (!in_array($engine, ['html', 'react'], true)) { $engine = 'html'; }
 ?>
-<section class="container-fluid py-3">
+<div class="admin-pro-shell iw-client-shell admin-dashboard-refresh" data-admin-shell>
+  <?php $active = 'portfolio-templates'; include APP_PATH . '/Views/admin/partials/sidebar.php'; ?>
+  <button class="iw-sidebar-backdrop" type="button" data-sidebar-close aria-label="Close navigation" tabindex="-1"></button>
+  <section class="admin-pro-main iw-client-main">
+    <header class="ad-topbar">
+      <button class="ad-topbar-menu" type="button" data-sidebar-open aria-controls="adminSidebar" aria-expanded="false" aria-label="Open navigation"><i data-lucide="menu"></i></button>
+      <div class="ad-topbar-context">
+        <span class="ad-topbar-eyebrow">INSTAWEB WORKSPACE</span>
+        <span class="ad-topbar-page"><?= $isEditing ? 'Edit portfolio template' : 'Add portfolio template' ?></span>
+      </div>
+      <nav class="ad-topbar-actions" aria-label="Account actions">
+        <a class="ad-topbar-link" href="<?= $escape($baseUrl . '/admin/notifications') ?>"><i data-lucide="bell"></i><span>Notifications</span></a>
+        <a class="ad-topbar-link" href="<?= $escape($baseUrl . '/profile') ?>"><i data-lucide="user-round"></i><span>Account</span></a>
+      </nav>
+    </header>
+    <section class="container-fluid py-3">
   <header class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
     <div>
       <p class="text-uppercase small fw-bold text-secondary mb-1">Portfolio Studio</p>
@@ -73,6 +88,17 @@ if (!in_array($engine, ['html', 'react'], true)) { $engine = 'html'; }
     </div>
   </form>
 </section>
+    <footer class="ad-footer">
+      <span>© <?= $escape(date('Y')) ?> InstaWeb · Administration</span>
+      <nav aria-label="Administrative and legal links">
+        <a href="<?= $escape($baseUrl . '/admin/settings') ?>">System settings</a>
+        <a href="<?= $escape($baseUrl . '/admin/legal') ?>">Policies</a>
+        <a href="<?= $escape($baseUrl . '/terms') ?>">Terms</a>
+        <a href="<?= $escape($baseUrl . '/privacy') ?>">Privacy</a>
+      </nav>
+    </footer>
+  </section>
+</div>
 <script>
   (() => {
     const selector = document.querySelector('[data-template-engine]');
