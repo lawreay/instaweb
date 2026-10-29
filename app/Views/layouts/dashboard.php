@@ -392,6 +392,7 @@
 
   <?php if (\App\Services\AuthService::check()): ?>
     <script src="<?= htmlspecialchars(rtrim((string) ($app['base_url'] ?? ''), '/') . '/assets/js/notification-center.js?v=20261029-global-notifications', ENT_QUOTES, 'UTF-8') ?>"></script>
+    <script src="<?= htmlspecialchars(rtrim((string) ($app['base_url'] ?? ''), '/') . '/assets/js/feedback-widget.js?v=20261029-feedback', ENT_QUOTES, 'UTF-8') ?>"></script>
   <?php endif; ?>
 
 </body>
