@@ -25,6 +25,7 @@ $navGroups = [
     ],
     'Administration' => [
         ['reports', '/admin/reports', 'flag', 'Reports'],
+        ['feedback', '/admin/feedback', 'message-square-warning', 'Feedback inbox'],
         ['settings', '/admin/settings', 'settings', 'Settings'],
     ],
 ];

@@ -752,6 +752,39 @@ class AdminController extends Controller
     /**
      * Show platform notifications.
      */
+    public function feedback(): void
+    {
+        $this->adminOnly();
+        $model = new \App\Models\FeedbackSubmission();
+        $this->view('admin/feedback', [
+            'title' => 'Problems & Feature Requests',
+            'submissions' => $model->all((string) $this->input('status', ''), (string) $this->input('type', '')),
+            'newCount' => $model->countNew(),
+            'navBadges' => ['feedback' => $model->countNew()],
+        ], 'layouts/admin');
+    }
+
+    public function updateFeedbackStatus(): void
+    {
+        $this->adminOnly();
+        if (!Csrf::validate($this->input('_csrf'))) {
+            Session::flash('error', 'Your session expired. Please try again.');
+            $this->redirectTo('/admin/feedback');
+        }
+
+        $id = (int) $this->input('id', 0);
+        $status = (string) $this->input('status', 'new');
+        $note = trim((string) $this->input('admin_note', ''));
+        if ($id < 1 || !in_array($status, ['new', 'in_progress', 'resolved', 'closed'], true) || mb_strlen($note) > 2000) {
+            Session::flash('error', 'Invalid feedback update.');
+            $this->redirectTo('/admin/feedback');
+        }
+
+        (new \App\Models\FeedbackSubmission())->updateStatus($id, $status, $note);
+        Session::flash('success', 'Feedback status updated.');
+        $this->redirectTo('/admin/feedback');
+    }
+
     public function notifications(): void
     {
         $this->adminOnly();
