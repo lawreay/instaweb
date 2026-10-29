@@ -68,6 +68,15 @@ class FeedbackSubmission
         return $statement->rowCount() > 0;
     }
 
+    public function setEmailStatus(int $id, string $status): void
+    {
+        if (!in_array($status, ['pending', 'sent', 'failed', 'not_configured'], true)) {
+            return;
+        }
+        $statement = $this->database->prepare('UPDATE feedback_submissions SET email_status = :email_status WHERE id = :id');
+        $statement->execute(['email_status' => $status, 'id' => $id]);
+    }
+
     public function countNew(): int
     {
         return (int) $this->database->query("SELECT COUNT(*) FROM feedback_submissions WHERE status = 'new'")->fetchColumn();
