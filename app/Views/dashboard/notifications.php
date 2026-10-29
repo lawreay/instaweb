@@ -45,6 +45,10 @@ foreach ($notifications as $countNotification) {
       .nt .nt-body p { margin:4px 0 8px; font-size:14px; color:#3F4B44; line-height:1.55; }
       .nt .nt-link { display:inline-flex; align-items:center; min-height:44px; font-size:13px; font-weight:600; color:var(--nt-green); }
       .nt .nt-link:hover { color:var(--nt-green-dark); }
+      .nt .nt-mark-read { border:0; padding:0 8px; margin-left:8px; background:transparent; cursor:pointer; }
+      .nt .nt-mark-read:disabled { opacity:.6; cursor:wait; }
+      .nt #ntMarkAllRead { border:1px solid #D8E0DA; border-radius:999px; padding:0 14px; background:#fff; color:var(--nt-green-dark); font-size:13px; font-weight:700; cursor:pointer; }
+      .nt #ntMarkAllRead:disabled, .nt #ntClearAll:disabled { opacity:.5; cursor:default; }
       .nt .nt-empty { text-align:center; padding:36px 12px; }
       .nt .nt-empty[hidden] { display:none; }
       .nt .nt-empty svg { width:32px; height:32px; color:var(--nt-muted); }
@@ -82,6 +86,9 @@ foreach ($notifications as $countNotification) {
           <div class="nt-filters" id="ntFilters">
             <button type="button" class="nt-filter is-active" data-filter="all">All</button>
             <button type="button" class="nt-filter" data-filter="unread">Unread</button>
+            <button type="button" class="nt-filter" data-filter="read">Read</button>
+            <button type="button" class="nt-filter" id="ntMarkAllRead">Read all</button>
+          <button type="button" class="nt-filter" id="ntClearAll">Clear all</button>
           </div>
         <?php endif; ?>
       </div>
@@ -99,7 +106,7 @@ foreach ($notifications as $countNotification) {
               $isUnread = (int) ($notification['is_read'] ?? 0) === 0;
               $createdTs = strtotime((string) ($notification['created_at'] ?? ''));
             ?>
-            <article class="nt-item <?= $isUnread ? 'unread' : 'read' ?>" data-state="<?= $isUnread ? 'unread' : 'read' ?>">
+            <article class="nt-item <?= $isUnread ? 'unread' : 'read' ?>" data-id="<?= (int) ($notification['id'] ?? 0) ?>" data-state="<?= $isUnread ? 'unread' : 'read' ?>">
               <div class="nt-icon">
                 <i data-lucide="<?= htmlspecialchars($notification['icon'] ?? 'bell', ENT_QUOTES, 'UTF-8') ?>"></i>
               </div>
@@ -111,6 +118,9 @@ foreach ($notifications as $countNotification) {
                 <p><?= htmlspecialchars($notification['message'], ENT_QUOTES, 'UTF-8') ?></p>
                 <?php if (!empty($notification['target_url'])): ?>
                   <a class="nt-link" href="<?= htmlspecialchars($baseUrl . $notification['target_url'], ENT_QUOTES, 'UTF-8') ?>">View details</a>
+                <?php endif; ?>
+                <?php if ($isUnread): ?>
+                  <button type="button" class="nt-link nt-mark-read" data-id="<?= (int) ($notification['id'] ?? 0) ?>">Mark as read</button>
                 <?php endif; ?>
               </div>
             </article>
@@ -131,23 +141,104 @@ foreach ($notifications as $countNotification) {
 <script>
 (function () {
   var filters = document.getElementById('ntFilters');
-  var items = Array.prototype.slice.call(document.querySelectorAll('#ntList .nt-item'));
+  if (!filters) return;
+  var list = document.getElementById('ntList');
   var empty = document.getElementById('ntNoMatch');
-  filters.addEventListener('click', function (e) {
-    var btn = e.target.closest('.nt-filter');
-    if (!btn) return;
-    var mode = btn.getAttribute('data-filter');
-    Array.prototype.forEach.call(filters.querySelectorAll('.nt-filter'), function (b) {
-      b.classList.toggle('is-active', b === btn);
-    });
+  var baseUrl = (document.querySelector('meta[name="instaweb-base-url"]') || {}).content || '';
+  var csrfToken = (document.querySelector('meta[name="instaweb-csrf"]') || {}).content || '';
+  var mode = 'all';
+  function items() { return Array.prototype.slice.call(document.querySelectorAll('#ntList .nt-item')); }
+  function applyFilter() {
     var shown = 0;
-    items.forEach(function (item) {
-      var ok = mode === 'all' || item.getAttribute('data-state') === 'unread';
-      item.hidden = !ok;
-      if (ok) shown++;
+    items().forEach(function (item) {
+      var visible = mode === 'all' || item.getAttribute('data-state') === mode;
+      item.hidden = !visible;
+      if (visible) shown++;
     });
-    empty.hidden = shown !== 0;
+    if (empty) empty.hidden = shown !== 0;
+  }
+  function refreshCounts() {
+    var all = items();
+    var unread = all.filter(function (item) { return item.getAttribute('data-state') === 'unread'; }).length;
+    var small = document.querySelector('.nt-card-head small');
+    if (small) small.textContent = all.length + ' items · ' + unread + ' unread';
+    var button = document.getElementById('ntMarkAllRead');
+    if (button) button.disabled = unread === 0;
+    var clearButton = document.getElementById('ntClearAll');
+    if (clearButton) clearButton.disabled = all.length === 0;
+  }
+  async function post(path, payload) {
+    var response = await fetch(baseUrl + path, {
+      method: 'POST', credentials: 'same-origin',
+      headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-Token':csrfToken},
+      body: JSON.stringify(Object.assign({_csrf:csrfToken}, payload || {}))
+    });
+    var data = await response.json().catch(function () { return {}; });
+    if (!response.ok) throw new Error(data.error || 'Unable to update notifications');
+    return data;
+  }
+  async function markRead(item) {
+    var id = item.getAttribute('data-id');
+    if (!id) return;
+    var button = item.querySelector('.nt-mark-read');
+    if (button) { button.disabled = true; button.textContent = 'Marking…'; }
+    try {
+      await post('/api/notifications/mark-read', {id:Number(id)});
+      item.setAttribute('data-state','read');
+      item.classList.remove('unread'); item.classList.add('read');
+      var badge = item.querySelector('.nt-new'); if (badge) badge.remove();
+      if (button) button.remove();
+      refreshCounts(); applyFilter();
+    } catch (error) {
+      if (button) { button.disabled = false; button.textContent = 'Mark as read'; }
+      window.alert('Could not mark this notification as read. Please retry.');
+    }
+  }
+  filters.addEventListener('click', function (event) {
+    var clearAll = event.target.closest('#ntClearAll');
+    if (clearAll) {
+      if (!window.confirm('Clear all your notifications? This cannot be undone.')) return;
+      clearAll.disabled = true;
+      post('/api/notifications/clear-all', {}).then(function () {
+        items().forEach(function (item) { item.remove(); });
+        refreshCounts(); applyFilter();
+      }).catch(function () {
+        clearAll.disabled = false;
+        window.alert('Could not clear notifications. Please retry.');
+      });
+      return;
+    }
+    var readAll = event.target.closest('#ntMarkAllRead');
+    if (readAll) {
+      readAll.disabled = true;
+      post('/api/notifications/mark-all-read', {}).then(function () {
+        items().forEach(function (item) {
+          item.setAttribute('data-state','read'); item.classList.remove('unread'); item.classList.add('read');
+          var badge = item.querySelector('.nt-new'); if (badge) badge.remove();
+          var button = item.querySelector('.nt-mark-read'); if (button) button.remove();
+        });
+        refreshCounts(); applyFilter();
+      }).catch(function () {
+        readAll.disabled = false;
+        window.alert('Could not mark notifications as read. Please retry.');
+      });
+      return;
+    }
+    var btn = event.target.closest('.nt-filter');
+    if (!btn) return;
+    mode = btn.getAttribute('data-filter');
+    Array.prototype.forEach.call(filters.querySelectorAll('.nt-filter'), function (b) { b.classList.toggle('is-active', b === btn); });
+    applyFilter();
   });
-})();
+  if (list) list.addEventListener('click', function (event) {
+    var button = event.target.closest('.nt-mark-read');
+    if (button) {
+      event.preventDefault();
+      var item = button.closest('.nt-item');
+      if (item) markRead(item);
+    }
+  });
+  refreshCounts(); applyFilter();
+})();;
 </script>
 <?php endif; ?>

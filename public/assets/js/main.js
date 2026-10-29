@@ -416,6 +416,7 @@ function initializeTurboHostFrontend() {
 function initializeNotificationPolling() {
   const panel = document.querySelector('[data-notification-panel]');
   const baseUrl = document.querySelector('meta[name="turbohost-base-url"]')?.content;
+  const csrfToken = document.querySelector('meta[name="instaweb-csrf"]')?.content || '';
   if (!panel || !baseUrl) {
     return;
   }
@@ -475,8 +476,8 @@ function initializeNotificationPolling() {
               await fetch(`${baseUrl}/api/notifications/mark-read`, {
                 method: 'POST',
                 credentials: 'same-origin',
-                headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-                body: JSON.stringify({ id: parseInt(id, 10) })
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-Token': csrfToken },
+                body: JSON.stringify({ id: parseInt(id, 10), _csrf: csrfToken })
               }).then(res => res.json()).then((payload) => {
                 if (payload && typeof payload.unreadCount !== 'undefined' && countNode) {
                   countNode.textContent = payload.unreadCount > 0 ? `${payload.unreadCount} unread` : `${notifications.length} latest`;

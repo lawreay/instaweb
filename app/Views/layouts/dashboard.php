@@ -44,6 +44,13 @@
     <link rel="icon" href="<?= htmlspecialchars($appIcon, ENT_QUOTES, 'UTF-8') ?>">
     <link rel="apple-touch-icon" href="<?= htmlspecialchars($appIcon, ENT_QUOTES, 'UTF-8') ?>">
   <?php endif; ?>
+
+  <?php if (\App\Services\AuthService::check()): ?>
+    <meta name="instaweb-base-url" content="<?= htmlspecialchars((string) ($app['base_url'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+    <meta name="instaweb-csrf" content="<?= htmlspecialchars(\App\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(rtrim((string) ($app['base_url'] ?? ''), '/') . '/assets/css/notification-center.css?v=20261029-global-notifications', ENT_QUOTES, 'UTF-8') ?>">
+  <?php endif; ?>
+
 </head>
 <body class="dashboard-body">
   <?php
@@ -381,5 +388,10 @@
     }());
   </script>
   
+
+  <?php if (\App\Services\AuthService::check()): ?>
+    <script src="<?= htmlspecialchars(rtrim((string) ($app['base_url'] ?? ''), '/') . '/assets/js/notification-center.js?v=20261029-global-notifications', ENT_QUOTES, 'UTF-8') ?>"></script>
+  <?php endif; ?>
+
 </body>
 </html>
