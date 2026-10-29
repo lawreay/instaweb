@@ -84,6 +84,34 @@ class NotificationController extends Controller
         echo json_encode(['success' => true, 'unreadCount' => $unreadCount]);
     }
 
+    /** Permanently clear notifications belonging to the signed-in user. */
+    public function clearAll(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!AuthService::check()) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Unauthorized']);
+            return;
+        }
+
+        $payload = $_POST;
+        if (empty($payload)) {
+            $decoded = json_decode((string) file_get_contents('php://input'), true);
+            $payload = is_array($decoded) ? $decoded : [];
+        }
+
+        $csrfToken = (string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? $payload['_csrf'] ?? '');
+        if (!Csrf::validate($csrfToken)) {
+            http_response_code(419);
+            echo json_encode(['error' => 'Invalid CSRF token']);
+            return;
+        }
+
+        $model = new NotificationModel();
+        $deleted = $model->clearAllForUser(AuthService::id());
+        echo json_encode(['success' => true, 'deleted' => $deleted, 'unreadCount' => 0]);
+    }
+
     /** Mark all notifications belonging to the signed-in user as read. */
     public function markAllRead(): void
     {
