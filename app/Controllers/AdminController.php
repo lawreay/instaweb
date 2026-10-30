@@ -16,6 +16,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\Models\Website;
 use App\Services\AuthService;
+use App\Services\CredentialCipher;
 use App\Services\MailerService;
 use App\Services\NotificationManager;
 use App\Services\PublishingService;
@@ -860,8 +861,17 @@ class AdminController extends Controller
         $allowed = $this->allowedSettings();
         $payload = [];
 
+        $existingSettings = (new Setting())->all();
         foreach ($allowed as $key => $group) {
             $value = trim((string) ($brandingUploads[$key] ?? $this->input($key, '')));
+            if (in_array($key, ['paychangu_secret_key', 'ai_openai_api_key', 'ai_gemini_api_key', 'ai_openrouter_api_key', 'mail_password', 'smtp_password'], true) && $value === '') {
+                $value = (string) ($existingSettings[$key] ?? '');
+            }
+            if ($key === 'ai_default_provider' && !in_array($value, ['gemini', 'openai', 'openrouter'], true)) $value = 'gemini';
+            if ($key === 'paychangu_environment' && !in_array($value, ['test', 'live'], true)) $value = 'test';
+            if ($key === 'payment_checkout_mode' && !in_array($value, ['standard', 'inline', 'dropin'], true)) {
+                $value = 'standard';
+            }
             $payload[$key] = [
                 'group' => $group,
                 'value' => $value,
@@ -873,6 +883,19 @@ class AdminController extends Controller
                 'group' => $group,
                 'value' => $this->input($key) === '1' ? '1' : '0',
             ];
+        }
+
+        $secretKeys = ['paychangu_secret_key', 'ai_openai_api_key', 'ai_gemini_api_key', 'ai_openrouter_api_key', 'mail_password', 'smtp_password'];
+        $hasCredentials = false;
+        foreach ($secretKeys as $secretKey) {
+            if (($payload[$secretKey]['value'] ?? '') !== '') {
+                $hasCredentials = true;
+                break;
+            }
+        }
+        if ($hasCredentials && !CredentialCipher::keyIsConfigured()) {
+            Session::flash('error', 'Set a valid APP_ENCRYPTION_KEY and enable PHP Sodium before saving integration credentials.');
+            $this->redirectTo('/admin/settings');
         }
 
         (new Setting())->saveMany($payload);
@@ -1497,6 +1520,16 @@ JSX;
             'paychangu_currency' => 'pricing',
             'paychangu_public_key' => 'pricing',
             'paychangu_secret_key' => 'pricing',
+            'payment_checkout_mode' => 'pricing',
+            'ai_default_provider' => 'api',
+            'ai_openai_model' => 'api',
+            'ai_gemini_model' => 'api',
+            'ai_openrouter_model' => 'api',
+            'ai_openrouter_base_url' => 'api',
+            'ai_openai_api_key' => 'api',
+            'ai_gemini_api_key' => 'api',
+            'ai_openrouter_api_key' => 'api',
+            'paychangu_environment' => 'api',
             'mail_host' => 'smtp',
             'mail_port' => 'smtp',
             'mail_username' => 'smtp',
@@ -1571,6 +1604,8 @@ JSX;
             'admin_login_alerts_enabled' => 'notifications',
             'automatic_backups_enabled' => 'backups',
             'api_enabled' => 'api',
+            'ai_enabled' => 'api',
+            'ai_allow_request_key' => 'api',
         ];
     }
 

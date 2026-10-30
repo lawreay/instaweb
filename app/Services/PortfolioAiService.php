@@ -27,7 +27,7 @@ final class PortfolioAiService
     {
         $config = require dirname(__DIR__) . '/Config/ai.php';
         $providers = [];
-        foreach (['openai', 'gemini'] as $provider) {
+        foreach (['openai', 'gemini', 'openrouter'] as $provider) {
             $providers[$provider] = [
                 'configured' => trim((string) ($config['providers'][$provider]['api_key'] ?? '')) !== '',
             ];
@@ -53,10 +53,10 @@ final class PortfolioAiService
         }
 
         $providerName = strtolower(trim($providerName));
-        if (!in_array($providerName, ['openai', 'gemini'], true)) {
+        if (!in_array($providerName, ['openai', 'gemini', 'openrouter'], true)) {
             $providerName = (string) ($config['default_provider'] ?? 'openai');
         }
-        if (!in_array($providerName, ['openai', 'gemini'], true)) {
+        if (!in_array($providerName, ['openai', 'gemini', 'openrouter'], true)) {
             throw new InvalidArgumentException('Choose OpenAI or Gemini.');
         }
 
@@ -84,6 +84,7 @@ final class PortfolioAiService
         return match ($name) {
             'openai' => new OpenAiPortfolioProvider($model),
             'gemini' => new GeminiPortfolioProvider($model),
+            'openrouter' => new OpenRouterPortfolioProvider($model),
             default => throw new InvalidArgumentException('Unsupported AI provider.'),
         };
     }

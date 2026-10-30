@@ -372,6 +372,15 @@ $checked = static fn (string $key, string $default = '0'): string => (($settings
               </div>
               <div class="col-md-6"><label class="form-label">PayChangu Public Key</label><input class="form-control" name="paychangu_public_key" value="<?= $value('paychangu_public_key') ?>"></div>
               <div class="col-md-6"><label class="form-label">PayChangu Secret Key</label><input class="form-control" type="password" name="paychangu_secret_key" value="<?= $value('paychangu_secret_key') ?>" placeholder="Enter secret key"></div>
+              <div class="col-md-6">
+                <label class="form-label" for="payment_checkout_mode">PayChangu Checkout Mode</label>
+                <select class="form-control" id="payment_checkout_mode" name="payment_checkout_mode">
+                  <option value="standard" <?= $value('payment_checkout_mode', 'standard') === 'standard' ? 'selected' : '' ?>>Standard Checkout (hosted page)</option>
+                  <option value="inline" <?= $value('payment_checkout_mode') === 'inline' ? 'selected' : '' ?>>Inline Checkout (popup)</option>
+                  <option value="dropin" <?= $value('payment_checkout_mode') === 'dropin' ? 'selected' : '' ?>>Drop-in Checkout (embedded form)</option>
+                </select>
+                <small class="text-muted d-block mt-2">Standard is the fallback. Inline and Drop-in require a PayChangu public key. Test each mode before enabling it for customers.</small>
+              </div>
               <div class="col-md-6"><label class="settings-check"><input type="checkbox" name="free_plan_enabled" value="1" <?= $checked('free_plan_enabled', '1') ?>> Free plan available</label></div>
               <div class="col-md-6"><label class="settings-check"><input type="checkbox" name="premium_plan_enabled" value="1" <?= $checked('premium_plan_enabled', '1') ?>> Premium plan available</label></div>
             </div>
@@ -484,11 +493,39 @@ $checked = static fn (string $key, string $default = '0'): string => (($settings
           </section>
 
           <section class="settings-pro-panel" data-settings-panel="api">
-            <h2>API</h2>
-            <div class="row g-3">
-              <div class="col-md-6"><label class="settings-check"><input type="checkbox" name="api_enabled" value="1" <?= $checked('api_enabled') ?>> Enable API access</label></div>
-              <div class="col-md-6"><label class="form-label">API Rate Limit</label><input class="form-control" name="api_rate_limit" value="<?= $value('api_rate_limit', '60') ?>"></div>
-            </div>
+            <h2>API & Integrations</h2>
+            <div class="settings-note alert alert-info">Manage platform API credentials here. Secret fields are write-only in this form: leave a field blank to keep its existing value. Never paste secrets into support messages or public pages.</div>
+            <fieldset class="settings-fieldset">
+              <h3>AI providers</h3>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="settings-check"><input type="checkbox" name="ai_enabled" value="1" <?= $checked('ai_enabled', '1') ?>> Enable AI features</label></div>
+                <div class="col-md-6"><label class="settings-check"><input type="checkbox" name="ai_allow_request_key" value="1" <?= $checked('ai_allow_request_key', '0') ?>> Allow users to use their own key for one request</label></div>
+                <div class="col-md-6"><label class="form-label">Default AI provider</label><select class="form-select" name="ai_default_provider"><option value="gemini" <?= $value('ai_default_provider', 'gemini') === 'gemini' ? 'selected' : '' ?>>Google Gemini</option><option value="openai" <?= $value('ai_default_provider') === 'openai' ? 'selected' : '' ?>>OpenAI</option><option value="openrouter" <?= $value('ai_default_provider') === 'openrouter' ? 'selected' : '' ?>>OpenRouter</option></select></div>
+                <div class="col-md-6"><label class="form-label">Gemini model</label><input class="form-control" name="ai_gemini_model" value="<?= $value('ai_gemini_model', 'gemini-2.5-flash') ?>"></div>
+                <div class="col-md-6"><label class="form-label">Gemini API key</label><input class="form-control" type="password" name="ai_gemini_api_key" autocomplete="new-password" placeholder="Leave blank to keep saved key"><small class="form-text">Saved: <?= !empty($settings['ai_gemini_api_key']) ? 'Yes' : 'No' ?></small></div>
+                <div class="col-md-6"><label class="form-label">OpenAI model</label><input class="form-control" name="ai_openai_model" value="<?= $value('ai_openai_model', 'gpt-5-mini') ?>"></div>
+                <div class="col-md-6"><label class="form-label">OpenAI API key</label><input class="form-control" type="password" name="ai_openai_api_key" autocomplete="new-password" placeholder="Leave blank to keep saved key"><small class="form-text">Saved: <?= !empty($settings['ai_openai_api_key']) ? 'Yes' : 'No' ?></small></div>
+                <div class="col-md-6"><label class="form-label">OpenRouter model</label><input class="form-control" name="ai_openrouter_model" value="<?= $value('ai_openrouter_model', 'openrouter/auto') ?>"></div>
+                <div class="col-md-6"><label class="form-label">OpenRouter API key</label><input class="form-control" type="password" name="ai_openrouter_api_key" autocomplete="new-password" placeholder="Leave blank to keep saved key"><small class="form-text">Saved: <?= !empty($settings['ai_openrouter_api_key']) ? 'Yes' : 'No' ?></small></div>
+                <div class="col-12"><label class="form-label">OpenRouter API endpoint</label><input class="form-control" name="ai_openrouter_base_url" value="<?= $value('ai_openrouter_base_url', 'https://openrouter.ai/api/v1') ?>"></div>
+              </div>
+            </fieldset>
+            <fieldset class="settings-fieldset">
+              <h3>PayChangu</h3>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Environment</label><select class="form-select" name="paychangu_environment"><option value="test" <?= $value('paychangu_environment', 'test') === 'test' ? 'selected' : '' ?>>Test / Sandbox</option><option value="live" <?= $value('paychangu_environment') === 'live' ? 'selected' : '' ?>>Live</option></select></div>
+                <div class="col-md-6"><label class="form-label">Checkout mode</label><select class="form-select" name="payment_checkout_mode"><option value="standard" <?= $value('payment_checkout_mode', 'standard') === 'standard' ? 'selected' : '' ?>>Standard redirect</option><option value="inline" <?= $value('payment_checkout_mode') === 'inline' ? 'selected' : '' ?>>Inline popup</option><option value="dropin" <?= $value('payment_checkout_mode') === 'dropin' ? 'selected' : '' ?>>Drop-in embedded</option></select></div>
+                <div class="col-md-6"><label class="form-label">Public key</label><input class="form-control" name="paychangu_public_key" value="<?= $value('paychangu_public_key') ?>"></div>
+                <div class="col-md-6"><label class="form-label">Secret key</label><input class="form-control" type="password" name="paychangu_secret_key" autocomplete="new-password" placeholder="Leave blank to keep saved key"><small class="form-text">Saved: <?= !empty($settings['paychangu_secret_key']) ? 'Yes' : 'No' ?></small></div>
+              </div>
+            </fieldset>
+            <fieldset class="settings-fieldset">
+              <h3>General API access</h3>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="settings-check"><input type="checkbox" name="api_enabled" value="1" <?= $checked('api_enabled') ?>> Enable API access</label></div>
+                <div class="col-md-6"><label class="form-label">API rate limit</label><input class="form-control" name="api_rate_limit" value="<?= $value('api_rate_limit', '60') ?>"></div>
+              </div>
+            </fieldset>
           </section>
 
           <section class="settings-pro-panel" data-settings-panel="advanced">

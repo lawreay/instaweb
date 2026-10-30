@@ -44,6 +44,16 @@ class PaymentController extends Controller
             $this->redirectTo('/dashboard');
         }
 
+        $checkoutMode = (string) ($settings['payment_checkout_mode'] ?? 'standard');
+        if (!in_array($checkoutMode, ['standard', 'inline', 'dropin'], true)) {
+            $checkoutMode = 'standard';
+        }
+        $publicKey = trim((string) ($settings['paychangu_public_key'] ?? ''));
+        if ($checkoutMode !== 'standard' && $publicKey === '') {
+            $this->jsonResponse(['ok' => false, 'message' => 'Inline and Drop-in checkout require the PayChangu public key in Admin Settings.'], 422);
+            return;
+        }
+
         $userId = (int) AuthService::id();
         $user = (new ClientDashboardRepository())->user($userId);
         if (!$user) {
@@ -57,6 +67,26 @@ class PaymentController extends Controller
         $baseUrl = rtrim((string) ($this->config['base_url'] ?? ''), '/');
 
         (new Payment())->createPending($userId, $amount, $currency, $txRef);
+
+        $checkoutPayload = [
+            'public_key' => $publicKey,
+            'checkout_mode' => $checkoutMode,
+            'tx_ref' => $txRef,
+            'amount' => $amount,
+            'currency' => $currency,
+            'callback_url' => $baseUrl . '/payments/paychangu/callback',
+            'return_url' => $baseUrl . '/payments/paychangu/return',
+            'email' => (string) $user['email'],
+            'first_name' => $this->firstName((string) $user['fullname']),
+            'last_name' => $this->lastName((string) $user['fullname']),
+            'customization' => ['title' => 'Instaweb Premium Plan', 'description' => 'One month Premium hosting upgrade'],
+            'meta' => ['user_id' => $userId, 'plan' => 'premium'],
+        ];
+
+        if ($checkoutMode !== 'standard') {
+            $this->jsonResponse(['ok' => true, 'checkout' => $checkoutPayload]);
+            return;
+        }
 
         try {
             $response = (new PayChanguService($secretKey))->initiatePayment([
@@ -88,7 +118,18 @@ class PaymentController extends Controller
             $this->redirectTo('/dashboard');
         }
 
+        if (str_contains((string) ($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json')) {
+            $this->jsonResponse(['ok' => true, 'checkout' => ['checkout_mode' => 'standard', 'checkout_url' => $checkoutUrl]]);
+            return;
+        }
         $this->redirect($checkoutUrl);
+    }
+
+    private function jsonResponse(array $payload, int $statusCode = 200): void
+    {
+        http_response_code($statusCode);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($payload, JSON_UNESCAPED_SLASHES);
     }
 
     /**

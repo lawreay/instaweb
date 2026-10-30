@@ -292,11 +292,12 @@ $doneCount = ($displayName !== '' ? 1 : 0) + ($headline !== '' ? 1 : 0) + ($avat
         <li>Unlock the other benefits included in your Premium plan</li>
       </ul>
       <?php if ($premiumUpgradeEnabled): ?>
-        <form method="post" action="<?= $escape($baseUrl . '/payments/paychangu/premium') ?>">
+        <form id="paychangu-premium-form" method="post" action="<?= $escape($baseUrl . '/payments/paychangu/premium') ?>">
           <?= \App\Core\Csrf::field() ?>
           <button class="ps-modal-primary" type="submit"><i data-lucide="lock-keyhole" aria-hidden="true"></i> Upgrade securely with PayChangu</button>
         </form>
-        <p class="ps-modal-footnote mt-3 mb-0">You'll continue to PayChangu to complete payment. Premium access is activated only after the payment is verified.</p>
+        <p class="ps-modal-footnote mt-3 mb-0" id="paychangu-checkout-status" role="status" aria-live="polite">Your payment is verified by InstaWeb before Premium is activated.</p>
+        <div id="paychangu-dropin-panel" hidden class="mt-3"><div id="paychangu-checkout-container"></div></div>
       <?php else: ?>
         <button class="ps-modal-primary" type="button" disabled>Upgrades temporarily unavailable</button>
         <p class="ps-modal-footnote mt-3 mb-0">Premium checkout is not currently configured or enabled. You can review plan details on the <a href="<?= $escape($baseUrl . '/pricing') ?>">pricing page</a>.</p>
@@ -549,6 +550,77 @@ $doneCount = ($displayName !== '' ? 1 : 0) + ($headline !== '' ? 1 : 0) + ($avat
     if (upgradeReturnFocus && typeof upgradeReturnFocus.focus === 'function' && document.contains(upgradeReturnFocus)) upgradeReturnFocus.focus();
   }
   document.querySelectorAll('[data-upgrade-open]').forEach(button => button.addEventListener('click', openUpgradeModal));
+
+  /* PayChangu checkout modes. Payment success is always confirmed server-side. */
+  const premiumForm = $('paychangu-premium-form');
+  const paymentStatus = $('paychangu-checkout-status');
+  const dropinPanel = $('paychangu-dropin-panel');
+  const checkoutScriptPromises = {};
+  function loadCheckoutScript(src, globalName) {
+    if (globalName && window[globalName]) return Promise.resolve();
+    if (checkoutScriptPromises[src]) return checkoutScriptPromises[src];
+    checkoutScriptPromises[src] = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('PayChangu checkout library could not be loaded.'));
+      document.head.appendChild(script);
+    });
+    return checkoutScriptPromises[src];
+  }
+  if (premiumForm) premiumForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = premiumForm.querySelector('button[type="submit"]');
+    const original = button ? button.innerHTML : '';
+    if (button) { button.disabled = true; button.textContent = 'Preparing secure checkout…'; }
+    if (paymentStatus) paymentStatus.textContent = 'Preparing your payment securely…';
+    try {
+      const response = await fetch(premiumForm.action, {
+        method: 'POST', body: new FormData(premiumForm), credentials: 'same-origin',
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const result = await response.json();
+      if (!response.ok || !result.ok || !result.checkout) throw new Error(result.message || 'Unable to start checkout.');
+      const c = result.checkout;
+      if (c.checkout_mode === 'standard') {
+        if (!c.checkout_url) throw new Error('PayChangu did not return a checkout link.');
+        window.location.assign(c.checkout_url);
+        return;
+      }
+      if (c.checkout_mode === 'inline') {
+        await loadCheckoutScript('https://in.paychangu.com/js/popup.js', 'PaychanguCheckout');
+        if (typeof window.PaychanguCheckout !== 'function') throw new Error('PayChangu Inline Checkout did not initialize.');
+        if (paymentStatus) paymentStatus.textContent = 'Complete payment in the PayChangu popup. InstaWeb verifies the result before activating Premium.';
+        window.PaychanguCheckout({
+          public_key: c.public_key, tx_ref: c.tx_ref, amount: c.amount, currency: c.currency,
+          callback_url: c.callback_url, return_url: c.return_url,
+          customer: { email: c.email, first_name: c.first_name, last_name: c.last_name },
+          customization: c.customization, meta: c.meta
+        });
+        return;
+      }
+      if (c.checkout_mode === 'dropin') {
+        await loadCheckoutScript('https://checkout.paychangu.com/embed.js', 'PayChangu');
+        if (!window.PayChangu || typeof window.PayChangu.mountCheckoutForm !== 'function') throw new Error('PayChangu Drop-in Checkout did not initialize.');
+        if (dropinPanel) dropinPanel.hidden = false;
+        if (paymentStatus) paymentStatus.textContent = 'Complete payment below. InstaWeb verifies the result before activating Premium.';
+        window.PayChangu.mountCheckoutForm({
+          target: '#paychangu-checkout-container', publicKey: c.public_key,
+          formKey: 'instaweb-premium-upgrade', email: c.email, amount: c.amount,
+          paymentReference: c.tx_ref, type: 'accordion',
+          config: { name: 'InstaWeb Premium', currency: c.currency, show_amount: true, redirect_url: c.callback_url },
+          onSuccess: () => { if (paymentStatus) paymentStatus.textContent = 'Payment submitted. Waiting for InstaWeb to verify the transaction…'; },
+          onError: error => { if (paymentStatus) paymentStatus.textContent = error && error.message ? error.message : 'Checkout error. Premium has not been activated.'; }
+        });
+        return;
+      }
+      throw new Error('The configured checkout mode is not supported.');
+    } catch (error) {
+      if (paymentStatus) paymentStatus.textContent = error.message || 'Checkout could not be started. Please try again.';
+      if (button) { button.disabled = false; button.innerHTML = original; }
+    }
+  });
   if (upgradeModal) {
     upgradeModal.querySelectorAll('[data-upgrade-close]').forEach(button => button.addEventListener('click', closeUpgradeModal));
     document.addEventListener('keydown', event => {
