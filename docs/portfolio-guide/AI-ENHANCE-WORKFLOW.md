@@ -2,7 +2,7 @@
 
 ## What the feature does
 
-AI Enhance is an optional writing assistant inside the Portfolio Advanced Editor. It supports OpenAI and Google Gemini through a provider-neutral PHP service. It can:
+AI Enhance is an optional writing assistant inside the Portfolio Advanced Editor. It uses OpenRouter's free-model router by default and supports OpenAI and Google Gemini as bring-your-own-key (BYOK) options through the same provider-neutral PHP service. It can:
 
 - Rewrite a profile headline or biography.
 - Rewrite an existing written portfolio entry.
@@ -29,8 +29,11 @@ Set these values in the server's private environment file. Never commit real API
 
 ```dotenv
 PORTFOLIO_AI_ENABLED=1
-PORTFOLIO_AI_DEFAULT_PROVIDER=gemini
+PORTFOLIO_AI_DEFAULT_PROVIDER=openrouter
 PORTFOLIO_AI_ALLOW_REQUEST_KEY=1
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=openrouter/free
+PORTFOLIO_AI_OPENROUTER_DAILY_LIMIT=40
 OPENAI_API_KEY=
 OPENAI_MODEL=gpt-5-mini # OpenAI API usage is generally billed separately
 GEMINI_API_KEY=
@@ -38,10 +41,12 @@ GEMINI_MODEL=gemini-2.5-flash # Confirm free-tier availability and quota for you
 ```
 
 - Set `PORTFOLIO_AI_ENABLED=0` to disable the feature.
-- `PORTFOLIO_AI_DEFAULT_PROVIDER` accepts `openai` or `gemini`; the application defaults to Gemini for a free-tier-first setup.
-- A free ChatGPT plan does not include free OpenAI API calls. For a no-cost setup, create a Gemini API key and verify the selected model is available under your Google AI Studio project’s current free tier. Free-tier quotas and model access can change.
-- Configure the platform key for the provider you want to offer. The key stays server-side.
-- If request-only keys are allowed, a user can paste a provider key for one request. It is cleared from the form after the request and is not intentionally persisted.
+- `PORTFOLIO_AI_DEFAULT_PROVIDER` accepts `openrouter`, `openai`, or `gemini`; the application defaults to OpenRouter.
+- Configure `OPENROUTER_API_KEY` for the shared free experience. `OPENROUTER_MODEL` defaults to `openrouter/free`, which routes requests to eligible free models. Free-model availability and quotas are controlled by OpenRouter and can change.
+- OpenRouter's free variants are rate-limited; its published free-variant limit is 20 requests per minute and 50 requests per day per account. InstaWeb defaults its shared OpenRouter allowance to 40 requests per UTC day (`PORTFOLIO_AI_OPENROUTER_DAILY_LIMIT`) to leave room for retries and administrative testing. Each user is additionally limited to 12 AI requests per hour. Requests using a user's own API key do not consume the shared OpenRouter allowance.
+- A free ChatGPT plan does not include free OpenAI API calls. OpenRouter is the default free path. OpenAI and Gemini are BYOK options; users pay those providers directly and supply a key for each request. BYOK keys are request-only and are not stored by InstaWeb.
+- Configure the shared OpenRouter key in the server environment. It stays server-side.
+- If request-only keys are allowed, a user can choose OpenAI or Gemini and paste their own key for one request. The browser clears it after the request; InstaWeb does not store it.
 - PHP cURL must be enabled and the server must be able to reach the provider over HTTPS.
 - Model names are configurable; confirm that the selected model is available to the configured account.
 
@@ -60,12 +65,16 @@ GEMINI_MODEL=gemini-2.5-flash # Confirm free-tier availability and quota for you
 
 Provider response bodies and API keys must not be surfaced to the browser or written to logs. Do not log raw portfolio prompts or generated content.
 
+## Database migration
+
+Apply `database/migrations/20261030_001_create_portfolio_ai_daily_usage.php` using the project's normal migration procedure before enabling the shared OpenRouter path. It creates the daily counter used to enforce the platform-wide free allowance. Back up the database before applying migrations.
+
 ## Verification checklist
 
 - [ ] Open AI Enhance as an authenticated portfolio owner.
 - [ ] Confirm provider status never reveals a platform key.
-- [ ] Test a configured OpenAI key and, separately, a configured Gemini key.
-- [ ] Test the request-only key path when enabled; verify the field clears after the request.
+- [ ] Test the configured OpenRouter free-model path and verify the platform key is never returned to the browser.
+- [ ] Test OpenAI and Gemini BYOK paths separately; verify the key field clears after the request and no key is stored.
 - [ ] Generate a profile rewrite, edit it, and apply it.
 - [ ] Generate section entries, deselect one, edit another, and apply; only selected entries should be created.
 - [ ] Try an empty rewrite and verify the UI blocks applying it.

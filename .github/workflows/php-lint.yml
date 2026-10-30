@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          find app -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
+          find app database/migrations -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
           php -l index.php
           php scripts/check-portfolio-integration.php
 

@@ -6,9 +6,9 @@ declare(strict_types=1);
  * Portfolio AI is deliberately configured outside the database. Provider keys
  * are deployment secrets and must never be exposed in an editor response.
  */
-$defaultProvider = strtolower(trim((string) env('PORTFOLIO_AI_DEFAULT_PROVIDER', 'gemini')));
-if (!in_array($defaultProvider, ['openai', 'gemini'], true)) {
-    $defaultProvider = 'gemini';
+$defaultProvider = strtolower(trim((string) env('PORTFOLIO_AI_DEFAULT_PROVIDER', 'openrouter')));
+if (!in_array($defaultProvider, ['openrouter', 'openai', 'gemini'], true)) {
+    $defaultProvider = 'openrouter';
 }
 
 return [
@@ -16,6 +16,10 @@ return [
     'default_provider' => $defaultProvider,
     'allow_request_key' => filter_var(env('PORTFOLIO_AI_ALLOW_REQUEST_KEY', '1'), FILTER_VALIDATE_BOOLEAN),
     'providers' => [
+        'openrouter' => [
+            'api_key' => trim((string) env('OPENROUTER_API_KEY', '')),
+            'model' => trim((string) env('OPENROUTER_MODEL', 'openrouter/free')),
+        ],
         'openai' => [
             'api_key' => trim((string) env('OPENAI_API_KEY', '')),
             'model' => trim((string) env('OPENAI_MODEL', 'gpt-5-mini')),

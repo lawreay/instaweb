@@ -27,7 +27,7 @@ final class PortfolioAiService
     {
         $config = require dirname(__DIR__) . '/Config/ai.php';
         $providers = [];
-        foreach (['openai', 'gemini'] as $provider) {
+        foreach (['openrouter', 'openai', 'gemini'] as $provider) {
             $providers[$provider] = [
                 'configured' => trim((string) ($config['providers'][$provider]['api_key'] ?? '')) !== '',
             ];
@@ -35,7 +35,7 @@ final class PortfolioAiService
 
         return [
             'enabled' => !empty($config['enabled']),
-            'defaultProvider' => (string) ($config['default_provider'] ?? 'openai'),
+            'defaultProvider' => (string) ($config['default_provider'] ?? 'openrouter'),
             'allowRequestKey' => !empty($config['allow_request_key']),
             'providers' => $providers,
         ];
@@ -53,11 +53,11 @@ final class PortfolioAiService
         }
 
         $providerName = strtolower(trim($providerName));
-        if (!in_array($providerName, ['openai', 'gemini'], true)) {
-            $providerName = (string) ($config['default_provider'] ?? 'openai');
+        if (!in_array($providerName, ['openrouter', 'openai', 'gemini'], true)) {
+            $providerName = (string) ($config['default_provider'] ?? 'openrouter');
         }
-        if (!in_array($providerName, ['openai', 'gemini'], true)) {
-            throw new InvalidArgumentException('Choose OpenAI or Gemini.');
+        if (!in_array($providerName, ['openrouter', 'openai', 'gemini'], true)) {
+            throw new InvalidArgumentException('Choose OpenRouter, OpenAI, or Gemini.');
         }
 
         $platformKey = trim((string) ($config['providers'][$providerName]['api_key'] ?? ''));
@@ -82,6 +82,7 @@ final class PortfolioAiService
     private function provider(string $name, string $model): PortfolioAiProvider
     {
         return match ($name) {
+            'openrouter' => new OpenRouterPortfolioProvider($model),
             'openai' => new OpenAiPortfolioProvider($model),
             'gemini' => new GeminiPortfolioProvider($model),
             default => throw new InvalidArgumentException('Unsupported AI provider.'),

@@ -9,6 +9,7 @@ use App\Core\Csrf;
 use App\Core\Session;
 use App\Models\AdvancedPortfolio;
 use App\Models\Portfolio;
+use App\Models\PortfolioAiDailyUsage;
 use App\Models\Website;
 use App\Services\AuthService;
 use App\Services\PortfolioAiService;
@@ -80,6 +81,19 @@ final class PortfolioAiController extends Controller
             $provider = trim((string) $this->input('provider', ''));
             // The request key is intentionally never written to Session, database, flash, or logs.
             $requestKey = trim((string) $this->input('api_key', ''));
+            $effectiveProvider = strtolower($provider);
+            if (!in_array($effectiveProvider, ['openrouter', 'openai', 'gemini'], true)) {
+                $effectiveProvider = (string) PortfolioAiService::publicStatus()['defaultProvider'];
+            }
+            $aiStatus = PortfolioAiService::publicStatus();
+            $sharedOpenRouterKeyConfigured = !empty($aiStatus['providers']['openrouter']['configured']);
+            if ($effectiveProvider === 'openrouter' && $requestKey === '' && $sharedOpenRouterKeyConfigured) {
+                $dailyLimit = max(1, min(1000, (int) env('PORTFOLIO_AI_OPENROUTER_DAILY_LIMIT', 40)));
+                if (!(new PortfolioAiDailyUsage())->consumeOpenRouter($dailyLimit)) {
+                    $this->json(429, ['ok' => false, 'message' => 'The shared free AI daily allowance has been reached. Please try again tomorrow or use your own OpenAI or Gemini API key.']);
+                    return;
+                }
+            }
             $result = (new PortfolioAiService())->propose($provider, $requestKey, $context);
             $proposal = array_merge($result, [
                 'operation' => $context['operation'],
