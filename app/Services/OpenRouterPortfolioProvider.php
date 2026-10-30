@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\\Services;
+namespace App\Services;
 
 use RuntimeException;
 
@@ -28,8 +28,7 @@ final class OpenRouterPortfolioProvider implements PortfolioAiProvider
             'https://openrouter.ai/api/v1/chat/completions',
             [
                 'Authorization' => 'Bearer ' . $apiKey,
-                'HTTP-Referer' => (string) env('APP_URL', 'https://instaweb.mw'),
-                'X-Title' => (string) env('APP_NAME', 'InstaWeb'),
+                'X-Title' => 'InstaWeb',
             ],
             [
                 'model' => $this->model,
