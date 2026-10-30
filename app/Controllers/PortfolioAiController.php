@@ -85,7 +85,9 @@ final class PortfolioAiController extends Controller
             if (!in_array($effectiveProvider, ['openrouter', 'openai', 'gemini'], true)) {
                 $effectiveProvider = (string) PortfolioAiService::publicStatus()['defaultProvider'];
             }
-            if ($effectiveProvider === 'openrouter' && $requestKey === '') {
+            $aiStatus = PortfolioAiService::publicStatus();
+            $sharedOpenRouterKeyConfigured = !empty($aiStatus['providers']['openrouter']['configured']);
+            if ($effectiveProvider === 'openrouter' && $requestKey === '' && $sharedOpenRouterKeyConfigured) {
                 $dailyLimit = max(1, min(1000, (int) env('PORTFOLIO_AI_OPENROUTER_DAILY_LIMIT', 40)));
                 if (!(new PortfolioAiDailyUsage())->consumeOpenRouter($dailyLimit)) {
                     $this->json(429, ['ok' => false, 'message' => 'The shared free AI daily allowance has been reached. Please try again tomorrow or use your own OpenAI or Gemini API key.']);
