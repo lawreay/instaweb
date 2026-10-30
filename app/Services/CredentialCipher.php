@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\\Services;
+namespace App\Services;
 
 use RuntimeException;
 
@@ -73,7 +73,7 @@ final class CredentialCipher
         try {
             self::key();
             return function_exists('sodium_crypto_secretbox');
-        } catch (\\Throwable) {
+        } catch (\Throwable) {
             return false;
         }
     }
