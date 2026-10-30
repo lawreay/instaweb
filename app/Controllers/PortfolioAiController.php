@@ -81,7 +81,10 @@ final class PortfolioAiController extends Controller
             $provider = trim((string) $this->input('provider', ''));
             // The request key is intentionally never written to Session, database, flash, or logs.
             $requestKey = trim((string) $this->input('api_key', ''));
-            $effectiveProvider = $provider !== '' ? strtolower($provider) : (string) PortfolioAiService::publicStatus()['defaultProvider'];
+            $effectiveProvider = strtolower($provider);
+            if (!in_array($effectiveProvider, ['openrouter', 'openai', 'gemini'], true)) {
+                $effectiveProvider = (string) PortfolioAiService::publicStatus()['defaultProvider'];
+            }
             if ($effectiveProvider === 'openrouter' && $requestKey === '') {
                 $dailyLimit = max(1, min(1000, (int) env('PORTFOLIO_AI_OPENROUTER_DAILY_LIMIT', 40)));
                 if (!(new PortfolioAiDailyUsage())->consumeOpenRouter($dailyLimit)) {
