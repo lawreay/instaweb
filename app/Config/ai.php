@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\\Models\\Setting;
+use App\Models\Setting;
 
 /**
  * Runtime AI configuration. Admin-managed database values override deployment
