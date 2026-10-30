@@ -58,7 +58,7 @@ $sectionFields = [
     'partnerships' => [['title', 'Partner or organisation', true], ['details', 'Partnership details (optional)', false, 'textarea'], ['link', 'Website (optional)', false, 'url'], ['start_date', 'Start date (optional)', false, 'date'], ['end_date', 'End date (optional)', false, 'date']],
     'cv' => [['title', 'Document title', true], ['details', 'Short note (optional)', false, 'textarea'], ['year', 'Year or issuer (optional)', false], ['cv_file', 'Upload CV (PDF, DOC, DOCX; max 5 MB)', false, 'file']],
 ];
-$aiStatus = is_array($aiStatus ?? null) ? $aiStatus : ['enabled' => false, 'defaultProvider' => 'openai', 'allowRequestKey' => false, 'providers' => []];
+$aiStatus = is_array($aiStatus ?? null) ? $aiStatus : ['enabled' => false, 'defaultProvider' => 'openrouter', 'allowRequestKey' => false, 'providers' => []];
 $aiStatusJson = json_encode($aiStatus, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $aiStatusJson = $aiStatusJson === false ? '{}' : $aiStatusJson;
 $aiRewritableSections = ['goals', 'interests', 'challenges', 'experience', 'education', 'news', 'partnerships'];
@@ -516,10 +516,10 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       </label>
       <div class="ap-ai-provider">
         <label class="ap-field"><span class="ap-label">AI provider</span>
-          <select name="provider" data-ai-provider><option value="openai">OpenAI</option><option value="gemini">Google Gemini</option></select>
+          <select name="provider" data-ai-provider><option value="openrouter">OpenRouter (Free)</option><option value="openai">OpenAI (use your API key)</option><option value="gemini">Google Gemini (use your API key)</option></select>
         </label>
         <label class="ap-field"><span class="ap-label">API key <span class="ap-optional">(only if needed)</span></span>
-          <input type="password" name="api_key" data-ai-key maxlength="500" autocomplete="off" spellcheck="false" placeholder="Paste a provider key for this request">
+          <input type="password" name="api_key" data-ai-key maxlength="500" autocomplete="off" spellcheck="false" placeholder="Paste your own provider key for this request only">
           <small class="ap-note" data-ai-key-note></small>
         </label>
       </div>
@@ -925,7 +925,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       updateKeyNote();
     };
     const updateKeyNote = () => {
-      const provider = aiProvider?.value || 'gemini';
+      const provider = aiProvider?.value || 'openrouter';
       const configured = Boolean(aiStatus.providers?.[provider]?.configured);
       if (!aiStatus.enabled) {
         aiKeyNote.textContent = 'AI enhancement is disabled for this installation.';
@@ -950,7 +950,7 @@ $settingsShowContact = ($settings['show_contact'] ?? '1') === '1';
       proposal = null;
       hide(aiResult);
       setMessage(aiStatus.enabled ? '' : 'AI enhancement is disabled for this installation.', aiStatus.enabled ? '' : 'error');
-      if (aiProvider) aiProvider.value = aiStatus.defaultProvider === 'openai' ? 'openai' : 'gemini';
+      if (aiProvider) aiProvider.value = ['openrouter', 'openai', 'gemini'].includes(aiStatus.defaultProvider) ? aiStatus.defaultProvider : 'openrouter';
       syncAiForm();
       window.setTimeout(() => aiOperation?.focus(), 0);
       if (window.lucide) window.lucide.createIcons();
