@@ -263,7 +263,14 @@ function resolvePackageRoot(string $stagePath): string
 {
     $entries = array_values(array_filter(scandir($stagePath) ?: [], static fn ($entry) => $entry !== '.' && $entry !== '..'));
     if (count($entries) === 1 && is_dir($stagePath . DIRECTORY_SEPARATOR . $entries[0])) {
-        return $stagePath . DIRECTORY_SEPARATOR . $entries[0];
+        $candidate = $stagePath . DIRECTORY_SEPARATOR . $entries[0];
+        $hasProjectMarker = file_exists($candidate . DIRECTORY_SEPARATOR . 'index.php')
+            || is_dir($candidate . DIRECTORY_SEPARATOR . 'app')
+            || is_dir($candidate . DIRECTORY_SEPARATOR . 'public')
+            || file_exists($candidate . DIRECTORY_SEPARATOR . 'composer.json');
+        if ($hasProjectMarker) {
+            return $candidate;
+        }
     }
     return $stagePath;
 }
