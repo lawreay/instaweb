@@ -863,7 +863,7 @@ class AdminController extends Controller
         $existingSettings = (new Setting())->all();
         foreach ($allowed as $key => $group) {
             $value = trim((string) ($brandingUploads[$key] ?? $this->input($key, '')));
-            if (in_array($key, ['paychangu_secret_key', 'ai_openai_api_key', 'ai_gemini_api_key', 'ai_openrouter_api_key'], true) && $value === '') {
+            if (in_array($key, ['paychangu_secret_key', 'ai_openai_api_key', 'ai_gemini_api_key', 'ai_openrouter_api_key', 'mail_password', 'smtp_password'], true) && $value === '') {
                 $value = (string) ($existingSettings[$key] ?? '');
             }
             if ($key === 'ai_default_provider' && !in_array($value, ['gemini', 'openai', 'openrouter'], true)) $value = 'gemini';
@@ -1516,8 +1516,6 @@ JSX;
             'ai_gemini_api_key' => 'api',
             'ai_openrouter_api_key' => 'api',
             'paychangu_environment' => 'api',
-            'paychangu_public_key' => 'pricing',
-            'paychangu_secret_key' => 'pricing',
             'mail_host' => 'smtp',
             'mail_port' => 'smtp',
             'mail_username' => 'smtp',
