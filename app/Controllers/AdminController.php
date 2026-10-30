@@ -16,6 +16,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\Models\Website;
 use App\Services\AuthService;
+use App\Services\CredentialCipher;
 use App\Services\MailerService;
 use App\Services\NotificationManager;
 use App\Services\PublishingService;
@@ -882,6 +883,19 @@ class AdminController extends Controller
                 'group' => $group,
                 'value' => $this->input($key) === '1' ? '1' : '0',
             ];
+        }
+
+        $secretKeys = ['paychangu_secret_key', 'ai_openai_api_key', 'ai_gemini_api_key', 'ai_openrouter_api_key', 'mail_password', 'smtp_password'];
+        $hasCredentials = false;
+        foreach ($secretKeys as $secretKey) {
+            if (($payload[$secretKey]['value'] ?? '') !== '') {
+                $hasCredentials = true;
+                break;
+            }
+        }
+        if ($hasCredentials && !CredentialCipher::keyIsConfigured()) {
+            Session::flash('error', 'Set a valid APP_ENCRYPTION_KEY and enable PHP Sodium before saving integration credentials.');
+            $this->redirectTo('/admin/settings');
         }
 
         (new Setting())->saveMany($payload);
