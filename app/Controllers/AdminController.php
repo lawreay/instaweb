@@ -860,8 +860,14 @@ class AdminController extends Controller
         $allowed = $this->allowedSettings();
         $payload = [];
 
+        $existingSettings = (new Setting())->all();
         foreach ($allowed as $key => $group) {
             $value = trim((string) ($brandingUploads[$key] ?? $this->input($key, '')));
+            if (in_array($key, ['paychangu_secret_key', 'ai_openai_api_key', 'ai_gemini_api_key', 'ai_openrouter_api_key'], true) && $value === '') {
+                $value = (string) ($existingSettings[$key] ?? '');
+            }
+            if ($key === 'ai_default_provider' && !in_array($value, ['gemini', 'openai', 'openrouter'], true)) $value = 'gemini';
+            if ($key === 'paychangu_environment' && !in_array($value, ['test', 'live'], true)) $value = 'test';
             if ($key === 'payment_checkout_mode' && !in_array($value, ['standard', 'inline', 'dropin'], true)) {
                 $value = 'standard';
             }
@@ -1501,6 +1507,17 @@ JSX;
             'paychangu_public_key' => 'pricing',
             'paychangu_secret_key' => 'pricing',
             'payment_checkout_mode' => 'pricing',
+            'ai_default_provider' => 'api',
+            'ai_openai_model' => 'api',
+            'ai_gemini_model' => 'api',
+            'ai_openrouter_model' => 'api',
+            'ai_openrouter_base_url' => 'api',
+            'ai_openai_api_key' => 'api',
+            'ai_gemini_api_key' => 'api',
+            'ai_openrouter_api_key' => 'api',
+            'paychangu_environment' => 'api',
+            'paychangu_public_key' => 'pricing',
+            'paychangu_secret_key' => 'pricing',
             'mail_host' => 'smtp',
             'mail_port' => 'smtp',
             'mail_username' => 'smtp',
@@ -1575,6 +1592,8 @@ JSX;
             'admin_login_alerts_enabled' => 'notifications',
             'automatic_backups_enabled' => 'backups',
             'api_enabled' => 'api',
+            'ai_enabled' => 'api',
+            'ai_allow_request_key' => 'api',
         ];
     }
 
