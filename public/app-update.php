@@ -154,11 +154,13 @@ function applySafeUpdate(string $rootPath, string $updatePath, $upload): array
                 continue;
             }
 
-            $destination = $rootPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+            $destination = resolveSafeUpdateDestination($rootPath, $relativePath);
             $parent = dirname($destination);
             if (!is_dir($parent) && !mkdir($parent, 0755, true) && !is_dir($parent)) {
                 throw new RuntimeException('Unable to create destination directory for ' . $relativePath . '.');
             }
+            // Re-check after directory creation to catch symlinked ancestors.
+            $destination = resolveSafeUpdateDestination($rootPath, $relativePath);
 
             if (file_exists($destination) && (!is_file($destination) || is_link($destination))) {
                 throw new RuntimeException('Refusing to replace a non-regular file: ' . $relativePath . '.');
@@ -214,6 +216,46 @@ function applySafeUpdate(string $rootPath, string $updatePath, $upload): array
 
     removeUpdateTree($stagePath);
     return ['updated' => $updated, 'skipped' => $skipped, 'backup' => basename($backupPath)];
+}
+
+/**
+ * Resolve an update destination while refusing symlinked path components.
+ * This prevents an existing symlink inside the installation from redirecting
+ * writes outside the application root.
+ */
+function resolveSafeUpdateDestination(string $rootPath, string $relativePath): string
+{
+    $relativePath = normalizeRelativePath($relativePath);
+    $rootReal = realpath($rootPath);
+    if ($rootReal === false) {
+        throw new RuntimeException('Application root could not be resolved.');
+    }
+
+    $segments = explode('/', $relativePath);
+    $current = $rootReal;
+    foreach ($segments as $index => $segment) {
+        $current .= DIRECTORY_SEPARATOR . $segment;
+        if (is_link($current)) {
+            throw new RuntimeException('Refusing to update through a symbolic link: ' . $relativePath . '.');
+        }
+
+        if (file_exists($current)) {
+            $resolved = realpath($current);
+            if ($resolved === false) {
+                throw new RuntimeException('Unable to resolve update destination: ' . $relativePath . '.');
+            }
+            $prefix = rtrim($rootReal, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+            if ($resolved !== $rootReal && !str_starts_with($resolved . (is_dir($resolved) ? DIRECTORY_SEPARATOR : ''), $prefix)) {
+                throw new RuntimeException('Update destination escapes the application directory.');
+            }
+            if ($index < count($segments) - 1 && !is_dir($resolved)) {
+                throw new RuntimeException('A destination parent is not a directory: ' . $relativePath . '.');
+            }
+            $current = $resolved;
+        }
+    }
+
+    return $current;
 }
 
 function validateUpdateArchive(ZipArchive $zip, int &$totalBytes, int &$fileCount): void
