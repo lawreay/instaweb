@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\\Models;
+namespace App\Models;
 
-use App\\Core\\Database;
+use App\Core\Database;
 use PDO;
 
 /** Atomically caps usage of the platform's shared OpenRouter free allowance. */
