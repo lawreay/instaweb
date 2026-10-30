@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\\Models;
+namespace App\Models;
 
-use App\\Core\\Database;
-use App\\Services\\CredentialCipher;
+use App\Core\Database;
+use App\Services\CredentialCipher;
 use PDO;
 
 /**
