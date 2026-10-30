@@ -317,4 +317,27 @@ if (!str_contains($advancedPortfolioController, "'interests' => ['details']") ||
 if (!str_contains($editorViewCompact, "'cv'=>[['title','Document title',true]")) {
     failCheck('CV section must not present organisation, period, and link as generic required concepts.');
 }
+$aiConfig = readRequiredFile($root . '/app/Config/ai.php');
+$aiService = readRequiredFile($root . '/app/Services/PortfolioAiService.php');
+$openRouterProvider = readRequiredFile($root . '/app/Services/OpenRouterPortfolioProvider.php');
+$aiController = readRequiredFile($root . '/app/Controllers/PortfolioAiController.php');
+$aiUsageModel = readRequiredFile($root . '/app/Models/PortfolioAiDailyUsage.php');
+$aiUsageMigration = readRequiredFile($root . '/database/migrations/20261030_001_create_portfolio_ai_daily_usage.php');
+$aiWorkflowDoc = readRequiredFile($root . '/docs/portfolio-guide/AI-ENHANCE-WORKFLOW.md');
+
+if (!str_contains($aiConfig, "'openrouter'")
+    || !str_contains($aiConfig, "env('OPENROUTER_API_KEY'")
+    || !str_contains($aiConfig, "env('OPENROUTER_MODEL', 'openrouter/free')")
+    || !str_contains($aiService, "'openrouter' => new OpenRouterPortfolioProvider")
+    || !str_contains($aiService, "foreach (['openrouter', 'openai', 'gemini'] as $provider)")
+    || !str_contains($openRouterProvider, 'https://openrouter.ai/api/v1/chat/completions')
+    || !str_contains($openRouterProvider, "'response_format' => [")
+    || !str_contains($aiController, 'consumeOpenRouter($dailyLimit)')
+    || !str_contains($aiUsageModel, 'ON DUPLICATE KEY UPDATE')
+    || !str_contains($aiUsageMigration, 'portfolio_ai_daily_usage')
+    || !str_contains($editorView, '<option value="openrouter">OpenRouter (Free)</option>')
+    || !str_contains($aiWorkflowDoc, 'PORTFOLIO_AI_OPENROUTER_DAILY_LIMIT=40')) {
+    failCheck('OpenRouter free default, structured output adapter, BYOK provider routing, or shared daily quota wiring is incomplete.');
+}
+
 echo '[portfolio-check] PASS: template registry, React variants, editor selector, hidden items, public route, publication gating, owner-only preview, publish/unpublish wiring, root access rules, and advanced-data cleanup are consistent.' . PHP_EOL;
