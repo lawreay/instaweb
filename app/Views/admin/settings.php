@@ -67,9 +67,6 @@ $checked = static fn (string $key, string $default = '0'): string => (($settings
           <h1>Settings</h1>
         </div>
         <div class="admin-pro-topbar-right admin-pro-actions">
-          <a class="btn btn-outline-primary" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/app-update.php', ENT_QUOTES, 'UTF-8') ?>">
-            <i data-lucide="upload-cloud"></i> Application Update
-          </a>
           <a class="btn btn-outline-secondary" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin', ENT_QUOTES, 'UTF-8') ?>">Cancel</a>
           <button class="btn btn-primary" type="submit">Save Changes</button>
         </div>
@@ -418,9 +415,36 @@ $checked = static fn (string $key, string $default = '0'): string => (($settings
               <div class="col-12"><label class="form-label">Maintenance message</label><textarea class="form-control" name="maintenance_message" rows="4"><?= $value('maintenance_message', 'Our website is currently undergoing scheduled maintenance. We appreciate your patience and expect to be back online shortly.') ?></textarea></div>
               <div class="col-md-6"><label class="form-label">Expected return date/time</label><input class="form-control" type="datetime-local" name="maintenance_return_at" value="<?= $value('maintenance_return_at') ?>"></div>
               <div class="col-md-6"><label class="form-label">Maintenance bypass token</label><input class="form-control" name="maintenance_bypass_token" value="<?= $value('maintenance_bypass_token') ?>" placeholder="Enter a secret bypass token"></div>
-              <div class="col-12 d-flex gap-2 align-items-center">
-                <button class="btn btn-outline-primary" type="submit">Save settings</button>
-                <a class="btn btn-secondary" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/settings/maintenance-preview', ENT_QUOTES, 'UTF-8') ?>" target="_blank">Preview maintenance page</a>
+              <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+                <button class="btn btn-outline-primary" type="submit">Save maintenance settings</button>
+                <a class="btn btn-secondary" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/settings/maintenance-preview', ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener">Preview maintenance page</a>
+              </div>
+            </div>
+
+            <div class="settings-fieldset mt-4" style="border-color:#cbded2;background:linear-gradient(135deg,#f7fbf8 0%,#ffffff 100%);">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div class="d-flex gap-3">
+                  <div style="display:grid;place-items:center;width:48px;height:48px;flex:none;border-radius:14px;background:#e3f2e8;color:#14532d;">
+                    <i data-lucide="package-check" style="width:23px;height:23px"></i>
+                  </div>
+                  <div>
+                    <p class="admin-pro-kicker mb-1">Release management</p>
+                    <h3 style="margin:0 0 7px;font-size:18px;letter-spacing:0;text-transform:none;color:#14201a;">Application updates</h3>
+                    <p class="text-muted mb-0" style="max-width:560px;line-height:1.6;">Install a new InstaWeb release from a ZIP package. The protected updater backs up files before replacing them and skips environment configuration, credentials, customer uploads and runtime data.</p>
+                  </div>
+                </div>
+                <span class="badge rounded-pill text-bg-success px-3 py-2">Protected updater</span>
+              </div>
+              <div class="row g-3 mt-2">
+                <div class="col-md-4"><div class="p-3 h-100 rounded-3" style="background:#fff;border:1px solid #e4eae5;"><strong class="d-block mb-1" style="font-size:13px;">Configuration protected</strong><small class="text-muted">.env and server configuration are skipped.</small></div></div>
+                <div class="col-md-4"><div class="p-3 h-100 rounded-3" style="background:#fff;border:1px solid #e4eae5;"><strong class="d-block mb-1" style="font-size:13px;">Backup before replace</strong><small class="text-muted">Existing files are backed up before changes.</small></div></div>
+                <div class="col-md-4"><div class="p-3 h-100 rounded-3" style="background:#fff;border:1px solid #e4eae5;"><strong class="d-block mb-1" style="font-size:13px;">No automatic deletion</strong><small class="text-muted">Files missing from a release are not deleted.</small></div></div>
+              </div>
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3" style="border-top:1px solid #e4eae5;">
+                <small class="text-muted">ZIP package limit: 200 MB. Database migrations and dependency installation remain manual.</small>
+                <a class="btn btn-primary px-4" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/app-update.php', ENT_QUOTES, 'UTF-8') ?>">
+                  <i data-lucide="upload-cloud"></i> Open application updater
+                </a>
               </div>
             </div>
           </section>
@@ -537,29 +561,6 @@ $checked = static fn (string $key, string $default = '0'): string => (($settings
         </div>
       </div>
     </form>
-    <section class="admin-pro-card mt-4">
-      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
-        <div>
-          <p class="admin-pro-kicker mb-1">System maintenance</p>
-          <h2 class="h4 mb-2">Application Update</h2>
-          <p class="text-muted mb-0">Upload a ZIP package to update the application. A backup is created before the update is applied.</p>
-        </div>
-        <i data-lucide="upload-cloud" aria-hidden="true"></i>
-      </div>
-      <form method="POST" action="<?= htmlspecialchars(($app['base_url'] ?? '') . '/app-update.php', ENT_QUOTES, 'UTF-8') ?>" enctype="multipart/form-data" class="mt-3">
-        <?= \App\Core\Csrf::field() ?>
-        <div class="row g-3 align-items-end">
-          <div class="col-md-8">
-            <label class="form-label" for="settings_update_package">ZIP package</label>
-            <input class="form-control" id="settings_update_package" name="update_package" type="file" accept=".zip,application/zip" required>
-            <small class="form-text text-muted">Maximum size: 200 MB.</small>
-          </div>
-          <div class="col-md-4">
-            <button class="btn btn-primary w-100" type="submit"><i data-lucide="upload-cloud"></i> Upload and apply</button>
-          </div>
-        </div>
-      </form>
-    </section>
     <footer class="admin-pro-footer">
       <span>Settings saved <?= htmlspecialchars(date('d M Y'), ENT_QUOTES, 'UTF-8') ?></span>
       <span><a href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin', ENT_QUOTES, 'UTF-8') ?>">Return to dashboard</a></span>
