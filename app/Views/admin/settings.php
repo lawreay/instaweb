@@ -67,9 +67,6 @@ $checked = static fn (string $key, string $default = '0'): string => (($settings
           <h1>Settings</h1>
         </div>
         <div class="admin-pro-topbar-right admin-pro-actions">
-          <a class="btn btn-outline-primary" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/app-update.php', ENT_QUOTES, 'UTF-8') ?>">
-            <i data-lucide="upload-cloud"></i> Application Update
-          </a>
           <a class="btn btn-outline-secondary" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin', ENT_QUOTES, 'UTF-8') ?>">Cancel</a>
           <button class="btn btn-primary" type="submit">Save Changes</button>
         </div>
