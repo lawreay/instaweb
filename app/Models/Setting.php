@@ -32,8 +32,9 @@ class Setting
     }
 
     /**
-     * Return all saved settings as key/value pairs. Legacy plaintext secrets
-     * are transparently upgraded in place when APP_ENCRYPTION_KEY is configured.
+     * Return all saved settings as key/value pairs. Legacy plaintext secrets are transparently upgraded to OpenSSL encryption when
+     * APP_ENCRYPTION_KEY is configured. Legacy Sodium-encrypted values require a one-time
+     * migration while the Sodium extension is still available.
      */
     public function all(): array
     {
