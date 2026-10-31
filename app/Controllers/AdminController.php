@@ -894,7 +894,7 @@ class AdminController extends Controller
             }
         }
         if ($hasCredentials && !CredentialCipher::keyIsConfigured()) {
-            Session::flash('error', 'Set a valid APP_ENCRYPTION_KEY and enable PHP Sodium before saving integration credentials.');
+            Session::flash('error', 'Set a valid APP_ENCRYPTION_KEY and ensure PHP OpenSSL is enabled before saving integration credentials.');
             $this->redirectTo('/admin/settings');
         }
 
