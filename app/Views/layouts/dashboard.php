@@ -113,6 +113,11 @@
           <?php if ($topbarPlanName !== ''): ?>
             <a class="iw-topbar-plan" href="#iwSubscription"><i data-lucide="crown"></i><span><?= htmlspecialchars($topbarPlanName, ENT_QUOTES, 'UTF-8') ?> plan</span></a>
           <?php endif; ?>
+          <?php if (!empty($isAdmin)): ?>
+            <a class="iw-topbar-account" href="<?= htmlspecialchars($clientBaseUrl . '/admin', ENT_QUOTES, 'UTF-8') ?>" aria-label="Switch to admin dashboard" title="Switch to admin dashboard">
+              <i data-lucide="shield-check"></i><span>Admin dashboard</span>
+            </a>
+          <?php endif; ?>
           <a class="iw-topbar-account" href="<?= htmlspecialchars($clientBaseUrl . '/profile', ENT_QUOTES, 'UTF-8') ?>" aria-label="Open account settings">
             <i data-lucide="user-round"></i><span>Account</span>
           </a>
