@@ -32,8 +32,8 @@ class Setting
     }
 
     /**
-     * Return all saved settings as key/value pairs. Legacy plaintext secrets
-     * are transparently upgraded in place when APP_ENCRYPTION_KEY is configured.
+     * Return settings as key/value pairs. Legacy plaintext secrets are upgraded to OpenSSL.
+     * Retired enc:v1 credentials are returned blank so admins can replace them.
      */
     public function all(): array
     {
@@ -45,7 +45,9 @@ class Setting
             $value = (string) $row['setting_value'];
 
             if (in_array($key, self::SECRET_KEYS, true)) {
-                if (CredentialCipher::isEncrypted($value)) {
+                if (CredentialCipher::isLegacyEncrypted($value)) {
+                    $value = '';
+                } elseif (CredentialCipher::isEncrypted($value)) {
                     $value = CredentialCipher::decrypt($value);
                 } elseif ($value !== '' && CredentialCipher::keyIsConfigured()) {
                     $encrypted = CredentialCipher::encrypt($value);
@@ -60,6 +62,27 @@ class Setting
         }
 
         return $settings;
+    }
+
+    /**
+     * Identify secret settings still stored in the retired enc:v1 format.
+     *
+     * @return string[]
+     */
+    public function legacyCredentialKeys(): array
+    {
+        $statement = $this->database->query(
+            "SELECT setting_key, setting_value FROM platform_settings WHERE setting_key IN ('paychangu_secret_key', 'ai_openai_api_key', 'ai_gemini_api_key', 'ai_openrouter_api_key', 'mail_password', 'smtp_password')"
+        );
+
+        $keys = [];
+        foreach ($statement->fetchAll() as $row) {
+            if (CredentialCipher::isLegacyEncrypted((string) $row['setting_value'])) {
+                $keys[] = (string) $row['setting_key'];
+            }
+        }
+
+        return $keys;
     }
 
     /** Save multiple settings using an upsert. */
