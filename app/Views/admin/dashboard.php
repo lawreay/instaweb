@@ -239,7 +239,7 @@ foreach ($paymentSummary as $row) {
                 <tbody>
                 <?php foreach ($recentUsers as $user): ?>
                   <tr>
-                    <td>
+                    <td data-label="User">
                       <span class="ox-cell"><span class="ox-avatar" aria-hidden="true"><?= $e($initials((string) ($user['fullname'] ?? ''))) ?></span><span><span class="ox-primary"><?= $e($user['fullname'] ?? 'Unnamed user') ?></span><span class="ox-secondary">@<?= $e($user['username'] ?? '') ?></span></span></span>
                     </td>
                     <td data-label="Role"><?= $e($label($user['role'] ?? 'user')) ?></td>
