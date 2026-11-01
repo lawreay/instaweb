@@ -896,6 +896,13 @@ class AdminController extends Controller
             }
         }
 
+        foreach ($legacyCredentialKeys as $legacyKey) {
+            if (($payload[$legacyKey]['value'] ?? '') === '') {
+                Session::flash('warning', 'Re-enter the saved ' . $legacyKey . ' credential before saving settings. The previous encrypted format is no longer supported.');
+                $this->redirectTo('/admin/settings');
+            }
+        }
+
         $secretKeys = ['paychangu_secret_key', 'ai_openai_api_key', 'ai_gemini_api_key', 'ai_openrouter_api_key', 'mail_password', 'smtp_password'];
         $hasCredentials = false;
         foreach ($secretKeys as $secretKey) {
