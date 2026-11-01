@@ -53,9 +53,11 @@ class AdminController extends Controller
     {
         $this->adminOnly();
 
+        $settingModel = new Setting();
         $this->view('admin/settings', [
             'title' => 'Admin Settings',
-            'settings' => (new Setting())->all(),
+            'settings' => $settingModel->all(),
+            'legacyCredentialKeys' => $settingModel->legacyCredentialKeys(),
             'tabs' => $this->settingsTabs(),
             'policies' => (new LegalPolicy())->all(),
         ], 'layouts/admin');
@@ -861,7 +863,9 @@ class AdminController extends Controller
         $allowed = $this->allowedSettings();
         $payload = [];
 
-        $existingSettings = (new Setting())->all();
+        $settingModel = new Setting();
+        $existingSettings = $settingModel->all();
+        $legacyCredentialKeys = $settingModel->legacyCredentialKeys();
         foreach ($allowed as $key => $group) {
             $value = trim((string) ($brandingUploads[$key] ?? $this->input($key, '')));
             if (in_array($key, ['paychangu_secret_key', 'ai_openai_api_key', 'ai_gemini_api_key', 'ai_openrouter_api_key', 'mail_password', 'smtp_password'], true) && $value === '') {
@@ -883,6 +887,13 @@ class AdminController extends Controller
                 'group' => $group,
                 'value' => $this->input($key) === '1' ? '1' : '0',
             ];
+        }
+
+        foreach ($legacyCredentialKeys as $legacyKey) {
+            if (($payload[$legacyKey]['value'] ?? '') === '') {
+                Session::flash('warning', 'Re-enter the saved ' . $legacyKey . ' credential before saving settings. The previous encrypted format is no longer supported.');
+                $this->redirectTo('/admin/settings');
+            }
         }
 
         $secretKeys = ['paychangu_secret_key', 'ai_openai_api_key', 'ai_gemini_api_key', 'ai_openrouter_api_key', 'mail_password', 'smtp_password'];
