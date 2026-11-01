@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\\Models;
 
-use App\Core\Database;
-use App\Services\CredentialCipher;
+use App\\Core\\Database;
+use App\\Services\\CredentialCipher;
 use PDO;
 
 /**
@@ -32,8 +32,8 @@ class Setting
     }
 
     /**
-     * Return all saved settings as key/value pairs. Legacy plaintext secrets are transparently upgraded to OpenSSL encryption.
-     * Credentials in the retired enc:v1 format are returned as blank so the admin can replace them without blocking the settings page.
+     * Return settings as key/value pairs. Legacy plaintext secrets are upgraded to OpenSSL.
+     * Retired enc:v1 credentials are returned blank so admins can replace them.
      */
     public function all(): array
     {
@@ -64,9 +64,8 @@ class Setting
         return $settings;
     }
 
-
     /**
-     * List secret settings that still contain the retired credential format.
+     * Identify secret settings still stored in the retired enc:v1 format.
      *
      * @return string[]
      */
