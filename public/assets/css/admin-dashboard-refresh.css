@@ -463,3 +463,277 @@
   .admin-pro-shell.sidebar-open .admin-sidebar-overlay,
   .admin-pro-shell.mobile-nav-open .admin-sidebar-overlay { display: block; }
 }
+
+
+/* Admin overview refresh: match the client workspace's green visual language
+   while keeping the admin-specific information architecture. */
+.admin-dashboard-refresh {
+  --iw-ink: #182522;
+  --iw-muted: #6d7b74;
+  --iw-line: #e2e9e3;
+  --iw-canvas: #f4f7f3;
+  --iw-surface: #fff;
+  --iw-primary: var(--app-primary, #315b3d);
+  --iw-primary-soft: color-mix(in srgb, var(--iw-primary) 10%, white);
+  min-width: 0;
+  overflow-x: clip;
+}
+.admin-dashboard-refresh .admin-pro-main,
+.admin-dashboard-refresh .admin-dashboard-page,
+.admin-dashboard-refresh .ox { min-width: 0; }
+.admin-dashboard-refresh .admin-dashboard-page {
+  width: 100%;
+  padding: clamp(1rem, 2.4vw, 2rem);
+}
+.admin-dashboard-refresh .ox {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+  --ox-ink: #182522;
+  --ox-muted: #6d7b74;
+  --ox-line: #e2e9e3;
+  --ox-soft: #f5f8f4;
+  --ox-accent: #527b43;
+  --ox-accent-ink: #34552f;
+  --ox-accent-soft: #edf4e7;
+}
+.admin-dashboard-refresh .ox-heading {
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.1rem;
+  padding: clamp(1.15rem, 2.2vw, 1.75rem);
+  border: 1px solid var(--ox-line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(27, 48, 35, .035);
+}
+.admin-dashboard-refresh .ox-heading > div:first-child { min-width: 0; }
+.admin-dashboard-refresh .ox-eyebrow { color: #64804c; letter-spacing: .13em; }
+.admin-dashboard-refresh .ox-heading h1 {
+  color: var(--ox-ink);
+  font-size: clamp(1.75rem, 3vw, 2.45rem);
+  line-height: 1.12;
+}
+.admin-dashboard-refresh .ox-sub { color: var(--ox-muted); font-size: .92rem; line-height: 1.6; }
+.admin-dashboard-refresh .ox-actions { justify-content: flex-end; }
+.admin-dashboard-refresh .ox-button {
+  min-height: 42px;
+  border-color: #d7e0d8;
+  border-radius: 10px;
+  color: var(--ox-ink);
+}
+.admin-dashboard-refresh .ox-button--primary {
+  border-color: #263e32;
+  background: #263e32;
+  color: #fff;
+}
+.admin-dashboard-refresh .ox-button--primary:hover {
+  border-color: #365443;
+  background: #365443;
+  color: #fff;
+}
+.admin-dashboard-refresh .ox-attention {
+  border-color: #e7d6b5;
+  border-radius: 14px;
+  background: linear-gradient(105deg, #fff 0%, #fbf7ec 100%);
+}
+.admin-dashboard-refresh .ox-attention--clear {
+  border-color: var(--ox-line);
+  background: #fff;
+}
+.admin-dashboard-refresh .ox-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .9rem;
+}
+.admin-dashboard-refresh .ox-metric {
+  min-width: 0;
+  padding: 1.15rem;
+  border-color: var(--ox-line);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(27, 48, 35, .035);
+}
+.admin-dashboard-refresh .ox-metric:hover {
+  border-color: #b9cdb1;
+  box-shadow: 0 10px 24px rgba(27, 48, 35, .08);
+}
+.admin-dashboard-refresh .ox-metric-icon,
+.admin-dashboard-refresh .ox-shortcut-icon {
+  background: var(--ox-accent-soft);
+  color: var(--ox-accent-ink);
+}
+.admin-dashboard-refresh .ox-bar { background: #edf1eb; }
+.admin-dashboard-refresh .ox-bar i { background: #7b9d60; }
+.admin-dashboard-refresh .ox-metric--alert {
+  border-color: #e7d6b5;
+  background: linear-gradient(160deg, #fff 0%, #fbf7ec 100%);
+}
+.admin-dashboard-refresh .ox-grid {
+  grid-template-columns: minmax(0, 1.55fr) minmax(290px, .85fr);
+  gap: 1rem;
+}
+.admin-dashboard-refresh .ox-stack { gap: 1rem; }
+.admin-dashboard-refresh .ox-panel {
+  border-color: var(--ox-line);
+  border-radius: 15px;
+  box-shadow: 0 8px 28px rgba(27, 48, 35, .035);
+}
+.admin-dashboard-refresh .ox-panel-head {
+  align-items: center;
+  padding: 1.05rem 1.15rem;
+  border-color: var(--ox-line);
+}
+.admin-dashboard-refresh .ox-panel-head h2 { color: var(--ox-ink); }
+.admin-dashboard-refresh .ox-panel-head p { color: var(--ox-muted); line-height: 1.5; }
+.admin-dashboard-refresh .ox-link { color: #426b3b; }
+.admin-dashboard-refresh .ox-link:hover { color: #294c2d; }
+.admin-dashboard-refresh .ox-table th {
+  background: #f7f9f6;
+  color: #718076;
+}
+.admin-dashboard-refresh .ox-table td { overflow-wrap: anywhere; }
+.admin-dashboard-refresh .ox-pill--ok { background: #eaf4e8; color: #38643c; }
+.admin-dashboard-refresh .ox-pill--warn { background: #fbf3df; color: #86621c; }
+.admin-dashboard-refresh .ox-pill--bad { background: #fcebea; color: #a33c35; }
+.admin-dashboard-refresh .ox-pill--muted { background: #f0f3f0; color: #5d6a61; }
+.admin-dashboard-refresh .ox-shortcut {
+  min-width: 0;
+  border-color: #e7ede6;
+}
+.admin-dashboard-refresh .ox-shortcut:hover {
+  border-color: #c5d8bd;
+  background: #f8fbf6;
+}
+.admin-dashboard-refresh .ox-shortcut strong { color: var(--ox-ink); }
+.admin-dashboard-refresh .ox-shortcut small { color: var(--ox-muted); }
+.admin-dashboard-refresh .ad-footer {
+  max-width: none;
+  padding-inline: clamp(1rem, 2.4vw, 2rem);
+}
+.admin-dashboard-refresh .ad-topbar {
+  min-width: 0;
+  min-height: 68px;
+  border-color: var(--iw-line);
+}
+.admin-dashboard-refresh .ad-topbar-link {
+  border-color: #e2e9e3;
+  color: #52635a;
+}
+.admin-dashboard-refresh .ad-topbar-link:hover {
+  border-color: #c5d8bd;
+  background: #f7faf5;
+  color: #365b35;
+}
+@media (max-width: 1100px) {
+  .admin-dashboard-refresh .ox-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-dashboard-refresh .ox-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .admin-dashboard-refresh .admin-pro-main { min-height: 100dvh; }
+  .admin-dashboard-refresh .admin-pro-sidebar { z-index: 1050; }
+  .admin-dashboard-refresh .ad-topbar { z-index: 10; }
+  .admin-dashboard-refresh .ad-topbar-menu { display: grid; }
+  .admin-dashboard-refresh .iw-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: rgba(17, 24, 39, .42);
+  }
+  .admin-dashboard-refresh.sidebar-open .iw-sidebar-backdrop,
+  .admin-dashboard-refresh.mobile-nav-open .iw-sidebar-backdrop { display: block; }
+}
+@media (max-width: 700px) {
+  .admin-dashboard-refresh .admin-dashboard-page { padding: 1rem .85rem 1.15rem; }
+  .admin-dashboard-refresh .ox-heading {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 1.1rem;
+    border-radius: 15px;
+  }
+  .admin-dashboard-refresh .ox-actions { width: 100%; }
+  .admin-dashboard-refresh .ox-actions .ox-button {
+    flex: 1 1 0;
+    justify-content: center;
+    white-space: normal;
+  }
+  .admin-dashboard-refresh .ox-attention { align-items: flex-start; padding: .9rem; }
+  .admin-dashboard-refresh .ox-attention-text { min-width: 0; align-items: flex-start; }
+  .admin-dashboard-refresh .ox-attention .ox-button { width: 100%; justify-content: center; }
+  .admin-dashboard-refresh .ox-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+  .admin-dashboard-refresh .ox-metric { padding: .9rem; border-radius: 13px; }
+  .admin-dashboard-refresh .ox-metric-top { align-items: flex-start; font-size: .73rem; }
+  .admin-dashboard-refresh .ox-metric-value { font-size: clamp(1.2rem, 5vw, 1.6rem); }
+  .admin-dashboard-refresh .ox-metric-note { font-size: .72rem; line-height: 1.45; }
+  .admin-dashboard-refresh .ox-panel { border-radius: 13px; }
+  .admin-dashboard-refresh .ox-panel-head { gap: .6rem; padding: .9rem; }
+  .admin-dashboard-refresh .ox-panel-head h2 { font-size: .94rem; }
+  .admin-dashboard-refresh .ox-panel-head p { font-size: .76rem; }
+  .admin-dashboard-refresh .ox-link { font-size: .75rem; }
+  .admin-dashboard-refresh .ox-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .admin-dashboard-refresh .ox-table,
+  .admin-dashboard-refresh .ox-table tbody,
+  .admin-dashboard-refresh .ox-table tr,
+  .admin-dashboard-refresh .ox-table td { display: block; width: 100%; }
+  .admin-dashboard-refresh .ox-table tr {
+    padding: .8rem .95rem;
+    border-top: 1px solid var(--ox-line);
+  }
+  .admin-dashboard-refresh .ox-table tbody tr:first-child { border-top: 0; }
+  .admin-dashboard-refresh .ox-table td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .8rem;
+    padding: .32rem 0;
+    border: 0;
+    font-size: .8rem;
+    text-align: right;
+  }
+  .admin-dashboard-refresh .ox-table td[data-label]::before {
+    flex: 0 0 auto;
+    color: var(--ox-muted);
+    content: attr(data-label);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+  .admin-dashboard-refresh .ox-table td:first-child { justify-content: flex-start; text-align: left; }
+  .admin-dashboard-refresh .ox-table td:first-child::before { display: none; }
+  .admin-dashboard-refresh .ox-table td.ox-empty { display: block; text-align: center; }
+  .admin-dashboard-refresh .ox-cell { min-width: 0; }
+  .admin-dashboard-refresh .ox-cell > span:last-child { min-width: 0; }
+  .admin-dashboard-refresh .ox-secondary { overflow-wrap: anywhere; }
+  .admin-dashboard-refresh .ox-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: .85rem; }
+  .admin-dashboard-refresh .ox-shortcut { padding: .8rem; }
+  .admin-dashboard-refresh .ad-topbar { min-height: 62px; gap: .6rem; padding: .55rem .8rem; }
+  .admin-dashboard-refresh .ad-topbar-eyebrow { display: none; }
+  .admin-dashboard-refresh .ad-topbar-page { font-size: .9rem; }
+  .admin-dashboard-refresh .ad-topbar-actions { gap: .35rem; }
+  .admin-dashboard-refresh .ad-topbar-link { width: 40px; min-width: 40px; padding: .45rem; }
+  .admin-dashboard-refresh .ad-topbar-link span { display: none; }
+  .admin-dashboard-refresh .ad-footer { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 420px) {
+  .admin-dashboard-refresh .ox-actions { flex-direction: column; }
+  .admin-dashboard-refresh .ox-actions .ox-button { width: 100%; }
+  .admin-dashboard-refresh .ox-shortcuts { grid-template-columns: minmax(0, 1fr); }
+  .admin-dashboard-refresh .ox-table tr { padding-inline: .8rem; }
+}
+@media (max-width: 360px) {
+  .admin-dashboard-refresh .ox-metrics { grid-template-columns: minmax(0, 1fr); }
+}
