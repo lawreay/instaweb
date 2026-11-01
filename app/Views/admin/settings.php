@@ -84,6 +84,16 @@ $checked = static fn (string $key, string $default = '0'): string => (($settings
         <?php endif; ?>
       <?php endforeach; ?>
 
+      <?php if (!empty($legacyCredentialKeys)): ?>
+        <div class="alert alert-warning shadow-sm" role="alert">
+          <strong>Credential update required.</strong>
+          Some saved integration credentials use an older encryption format and cannot be read by this version.
+          Re-enter the following values before saving settings:
+          <strong><?= htmlspecialchars(implode(', ', $legacyCredentialKeys), ENT_QUOTES, 'UTF-8') ?></strong>.
+          New values will be stored using OpenSSL encryption. No credentials have been deleted automatically.
+        </div>
+      <?php endif; ?>
+
       <div class="settings-pro-card">
         <aside class="settings-pro-tabs" role="tablist">
           <?php foreach ($tabs as $id => [$label, $icon]): ?>
