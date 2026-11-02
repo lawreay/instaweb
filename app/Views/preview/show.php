@@ -2,7 +2,7 @@
 $previewPrefix = !empty($adminPreview) ? '/admin/websites/preview' : '/dashboard/websites/preview';
 $previewFileUrl = !empty($adminPreview) && ($website['template_key'] ?? '') === 'portfolio'
     ? $baseUrl . '/admin/websites/preview/portfolio?id=' . (int) $website['id']
-    : $previewFileUrl; ?>
+    : $baseUrl . $previewPrefix . '/file?id=' . (int) $website['id'] . '&path=index.html'; ?>
 <section class="iw-client-page iw-preview-page">
 
     <header class="client-header">
