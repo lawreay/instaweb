@@ -1,5 +1,8 @@
 <?php $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
-$previewPrefix = !empty($adminPreview) ? '/admin/websites/preview' : '/dashboard/websites/preview'; ?>
+$previewPrefix = !empty($adminPreview) ? '/admin/websites/preview' : '/dashboard/websites/preview';
+$previewFileUrl = !empty($adminPreview) && ($website['template_key'] ?? '') === 'portfolio'
+    ? $baseUrl . '/admin/websites/preview/portfolio?id=' . (int) $website['id']
+    : $previewFileUrl; ?>
 <section class="iw-client-page iw-preview-page">
 
     <header class="client-header">
@@ -23,6 +26,8 @@ $previewPrefix = !empty($adminPreview) ? '/admin/websites/preview' : '/dashboard
     <section class="client-card">
       <iframe
         title="Website preview"
+        sandbox="allow-scripts allow-forms"
+        referrerpolicy="no-referrer"
         src="<?= htmlspecialchars($baseUrl . $previewPrefix . '/file?id=' . (int) $website['id'] . '&path=index.html', ENT_QUOTES, 'UTF-8') ?>"
         style="width: 100%; min-height: 70vh; border: 1px solid rgba(13, 110, 253, 0.18); border-radius: 16px; background: #ffffff;"
       ></iframe>
