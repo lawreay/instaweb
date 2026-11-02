@@ -168,39 +168,49 @@ class PreviewController extends Controller
     public function adminShow(): void
     {
         [$website, $userId] = $this->requireAdminWebsite();
-        if (($website['template_key'] ?? '') === 'portfolio') {
-            $portfolioModel = new Portfolio();
-            $advancedModel = new AdvancedPortfolio();
-            $portfolio = $portfolioModel->findForWebsiteOwner((int) $website['id'], $userId);
-            if (!$portfolio) {
-                http_response_code(404);
-                echo 'Portfolio draft not found.';
-                return;
-            }
 
-            header('Content-Type: text/html; charset=UTF-8');
-            header_remove('Cache-Control');
-            header('Cache-Control: private, no-store, no-cache, must-revalidate');
-            echo View::render('portfolio/public', [
-                'app' => $this->config,
-                'website' => $website,
-                'portfolio' => $portfolio,
-                'projects' => $portfolioModel->projects((int) $portfolio['id']),
-                'advancedSettings' => $advancedModel->settings((int) $website['id'], $userId),
-                'advancedItems' => $advancedModel->visibleItems((int) $website['id'], $userId),
-                'noirSectionImages' => $advancedModel->noirSectionImages((int) $website['id'], $userId),
-                'customTemplate' => (new PortfolioTemplate())->customByKey((string) ($portfolio['template_key'] ?? '')),
-                'isPreview' => true,
-                'isPremiumUser' => true,
-            ], '');
-            return;
-        }
 
         $this->view('preview/show', [
             'title' => 'Admin Draft Preview',
             'website' => $website,
             'liveUrl' => '',
             'adminPreview' => true,
+        ], '');
+    }
+
+
+    /** Render a portfolio draft inside the sandboxed admin preview frame. */
+    public function adminPortfolio(): void
+    {
+        [$website, $userId] = $this->requireAdminWebsite();
+        if (($website['template_key'] ?? '') !== 'portfolio') {
+            http_response_code(404);
+            echo 'Portfolio preview not found.';
+            return;
+        }
+        $portfolioModel = new Portfolio();
+        $portfolio = $portfolioModel->findForWebsiteOwner((int) $website['id'], $userId);
+        if (!$portfolio) {
+            http_response_code(404);
+            echo 'Portfolio draft not found.';
+            return;
+        }
+        $advancedModel = new AdvancedPortfolio();
+        header('Content-Type: text/html; charset=UTF-8');
+        header_remove('Cache-Control');
+        header('Cache-Control: private, no-store, no-cache, must-revalidate');
+        header('X-Content-Type-Options: nosniff');
+        echo View::render('portfolio/public', [
+            'app' => $this->config,
+            'website' => $website,
+            'portfolio' => $portfolio,
+            'projects' => $portfolioModel->projects((int) $portfolio['id']),
+            'advancedSettings' => $advancedModel->settings((int) $website['id'], $userId),
+            'advancedItems' => $advancedModel->visibleItems((int) $website['id'], $userId),
+            'noirSectionImages' => $advancedModel->noirSectionImages((int) $website['id'], $userId),
+            'customTemplate' => (new PortfolioTemplate())->customByKey((string) ($portfolio['template_key'] ?? '')),
+            'isPreview' => true,
+            'isPremiumUser' => true,
         ], '');
     }
 
