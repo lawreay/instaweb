@@ -159,6 +159,7 @@ foreach ($paymentSummary as $row) {
         <span class="ad-topbar-page">Admin overview</span>
       </div>
       <nav class="ad-topbar-actions" aria-label="Account actions">
+        <a class="ad-topbar-link ad-topbar-dashboard-switch" href="<?= $e($baseUrl . '/dashboard') ?>" title="Switch to client dashboard"><i data-lucide="layout-dashboard"></i><span>Client Dashboard</span></a>
         <a class="ad-topbar-link ad-topbar-view-site" href="<?= $e($baseUrl . '/') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i><span>View Site</span></a>
         <a class="ad-topbar-link" href="<?= $e($baseUrl . '/admin/notifications') ?>"><i data-lucide="bell"></i><span>Notifications</span></a>
         <a class="ad-topbar-link" href="<?= $e($baseUrl . '/profile') ?>"><i data-lucide="user-round"></i><span>Account</span></a>
