@@ -20,6 +20,7 @@ use App\Services\CredentialCipher;
 use App\Services\MailerService;
 use App\Services\NotificationManager;
 use App\Services\PublishingService;
+use App\Services\PublicSiteUrlService;
 use App\Services\ProjectStorageService;
 use App\Services\SitemapGenerator;
 
@@ -621,7 +622,10 @@ class AdminController extends Controller
 
         $this->view('admin/websites', [
             'title' => 'Websites',
-            'websites' => (new AdminRepository())->websites(),
+            'websites' => array_map(
+                fn (array $website): array => (new PublicSiteUrlService())->withPublicUrl($website, (string) ($this->config['base_url'] ?? '')),
+                (new AdminRepository())->websites()
+            ),
         ], 'layouts/admin');
     }
 

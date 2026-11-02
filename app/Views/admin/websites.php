@@ -36,6 +36,8 @@
       .iw-websites .iw-actions { display:flex; gap:8px; align-items:center; justify-content:flex-end; flex-wrap:wrap; }
       .iw-websites .iw-actions form { margin:0; }
       .iw-websites .iw-btn { min-height:44px; padding:0 16px; border-radius:10px; border:1px solid var(--iw-line); background:#fff; font-size:13px; font-weight:600; cursor:pointer; }
+      .iw-websites .iw-btn-view { border-color:#B9D8C5; color:var(--iw-green-dark); text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
+      .iw-websites .iw-btn-view.is-disabled { opacity:.5; cursor:not-allowed; }
       .iw-websites .iw-btn-suspend { border-color:#D9B4B0; color:var(--iw-danger); }
       .iw-websites .iw-btn-unsuspend { border-color:#B9D8C5; color:var(--iw-green-dark); }
       .iw-websites .iw-btn-delete { min-width:44px; padding:0; color:var(--iw-danger); display:inline-flex; align-items:center; justify-content:center; }
@@ -123,6 +125,11 @@
                 <td><?= htmlspecialchars($website['expires_at'] ?? 'No expiry', ENT_QUOTES, 'UTF-8') ?></td>
                 <td>
                   <div class="iw-actions">
+                    <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
+                      <a class="iw-btn iw-btn-view" href="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">View</a>
+                    <?php else: ?>
+                      <span class="iw-btn iw-btn-view is-disabled" aria-disabled="true" title="Publish this website before viewing it">View</span>
+                    <?php endif; ?>
                     <?php if ($isSystemTemplate): ?>
                       <span class="iw-protected">Protected system portfolio</span>
                     <?php elseif ($website['status'] === 'suspended'): ?>
