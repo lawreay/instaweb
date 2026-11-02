@@ -20,6 +20,7 @@ use App\Services\CredentialCipher;
 use App\Services\MailerService;
 use App\Services\NotificationManager;
 use App\Services\PublishingService;
+use App\Services\PublicSiteUrlService;
 use App\Services\ProjectStorageService;
 use App\Services\SitemapGenerator;
 
