@@ -98,7 +98,7 @@ class AdminRepository
     {
         $statement = $this->database->prepare(
             'SELECT w.id, w.website_name, w.slug, w.subdomain, w.custom_domain, w.status, w.is_system_template,
-                    w.storage_used, w.bandwidth_used, w.expires_at, w.created_at,
+                    w.storage_used, w.bandwidth_used, w.expires_at, w.template_key, w.created_at,
                     u.username, u.email
              FROM websites w
              INNER JOIN users u ON u.id = w.user_id
