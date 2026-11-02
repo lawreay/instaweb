@@ -127,8 +127,10 @@
                   <div class="iw-actions">
                     <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
                       <a class="iw-btn iw-btn-view" href="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">View</a>
+                    <?php elseif (in_array(($website['status'] ?? ''), ['draft', 'suspended'], true)): ?>
+                      <a class="iw-btn iw-btn-view" href="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/websites/preview?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">Preview</a>
                     <?php else: ?>
-                      <span class="iw-btn iw-btn-view is-disabled" aria-disabled="true" title="Publish this website before viewing it">View</span>
+                      <span class="iw-btn iw-btn-view is-disabled" aria-disabled="true">Unavailable</span>
                     <?php endif; ?>
                     <?php if ($isSystemTemplate): ?>
                       <span class="iw-protected">Protected system portfolio</span>
