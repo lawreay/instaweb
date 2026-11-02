@@ -63,6 +63,8 @@ return [
         '/admin/users' => [AdminController::class, 'users'],
         '/admin/users/edit' => [AdminController::class, 'editUser'],
         '/admin/websites' => [AdminController::class, 'websites'],
+        '/admin/websites/preview' => [PreviewController::class, 'adminShow'],
+        '/admin/websites/preview/file' => [PreviewController::class, 'adminFile'],
         '/admin/payments' => [AdminController::class, 'payments'],
         '/admin/reports' => [AdminController::class, 'reports'],
         '/admin/notifications' => [AdminController::class, 'notifications'],
