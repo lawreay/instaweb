@@ -3,7 +3,7 @@
 
   <section class="admin-pro-main iw-websites">
     <style>
-      .iw-websites { --iw-ink:#14201A; --iw-muted:#5B675F; --iw-line:#E4EAE5; --iw-green:#1F7A4D; --iw-green-dark:#14532D; --iw-danger:#A32A21; }
+      .iw-websites { --iw-ink:#14201A; --iw-muted:#5B675F; --iw-line:#E4EAE5; --iw-green:#1F7A4D; --iw-green-dark:#14532D; --iw-danger:#A32A21; padding-bottom:96px; }
       .iw-websites .iw-topbar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
       .iw-websites .iw-kicker { margin:0 0 4px; font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--iw-green); }
       .iw-websites .iw-topbar h1 { margin:0; font-size:32px; font-weight:800; letter-spacing:-.01em; color:var(--iw-ink); }
@@ -19,10 +19,11 @@
       .iw-websites .iw-filters { display:flex; gap:8px; flex-wrap:wrap; padding:0 20px 16px; }
       .iw-websites .iw-filter { min-height:44px; padding:0 16px; border-radius:999px; border:1px solid #D8E0DA; background:#fff; color:#3F4B44; font-size:13px; font-weight:600; cursor:pointer; }
       .iw-websites .iw-filter.is-active { background:var(--iw-ink); border-color:var(--iw-ink); color:#fff; }
-      .iw-websites .iw-table { width:100%; min-width:960px; border-collapse:collapse; margin:0; }
+      .iw-websites .iw-table { width:100%; min-width:1040px; border-collapse:collapse; margin:0; }
       .iw-websites .iw-table thead { background:#F9FBF9; }
       .iw-websites .iw-table th { text-align:left; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--iw-muted); padding:12px 16px; border-bottom:1px solid var(--iw-line); white-space:nowrap; }
-      .iw-websites .iw-table td { padding:16px; border-bottom:1px solid #EEF2EF; font-size:14px; color:var(--iw-ink); vertical-align:middle; }
+      .iw-websites .iw-table td { padding:14px 16px; border-bottom:1px solid #EEF2EF; font-size:14px; color:var(--iw-ink); vertical-align:middle; }
+      .iw-websites .iw-table th.iw-col-actions, .iw-websites .iw-table td.iw-col-actions { width:1%; white-space:nowrap; text-align:right; }
       .iw-websites .iw-site { display:flex; align-items:center; gap:12px; }
       .iw-websites .iw-avatar { width:40px; height:40px; flex:none; border-radius:12px; background:#EAF3EC; color:var(--iw-green-dark); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
       .iw-websites .iw-site-name { display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-weight:600; font-size:15px; }
@@ -33,16 +34,18 @@
       .iw-websites .status-chip.published { background:#DCF3E4; color:#14532D; }
       .iw-websites .status-chip.draft { background:#FDF0C9; color:#6B4A00; }
       .iw-websites .status-chip.suspended { background:#FBE0DE; color:#8A1C14; }
-      .iw-websites .iw-actions { display:flex; gap:8px; align-items:center; justify-content:flex-end; flex-wrap:wrap; }
+      .iw-websites .iw-actions { display:flex; flex-wrap:nowrap; gap:8px; align-items:center; justify-content:flex-end; }
       .iw-websites .iw-actions form { margin:0; }
-      .iw-websites .iw-btn { min-height:44px; padding:0 16px; border-radius:10px; border:1px solid var(--iw-line); background:#fff; font-size:13px; font-weight:600; cursor:pointer; }
+      .iw-websites .iw-btn { min-height:44px; padding:0 16px; border-radius:10px; border:1px solid var(--iw-line); background:#fff; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
       .iw-websites .iw-btn-view { border-color:#B9D8C5; color:var(--iw-green-dark); text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
-      .iw-websites .iw-btn-view.is-disabled { opacity:.5; cursor:not-allowed; }
+      .iw-websites .iw-btn-view.is-disabled { background:#F6F9F6; border-color:var(--iw-line); color:#7A857E; cursor:not-allowed; }
+      .iw-websites .iw-btn-view.is-disabled:hover { background:#F6F9F6; }
       .iw-websites .iw-btn-suspend { border-color:#D9B4B0; color:var(--iw-danger); }
       .iw-websites .iw-btn-unsuspend { border-color:#B9D8C5; color:var(--iw-green-dark); }
       .iw-websites .iw-btn-delete { min-width:44px; padding:0; color:var(--iw-danger); display:inline-flex; align-items:center; justify-content:center; }
       .iw-websites .iw-btn:hover { background:#F9FBF9; }
-      .iw-websites .iw-protected { font-size:13px; color:var(--iw-muted); }
+      .iw-websites .iw-protected { display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:0 14px; border-radius:10px; border:1px dashed #C4D0C8; background:#F6F9F6; font-size:13px; font-weight:600; color:var(--iw-muted); white-space:nowrap; }
+      .iw-websites .iw-protected svg { width:16px; height:16px; }
       .iw-websites .iw-empty td { text-align:center; color:var(--iw-muted); padding:40px 16px; }
       .iw-websites .iw-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:8px 20px; font-size:13px; color:var(--iw-muted); }
       .iw-websites .iw-footer a { font-weight:600; text-decoration:none; color:var(--iw-green); display:inline-flex; align-items:center; min-height:44px; }
@@ -90,7 +93,7 @@
               <th>Storage</th>
               <th>Bandwidth</th>
               <th>Expires</th>
-              <th style="text-align:right">Actions</th>
+              <th class="iw-col-actions">Actions</th>
             </tr>
           </thead>
           <tbody id="iwRows">
@@ -123,7 +126,7 @@
                 <td style="white-space:nowrap"><?= number_format(((int) $website['storage_used']) / 1048576, 2) ?> MB</td>
                 <td style="white-space:nowrap"><?= number_format(((int) $website['bandwidth_used']) / 1048576, 2) ?> MB</td>
                 <td><?= htmlspecialchars($website['expires_at'] ?? 'No expiry', ENT_QUOTES, 'UTF-8') ?></td>
-                <td>
+                <td class="iw-col-actions">
                   <div class="iw-actions">
                     <?php if (($website['status'] ?? '') === 'published' && !empty($website['public_url'])): ?>
                       <a class="iw-btn iw-btn-view" href="<?= htmlspecialchars($website['public_url'], ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer">View</a>
@@ -131,7 +134,7 @@
                       <span class="iw-btn iw-btn-view is-disabled" aria-disabled="true" title="Publish this website before viewing it">View</span>
                     <?php endif; ?>
                     <?php if ($isSystemTemplate): ?>
-                      <span class="iw-protected">Protected system portfolio</span>
+                      <span class="iw-protected" title="Protected system portfolio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Protected<span class="visually-hidden"> system portfolio</span></span>
                     <?php elseif ($website['status'] === 'suspended'): ?>
                       <form method="POST" action="<?= htmlspecialchars(($app['base_url'] ?? '') . '/admin/websites/unsuspend', ENT_QUOTES, 'UTF-8') ?>">
                         <?= \App\Core\Csrf::field() ?>
