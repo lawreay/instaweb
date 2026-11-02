@@ -135,6 +135,7 @@ $navGroups = [
     <button class="iw-sidebar-collapse" type="button" data-sidebar-collapse aria-label="Expand sidebar" aria-expanded="false" aria-controls="adminSidebar" title="Expand sidebar">
       <i data-lucide="panel-left-open" aria-hidden="true"></i><span data-collapse-label>Expand</span>
     </button>
+    <a class="iw-sidebar-site" href="<?= $sidebarEsc($sidebarBase . '/dashboard') ?>" title="Switch to client dashboard" aria-label="Switch to client dashboard"><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Client dashboard</span></a>
     <a class="iw-sidebar-site" href="<?= $sidebarEsc($sidebarBase . '/') ?>" target="_blank" rel="noopener" title="View public site" aria-label="View public site (opens in a new tab)"><i data-lucide="external-link" aria-hidden="true"></i><span>View public site</span></a>
     <form method="POST" action="<?= $sidebarEsc($sidebarBase . '/logout') ?>" class="admin-pro-logout">
       <?= \App\Core\Csrf::field() ?>
