@@ -621,7 +621,10 @@ class AdminController extends Controller
 
         $this->view('admin/websites', [
             'title' => 'Websites',
-            'websites' => (new AdminRepository())->websites(),
+            'websites' => array_map(
+                fn (array $website): array => (new PublicSiteUrlService())->withPublicUrl($website, (string) ($this->config['base_url'] ?? '')),
+                (new AdminRepository())->websites()
+            ),
         ], 'layouts/admin');
     }
 
