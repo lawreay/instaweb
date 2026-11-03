@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\View;
 use App\Models\Portfolio;
+use App\Models\AdminRepository;
 use App\Models\AdvancedPortfolio;
 use App\Models\PortfolioTemplate;
 use App\Core\Session;
@@ -158,6 +159,133 @@ class PreviewController extends Controller
             },
             $html
         ) ?? $html;
+    }
+
+
+    /**
+     * Admin-only preview of any website draft, without publishing it.
+     */
+    public function adminShow(): void
+    {
+        [$website, $userId] = $this->requireAdminWebsite();
+
+
+        $this->view('preview/show', [
+            'title' => 'Admin Draft Preview',
+            'website' => $website,
+            'liveUrl' => '',
+            'adminPreview' => true,
+        ], '');
+    }
+
+
+    /** Render a portfolio draft inside the sandboxed admin preview frame. */
+    public function adminPortfolio(): void
+    {
+        [$website, $userId] = $this->requireAdminWebsite();
+        if (($website['template_key'] ?? '') !== 'portfolio') {
+            http_response_code(404);
+            echo 'Portfolio preview not found.';
+            return;
+        }
+        $portfolioModel = new Portfolio();
+        $portfolio = $portfolioModel->findForWebsiteOwner((int) $website['id'], $userId);
+        if (!$portfolio) {
+            http_response_code(404);
+            echo 'Portfolio draft not found.';
+            return;
+        }
+        $advancedModel = new AdvancedPortfolio();
+        header('Content-Type: text/html; charset=UTF-8');
+        header_remove('Cache-Control');
+        header('Cache-Control: private, no-store, no-cache, must-revalidate');
+        header('X-Content-Type-Options: nosniff');
+        echo View::render('portfolio/public', [
+            'app' => $this->config,
+            'website' => $website,
+            'portfolio' => $portfolio,
+            'projects' => $portfolioModel->projects((int) $portfolio['id']),
+            'advancedSettings' => $advancedModel->settings((int) $website['id'], $userId),
+            'advancedItems' => $advancedModel->visibleItems((int) $website['id'], $userId),
+            'noirSectionImages' => $advancedModel->noirSectionImages((int) $website['id'], $userId),
+            'customTemplate' => (new PortfolioTemplate())->customByKey((string) ($portfolio['template_key'] ?? '')),
+            'isPreview' => true,
+            'isPremiumUser' => true,
+        ], '');
+    }
+
+    /**
+     * Serve a private draft asset to an authenticated administrator.
+     */
+    public function adminFile(): void
+    {
+        [$website, $userId] = $this->requireAdminWebsite();
+        $path = (string) $this->input('path', 'index.html');
+
+        try {
+            $file = (new ProjectStorageService())->downloadableFile($userId, $website['slug'], $path);
+        } catch (\\Throwable) {
+            http_response_code(404);
+            echo 'Preview file not found.';
+            return;
+        }
+
+        $extension = strtolower(pathinfo($file['filename'], PATHINFO_EXTENSION));
+        $contentTypes = [
+            'html' => 'text/html; charset=UTF-8', 'htm' => 'text/html; charset=UTF-8',
+            'css' => 'text/css; charset=UTF-8', 'js' => 'application/javascript; charset=UTF-8',
+            'json' => 'application/json; charset=UTF-8', 'txt' => 'text/plain; charset=UTF-8',
+            'md' => 'text/plain; charset=UTF-8', 'svg' => 'image/svg+xml',
+        ];
+        header('Content-Type: ' . ($contentTypes[$extension] ?? $file['mime']));
+        header('X-Content-Type-Options: nosniff');
+        header_remove('Cache-Control');
+        header('Cache-Control: private, no-store, no-cache, must-revalidate');
+        header('Pragma: no-cache');
+
+        if (in_array($extension, ['html', 'htm'], true)) {
+            $html = file_get_contents($file['absolute_path']);
+            $baseDir = dirname($file['relative_path']);
+            $baseDir = $baseDir === '.' ? '' : trim($baseDir, '/');
+            $route = rtrim((string) ($this->config['base_url'] ?? ''), '/') . '/admin/websites/preview/file?id=' . (int) $website['id'] . '&path=';
+            echo preg_replace_callback(
+                '/\\b(src|href)=["\\']([^"\\']+)["\\']/i',
+                static function (array $match) use ($route, $baseDir): string {
+                    $value = $match[2];
+                    if ($value === '' || preg_match('#^(https?:)?//#i', $value) || str_starts_with($value, 'data:') || str_starts_with($value, '#') || str_starts_with($value, 'mailto:')) {
+                        return $match[0];
+                    }
+                    $path = ltrim($value, '/');
+                    if ($baseDir !== '' && !str_starts_with($value, '/')) {
+                        $path = $baseDir . '/' . $path;
+                    }
+                    return $match[1] . '="' . htmlspecialchars($route . rawurlencode($path), ENT_QUOTES, 'UTF-8') . '"';
+                },
+                $html === false ? '' : $html
+            );
+            return;
+        }
+        readfile($file['absolute_path']);
+    }
+
+    /** Resolve a website only after confirming the current account is an administrator. */
+    private function requireAdminWebsite(): array
+    {
+        if (!AuthService::check()) {
+            $this->redirectTo('/login');
+        }
+        if (!AuthService::isAdmin()) {
+            http_response_code(403);
+            echo 'Forbidden';
+            exit;
+        }
+        $website = (new AdminRepository())->website((int) $this->input('id', 0));
+        if (!$website) {
+            http_response_code(404);
+            echo 'Website not found.';
+            exit;
+        }
+        return [$website, (int) $website['user_id']];
     }
 
     /**

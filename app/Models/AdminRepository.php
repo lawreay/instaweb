@@ -117,7 +117,7 @@ class AdminRepository
     public function website(int $id): ?array
     {
         $statement = $this->database->prepare(
-            'SELECT w.id, w.user_id, w.website_name, w.slug, w.subdomain, w.custom_domain, w.status, w.is_system_template,
+            'SELECT w.id, w.user_id, w.website_name, w.slug, w.subdomain, w.custom_domain, w.status, w.is_system_template, w.template_key,
                     w.storage_used, w.bandwidth_used, w.expires_at, w.created_at,
                     u.username, u.email
              FROM websites w
