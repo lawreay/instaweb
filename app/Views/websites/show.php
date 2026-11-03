@@ -3,7 +3,7 @@ $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
 $liveUrl = (string) ($liveUrl ?? '');
 $websiteId = (int) $website['id'];
 $templateKey = strtolower((string) ($website['template_key'] ?? 'blank'));
-$managedContentType = !\\App\\Services\\WebsiteEditingPolicy::canUseFileManager($website);
+$managedContentType = !\App\Services\WebsiteEditingPolicy::canUseFileManager($website);
 $isSystemTemplate = !empty($website['is_system_template']);
 $status = (string) ($website['status'] ?? 'draft');
 $e = static fn ($value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
