@@ -25,7 +25,8 @@ class BusinessWebsiteController extends Controller
         try {
             $service=new BusinessWebsiteService();
             $content=$service->validate($this->request(),(string)$website['website_name']);
-            (new BusinessWebsiteContent())->saveForOwner($id,$userId,$content);\n            (new Website())->updateProject($id,$userId,$content['business_name']);
+            (new BusinessWebsiteContent())->saveForOwner($id,$userId,$content);
+            (new Website())->updateProject($id,$userId,$content['business_name']);
             $service->writeDraft($userId,(string)$website['slug'],$content);
             $storage=new ProjectStorageService();
             (new Website())->updateStorageUsed($id,$storage->directorySize($storage->projectPath($userId,(string)$website['slug'])));
