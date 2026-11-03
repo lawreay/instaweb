@@ -32,7 +32,7 @@ businessCheck(str_contains($routes, "BusinessWebsiteController::class, 'save'"),
 businessCheck(str_contains($controller, 'Csrf::validate'), 'Business save must validate CSRF.');
 businessCheck(str_contains($controller, 'findForUser'), 'Business editor must load an owner-scoped website.');
 businessCheck(str_contains($model, "w.template_key = 'business'"), 'Business content queries must enforce the template type.');
-businessCheck(str_contains($detail, "'business' => $baseUrl . '/dashboard/websites/business?id='"), 'Website management page does not link to the Business customizer.');
+businessCheck(str_contains($detail, "\$baseUrl . '/dashboard/websites/business?id='"), 'Website management page does not link to the Business customizer.');
 businessCheck(str_contains($view, 'service_3_text'), 'Business customizer is missing service fields.');
 businessCheck(str_contains($migration, 'business_website_content'), 'Business content migration is missing its table.');
 
