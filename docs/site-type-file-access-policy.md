@@ -8,9 +8,10 @@ InstaWeb does not offer arbitrary PHP hosting to clients. Static projects accept
 
 - **WordPress:** Clients use the WordPress dashboard for site content and administration. InstaWeb File Manager and Code Editor routes are disabled for WordPress projects.
 - **Portfolio:** Portfolio content is managed through the dedicated portfolio editing flow. InstaWeb File Manager and Code Editor routes are disabled for portfolio projects.
-- **Static projects:** File Manager and Code Editor remain available subject to the existing upload and path-safety validation.
+- **Blank projects:** File Manager and Code Editor remain available subject to the existing upload and path-safety validation.
+- **Other system templates (Business, School, Church, Blog, and future template types):** Raw file access is disabled. Clients use the dedicated visual customizer for the selected site type.
 
-The restriction is enforced in the controllers, not just by hiding dashboard links. Direct GET, download/export, upload, ZIP import, create, move, copy, and delete requests all resolve the owned website and check its saved template type before proceeding.
+The restriction is enforced through `WebsiteEditingPolicy` in the controllers, not just by hiding dashboard links. Only an explicit `template_key = 'blank'` grants raw file access; missing or unknown template keys fail closed. Direct GET, download/export, upload, ZIP import, create, move, copy, and delete requests all resolve the owned website and check its saved template type before proceeding.
 
 ## Persisted project type
 
@@ -25,6 +26,7 @@ Fresh installations should use the updated `database/schema.sql` or `database/sc
 - Confirm the migration ran successfully before deploying the code; the application queries `websites.template_key`.
 - For a WordPress project, verify the File Manager link is hidden and direct visits to file-manager and code-editor URLs redirect to the project page.
 - Repeat the same checks for a portfolio project.
-- Verify static projects still show File Manager and Code Editor.
+- Verify Blank projects still show File Manager and Code Editor.
+- Verify Business, School, Church, Blog, Portfolio, and WordPress projects hide both tools and reject direct route access.
 - Verify `.php`, `.phtml`, and `.phar` uploads/manual creation/import remain rejected.
 - Verify public site URLs are unchanged; this policy concerns authenticated management tools, not visiting a published public website.
