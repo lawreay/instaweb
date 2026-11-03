@@ -489,8 +489,8 @@ class FileManagerController extends Controller
     }
 
     /**
-     * File operations are unavailable for managed WordPress and portfolio projects.
-     * Their files/content must be handled by their dedicated runtime/editor.
+     * Raw file operations are available only for Blank projects.
+     * Template-based projects must use their dedicated editing experience.
      */
     private function assertFileManagerAllowed(array $website): void
     {
