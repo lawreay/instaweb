@@ -9,6 +9,7 @@ use App\Models\Website;
 use App\Services\AuthService;
 use App\Services\ProjectStorageService;
 use App\Services\PublicSiteUrlService;
+use App\Services\WebsiteEditingPolicy;
 
 /**
  * Handles browser-based editing for safe static text files.
@@ -141,16 +142,13 @@ class EditorController extends Controller
      */
     private function assertCodeEditorAllowed(array $website): void
     {
-        $templateKey = strtolower((string) ($website['template_key'] ?? 'blank'));
-        if (!in_array($templateKey, ['wordpress', 'portfolio'], true)) {
+        if (WebsiteEditingPolicy::canUseCodeEditor($website)) {
             return;
         }
 
         Session::flash(
             'error',
-            $templateKey === 'wordpress'
-                ? 'The code editor is disabled for WordPress projects.'
-                : 'The code editor is disabled for portfolio projects. Use the portfolio editor.'
+            'The code editor is available only for websites created from the Blank template.'
         );
         $this->redirectTo('/dashboard/websites/show?id=' . (int) $website['id']);
     }
