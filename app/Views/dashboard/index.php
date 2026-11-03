@@ -84,7 +84,7 @@ $baseUrl = (string) ($app['base_url'] ?? '');
                 $websiteStatus = strtolower((string) ($website['status'] ?? 'unknown'));
                 $manageUrl = $baseUrl . '/dashboard/websites/show?id=' . $websiteId;
                 $filesUrl = $baseUrl . '/dashboard/websites/files?id=' . $websiteId;
-                $canManageFiles = \\App\\Services\\WebsiteEditingPolicy::canUseFileManager($website);
+                $canManageFiles = \App\Services\WebsiteEditingPolicy::canUseFileManager($website);
                 $publicUrl = trim((string) ($website['public_url'] ?? ''));
               ?>
               <article class="iw-site">
