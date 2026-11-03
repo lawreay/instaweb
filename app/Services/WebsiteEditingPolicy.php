@@ -1,6 +1,6 @@
 <?php
 
-namespace App\\Services;
+namespace App\Services;
 
 /**
  * Central policy for raw project-file access.
