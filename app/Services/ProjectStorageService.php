@@ -57,7 +57,11 @@ class ProjectStorageService
     {
         $templateLabel = $this->templateLabel($template);
         $safeTitle = htmlspecialchars($websiteName, ENT_QUOTES, 'UTF-8');
-        $content = <<<HTML
+
+        if ($template === 'business') {
+            $content = str_replace('__SITE_TITLE__', $safeTitle, $this->businessStarterIndex());
+        } else {
+            $content = <<<HTML
 <!doctype html>
 <html lang="en">
 <head>
@@ -93,6 +97,7 @@ class ProjectStorageService
 </body>
 </html>
 HTML;
+        }
 
         $target = $projectPath . DIRECTORY_SEPARATOR . 'index.html';
         if (file_put_contents($target, $content) === false) {
@@ -100,6 +105,72 @@ HTML;
         }
 
         return filesize($target) ?: strlen($content);
+    }
+
+
+    /**
+     * A complete, responsive business landing page. Content is deliberately
+     * static so customers can edit it with the existing file manager/editor.
+     */
+    private function businessStarterIndex(): string
+    {
+        return <<<'HTML'
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A professional business website. Update this description with your business details.">
+  <meta name="theme-color" content="#10251f">
+  <title>__SITE_TITLE__</title>
+  <style>
+    :root{--ink:#17231f;--muted:#66736d;--green:#176b50;--green-dark:#10251f;--mint:#e8f1eb;--paper:#fbfaf7;--line:#e6e9e4;--white:#fff;--gold:#d8a85b}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6}a{color:inherit}img{max-width:100%}.container{width:min(1160px,calc(100% - 48px));margin:auto}
+    .topbar{background:var(--green-dark);color:#dce8e1;font-size:13px}.topbar .container{display:flex;justify-content:space-between;gap:16px;padding:9px 0}.topbar a{text-decoration:none}
+    header{background:rgba(251,250,247,.96);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;backdrop-filter:blur(12px)}.nav{min-height:78px;display:flex;align-items:center;justify-content:space-between;gap:28px}.brand{font-size:21px;font-weight:850;letter-spacing:-.7px;text-decoration:none}.brand-mark{display:inline-grid;place-items:center;width:34px;height:34px;margin-right:9px;border-radius:11px;background:var(--green);color:white;font-size:15px}.nav-links{display:flex;align-items:center;gap:30px}.nav-links a{text-decoration:none;color:#4e5d55;font-size:14px;font-weight:650}.nav-links a:hover{color:var(--green)}.nav-cta,.button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 21px;border-radius:7px;background:var(--green);color:white;text-decoration:none;font-weight:750;font-size:14px;border:1px solid var(--green);transition:.2s}.nav-cta:hover,.button:hover{background:var(--green-dark);border-color:var(--green-dark);transform:translateY(-1px)}.menu-toggle{display:none;border:1px solid var(--line);background:white;border-radius:7px;padding:10px 13px;font:inherit}
+    .hero{padding:94px 0 88px;background:radial-gradient(ellipse at 82% 25%,#e2ecdf 0,transparent 38%),var(--paper)}.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:70px;align-items:center}.eyebrow{display:flex;align-items:center;gap:10px;color:var(--green);font-size:12px;font-weight:850;letter-spacing:1.7px;text-transform:uppercase}.eyebrow:before{content:"";width:28px;height:2px;background:var(--gold)}h1,h2,h3,p{margin-top:0}.hero h1{font-size:clamp(42px,6vw,70px);line-height:1.04;letter-spacing:-3px;max-width:680px;margin:22px 0}.hero h1 span{color:var(--green)}.hero-copy{max-width:540px;color:var(--muted);font-size:18px}.hero-actions{display:flex;gap:13px;flex-wrap:wrap;margin-top:30px}.button.secondary{background:transparent;color:var(--ink);border-color:#cbd4cc}.hero-note{margin-top:27px;color:var(--muted);font-size:13px}.visual{min-height:430px;position:relative;display:grid;place-items:center}.visual-panel{width:min(100%,440px);height:390px;border-radius:16px;background:linear-gradient(145deg,#244f3e,#10251f);position:relative;overflow:hidden;box-shadow:0 28px 65px #10251f25}.visual-panel:before,.visual-panel:after{content:"";position:absolute;border:1px solid #ffffff25;border-radius:50%;width:370px;height:370px;right:-100px;top:-95px}.visual-panel:after{width:250px;height:250px;right:-35px;top:-35px}.visual-copy{position:absolute;inset:auto 32px 34px;color:white;z-index:1}.visual-copy small{color:#d8bd8e;letter-spacing:2px;text-transform:uppercase;font-size:11px;font-weight:800}.visual-copy strong{display:block;font-size:34px;line-height:1.1;max-width:280px;margin-top:12px}.visual-number{position:absolute;top:32px;left:32px;color:#ffffffc7;font-size:12px;letter-spacing:2px}.floating-card{position:absolute;right:-15px;top:62px;background:white;padding:17px 20px;border-radius:10px;box-shadow:0 15px 40px #17231f18;font-size:13px}.floating-card strong{display:block;font-size:22px;color:var(--green)}
+    .trust{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:white}.trust .container{display:grid;grid-template-columns:repeat(3,1fr);padding:25px 0}.trust-item{padding:5px 28px;border-right:1px solid var(--line)}.trust-item:first-child{padding-left:0}.trust-item:last-child{border:0}.trust-item strong{display:block;font-size:15px}.trust-item span{font-size:13px;color:var(--muted)}
+    section.content-section{padding:88px 0}.section-head{max-width:650px;margin-bottom:36px}.section-head .eyebrow{margin-bottom:15px}.section-head h2{font-size:clamp(30px,4vw,44px);letter-spacing:-1.6px;line-height:1.12;margin-bottom:13px}.section-head p{color:var(--muted);font-size:16px}.services{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.service{background:white;border:1px solid var(--line);border-radius:12px;padding:28px;min-height:225px}.service-icon{width:44px;height:44px;border-radius:12px;background:var(--mint);display:grid;place-items:center;color:var(--green);font-size:20px;font-weight:800}.service h3{font-size:19px;margin:21px 0 8px}.service p{color:var(--muted);font-size:14px;margin-bottom:0}.about{background:var(--mint)}.about-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:75px;align-items:center}.about-art{min-height:330px;border-radius:14px;background:linear-gradient(135deg,#d5e3d6,#9fbca7);display:grid;place-items:center;color:#24543e;font-size:68px;font-weight:900;letter-spacing:-5px}.about-copy h2{font-size:clamp(30px,4vw,43px);line-height:1.12;letter-spacing:-1.5px}.about-copy p{color:var(--muted)}.check-list{padding:0;list-style:none;display:grid;gap:11px;margin:24px 0 0}.check-list li:before{content:"✓";color:var(--green);font-weight:900;margin-right:11px}
+    .process-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}.step{border-top:2px solid var(--green);padding-top:18px}.step span{color:var(--gold);font-size:12px;font-weight:900;letter-spacing:1px}.step h3{margin:10px 0 7px}.step p{color:var(--muted);font-size:14px}.cta{background:var(--green-dark);color:white;padding:65px 0}.cta-inner{display:flex;align-items:center;justify-content:space-between;gap:28px}.cta h2{font-size:clamp(28px,4vw,40px);line-height:1.15;max-width:650px;margin:0}.cta .button{background:white;color:var(--green-dark);border-color:white;white-space:nowrap}
+    footer{background:#0b1b15;color:#dbe5df;padding:48px 0 24px}.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;padding-bottom:38px}.footer-brand{font-size:20px;font-weight:850}.footer-grid p,.footer-grid a{color:#aabbb0;font-size:13px}.footer-grid a{display:block;text-decoration:none;margin:7px 0}.footer-grid h3{font-size:13px;color:white}.copyright{border-top:1px solid #ffffff20;padding-top:20px;color:#93a69a;font-size:12px}
+    @media(max-width:800px){.container{width:min(100% - 32px,600px)}.nav{min-height:68px}.menu-toggle{display:block}.nav-links{display:none;position:absolute;top:68px;left:0;right:0;padding:18px 24px 24px;background:var(--paper);border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;gap:18px}.nav-links.is-open{display:flex}.nav-cta{display:none}.hero{padding:62px 0}.hero-grid,.about-grid{grid-template-columns:1fr;gap:32px}.hero h1{letter-spacing:-2px}.visual{min-height:340px}.visual-panel{height:320px}.floating-card{right:0}.trust .container{grid-template-columns:1fr;gap:15px}.trust-item,.trust-item:first-child{padding:0;border:0}.services,.process-grid{grid-template-columns:1fr}.content-section{padding:65px 0!important}.about-art{min-height:230px}.cta-inner{align-items:flex-start;flex-direction:column}.footer-grid{grid-template-columns:1fr 1fr}.footer-grid>div:first-child{grid-column:1/-1}}
+    @media(max-width:420px){.footer-grid{grid-template-columns:1fr}.footer-grid>div:first-child{grid-column:auto}.hero-actions .button{width:100%}.visual-copy strong{font-size:29px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+  </style>
+</head>
+<body>
+  <div class="topbar"><div class="container"><span>Professional service. Personal attention.</span><a href="#contact">Get in touch ↗</a></div></div>
+  <header><nav class="container nav" aria-label="Main navigation">
+    <a class="brand" href="#"><span class="brand-mark">B</span>__SITE_TITLE__</a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">Menu</button>
+    <div class="nav-links" id="site-menu"><a href="#services">Services</a><a href="#about">About</a><a href="#process">How we work</a><a href="#contact">Contact</a></div>
+    <a class="nav-cta" href="#contact">Start a conversation</a>
+  </nav></header>
+  <main>
+    <section class="hero"><div class="container hero-grid">
+      <div><div class="eyebrow">Welcome to __SITE_TITLE__</div><h1>Good work.<br><span>Built around you.</span></h1><p class="hero-copy">We help people and businesses move forward with reliable services, thoughtful solutions and a commitment to doing things properly.</p><div class="hero-actions"><a class="button" href="#contact">Work with us <span aria-hidden="true">&nbsp;↗</span></a><a class="button secondary" href="#services">Explore services</a></div><p class="hero-note">Replace this introduction with a short, specific description of your business.</p></div>
+      <div class="visual" aria-label="Decorative business illustration"><div class="visual-panel"><div class="visual-number">__SITE_TITLE__ / EST. 20XX</div><div class="visual-copy"><small>Thoughtful by design</small><strong>Making your next step a better one.</strong></div></div><div class="floating-card"><strong>01 — 03</strong>What we do</div></div>
+    </div></section>
+    <div class="trust"><div class="container"><div class="trust-item"><strong>Personal approach</strong><span>Solutions shaped around your needs</span></div><div class="trust-item"><strong>Quality focused</strong><span>Care in every detail and delivery</span></div><div class="trust-item"><strong>Here to help</strong><span>Clear communication from start to finish</span></div></div></div>
+    <section class="content-section" id="services"><div class="container"><div class="section-head"><div class="eyebrow">What we do</div><h2>Services that make a difference.</h2><p>Show visitors exactly how your business can help them. Rename these cards and replace the descriptions with your real services.</p></div><div class="services">
+      <article class="service"><div class="service-icon" aria-hidden="true">01</div><h3>Service One</h3><p>Describe your first core service, who it helps and the result customers can expect.</p></article>
+      <article class="service"><div class="service-icon" aria-hidden="true">02</div><h3>Service Two</h3><p>Explain another service in plain language. Focus on customer needs, not jargon.</p></article>
+      <article class="service"><div class="service-icon" aria-hidden="true">03</div><h3>Service Three</h3><p>Highlight a specialist service, product or area where your business stands out.</p></article>
+    </div></div></section>
+    <section class="content-section about" id="about"><div class="container about-grid"><div class="about-art" aria-hidden="true">YOUR<br>STORY.</div><div class="about-copy"><div class="eyebrow">About the business</div><h2>A business built on doing things well.</h2><p>Introduce your business, its experience and the people behind it. Share what matters to you and why customers choose to work with you.</p><ul class="check-list"><li>Explain what makes your approach different</li><li>Share your experience or credentials</li><li>Show customers what they can expect</li></ul></div></div></section>
+    <section class="content-section" id="process"><div class="container"><div class="section-head"><div class="eyebrow">How we work</div><h2>Simple from the first conversation.</h2><p>Set expectations so customers know what happens next.</p></div><div class="process-grid"><article class="step"><span>STEP 01</span><h3>We listen</h3><p>Tell us what you need and what a successful result looks like.</p></article><article class="step"><span>STEP 02</span><h3>We plan</h3><p>We agree on the right approach, timing and next steps.</p></article><article class="step"><span>STEP 03</span><h3>We deliver</h3><p>We do the work and keep you informed along the way.</p></article></div></div></section>
+    <section class="cta" id="contact"><div class="container cta-inner"><h2>Have a project in mind? Let's talk about what you need.</h2><a class="button" href="mailto:replace-with-your-email@example.com">Contact the business ↗</a></div></section>
+  </main>
+  <footer><div class="container"><div class="footer-grid"><div><div class="footer-brand">__SITE_TITLE__</div><p>Replace this line with your business tagline and location.</p></div><div><h3>Explore</h3><a href="#services">Services</a><a href="#about">About us</a><a href="#process">How we work</a></div><div><h3>Contact</h3><a href="mailto:replace-with-your-email@example.com">replace-with-your-email@example.com</a><a href="#contact">Add your phone / WhatsApp number</a><a href="#contact">Add your business location</a></div></div><div class="copyright">© <span id="year">2026</span> __SITE_TITLE__. All rights reserved. Update this footer with your business details.</div></div></footer>
+  <script>
+    const menuButton=document.querySelector('.menu-toggle');const menu=document.querySelector('#site-menu');
+    menuButton.addEventListener('click',()=>{const open=menu.classList.toggle('is-open');menuButton.setAttribute('aria-expanded',String(open));});
+    menu.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>{menu.classList.remove('is-open');menuButton.setAttribute('aria-expanded','false');}));
+    document.querySelector('#year').textContent=String(new Date().getFullYear());
+  </script>
+</body>
+</html>
+HTML;
     }
 
     /**
