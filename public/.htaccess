@@ -1,20 +1,28 @@
+
 Options -Indexes
+<<<<<<< Updated upstream
 DirectoryIndex index.php index.html index.htm
+=======
+
+DirectoryIndex index.php index.html index.htm
+
+>>>>>>> Stashed changes
 RewriteEngine On
-Header always set X-Content-Type-Options "nosniff"
-Header always set X-Frame-Options "SAMEORIGIN"
-Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
-<FilesMatch "\.(?:php|phtml|phar)$">
-	# Let PHP retain stricter route-specific policies (for example, the
-	# private preview response) while still protecting ordinary PHP routes.
-	Header setifempty Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+# Prevent direct access to sensitive files
+<FilesMatch "^(\.env|\.git|composer\.(json|lock)|AGENTS\.md)$">
+    Require all denied
 </FilesMatch>
 
-<FilesMatch "\.(?:css|js|png|jpg|jpeg|gif|webp|svg|ico|woff2?)$">
-	Header set Cache-Control "public, max-age=3600, must-revalidate"
+# Block access to hidden files and directories
+<FilesMatch "^\.">
+    Require all denied
 </FilesMatch>
 
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . index.php [L,QSA]
+# Allow existing files and directories to be served directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Route all other requests through the application
+RewriteRule ^ index.php [L,QSA]
