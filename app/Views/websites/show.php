@@ -14,9 +14,16 @@ $formatBytes = static function (int $bytes): string {
 
     return number_format($bytes / 1048576, 2) . ' MB';
 };
-$editUrl = $templateKey === 'portfolio'
-    ? $baseUrl . '/dashboard/websites/portfolio?id=' . $websiteId
-    : $baseUrl . '/dashboard/websites/edit?id=' . $websiteId;
+$editUrl = match ($templateKey) {
+    'portfolio' => $baseUrl . '/dashboard/websites/portfolio?id=' . $websiteId,
+    'business' => $baseUrl . '/dashboard/websites/business?id=' . $websiteId,
+    default => $baseUrl . '/dashboard/websites/edit?id=' . $websiteId,
+};
+$editLabel = match ($templateKey) {
+    'portfolio' => 'Edit portfolio',
+    'business' => 'Customize website',
+    default => 'Edit details',
+};
 $previewUrl = $baseUrl . '/dashboard/websites/preview?id=' . $websiteId;
 $filesUrl = $baseUrl . '/dashboard/websites/files?id=' . $websiteId;
 $codeUrl = $baseUrl . '/dashboard/websites/editor?id=' . $websiteId . '&path=index.html';
@@ -151,7 +158,7 @@ $templateLabel = ucfirst(str_replace(['-', '_'], ' ', $templateKey));
     <div class="wd-tools">
       <a class="wd-tool wd-tool--primary" href="<?= $e($editUrl) ?>">
         <i data-lucide="<?= $templateKey === 'portfolio' ? 'panels-top-left' : 'pencil' ?>" aria-hidden="true"></i>
-        <strong><?= $templateKey === 'portfolio' ? 'Edit portfolio' : 'Edit details' ?></strong>
+        <strong><?= $e($editLabel) ?></strong>
         <span><?= $templateKey === 'portfolio' ? 'Set up your profile, choose a design and add your work.' : ($templateKey === 'business' ? 'Edit your business information, services and contact details.' : 'Update the project name and settings.') ?></span>
       </a>
       <a class="wd-tool" href="<?= $e($previewUrl) ?>">
