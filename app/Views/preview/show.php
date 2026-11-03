@@ -1,4 +1,4 @@
-<?php $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/'); ?>
+<?php $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/'); $canManageFiles = \App\Services\WebsiteEditingPolicy::canUseFileManager($website); ?>
 <section class="iw-client-page iw-preview-page">
 
     <header class="client-header">
@@ -9,8 +9,10 @@
       </div>
       <div class="client-header-actions">
         <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/show?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage site</a>
-        <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> File Manager</a>
-        <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/editor?id=' . (int) $website['id'] . '&path=index.html', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="code-2"></i> Edit index.html</a>
+        <?php if ($canManageFiles): ?>
+          <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/files?id=' . (int) $website['id'], ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder-open"></i> File Manager</a>
+          <a class="btn btn-outline-primary" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/editor?id=' . (int) $website['id'] . '&path=index.html', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="code-2"></i> Edit index.html</a>
+        <?php endif; ?>
         <?php if ($liveUrl !== ''): ?>
           <a class="btn btn-primary" href="<?= htmlspecialchars($liveUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank" rel="noopener noreferrer"><i data-lucide="external-link"></i> Visit live site</a>
         <?php endif; ?>

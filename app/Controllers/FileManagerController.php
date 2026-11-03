@@ -14,6 +14,7 @@ use App\Services\PublicSiteUrlService;
 use App\Services\ProjectArchiveService;
 use App\Services\ProjectStorageService;
 use App\Services\UploadValidationService;
+use App\Services\WebsiteEditingPolicy;
 
 /**
  * Handles draft website file management for authenticated users.
@@ -488,21 +489,18 @@ class FileManagerController extends Controller
     }
 
     /**
-     * File operations are unavailable for managed WordPress and portfolio projects.
-     * Their files/content must be handled by their dedicated runtime/editor.
+     * Raw file operations are available only for Blank projects.
+     * Template-based projects must use their dedicated editing experience.
      */
     private function assertFileManagerAllowed(array $website): void
     {
-        $templateKey = strtolower((string) ($website['template_key'] ?? 'blank'));
-        if (!in_array($templateKey, ['wordpress', 'portfolio'], true)) {
+        if (WebsiteEditingPolicy::canUseFileManager($website)) {
             return;
         }
 
         Session::flash(
             'error',
-            $templateKey === 'wordpress'
-                ? 'The file manager is disabled for WordPress projects. Manage WordPress through its own dashboard.'
-                : 'The file manager is disabled for portfolio projects. Portfolio content must be managed through the portfolio editor.'
+            'The file manager is available only for websites created from the Blank template.'
         );
         $this->redirectTo('/dashboard/websites/show?id=' . (int) $website['id']);
     }

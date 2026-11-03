@@ -3,7 +3,7 @@ $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
 $liveUrl = (string) ($liveUrl ?? '');
 $websiteId = (int) $website['id'];
 $templateKey = strtolower((string) ($website['template_key'] ?? 'blank'));
-$managedContentType = in_array($templateKey, ['wordpress', 'portfolio'], true);
+$managedContentType = !\App\Services\WebsiteEditingPolicy::canUseFileManager($website);
 $isSystemTemplate = !empty($website['is_system_template']);
 $status = (string) ($website['status'] ?? 'draft');
 $e = static fn ($value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
@@ -172,10 +172,8 @@ $templateLabel = ucfirst(str_replace(['-', '_'], ' ', $templateKey));
         </a>
       <?php endif; ?>
     </div>
-    <?php if ($templateKey === 'wordpress'): ?>
-      <p class="wd-note">WordPress files are managed by WordPress. File Manager and the code editor are disabled for this project.</p>
-    <?php elseif ($templateKey === 'portfolio'): ?>
-      <p class="wd-note">Portfolio content is managed through the portfolio editor. File Manager and the code editor are disabled for this project.</p>
+    <?php if ($managedContentType): ?>
+      <p class="wd-note">This website uses a managed system template. Edit its content through the dedicated customization experience; raw files and source code are not available.</p>
     <?php endif; ?>
 
     <!-- Details -->

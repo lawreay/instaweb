@@ -22,7 +22,7 @@ $baseUrl = (string) ($app['base_url'] ?? '');
     <div>
       <p class="iw-eyebrow">Your workspace / Overview</p>
       <h1>Welcome back, <?= htmlspecialchars($displayName, ENT_QUOTES, 'UTF-8') ?>.</h1>
-      <p>Your websites, files and hosting details, all in one place. Pick up where you left off.</p>
+      <p>Your websites and hosting details, all in one place. Pick up where you left off.</p>
     </div>
     <a class="iw-button" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/create', ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="plus"></i> Create a website</a>
   </div>
@@ -84,6 +84,7 @@ $baseUrl = (string) ($app['base_url'] ?? '');
                 $websiteStatus = strtolower((string) ($website['status'] ?? 'unknown'));
                 $manageUrl = $baseUrl . '/dashboard/websites/show?id=' . $websiteId;
                 $filesUrl = $baseUrl . '/dashboard/websites/files?id=' . $websiteId;
+                $canManageFiles = \App\Services\WebsiteEditingPolicy::canUseFileManager($website);
                 $publicUrl = trim((string) ($website['public_url'] ?? ''));
               ?>
               <article class="iw-site">
@@ -102,7 +103,9 @@ $baseUrl = (string) ($app['base_url'] ?? '');
                   <?php else: ?>
                     <a class="iw-button iw-button-outline" href="<?= htmlspecialchars($manageUrl, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="settings-2"></i> Manage</a>
                   <?php endif; ?>
-                  <a class="iw-button iw-button-outline" href="<?= htmlspecialchars($filesUrl, ENT_QUOTES, 'UTF-8') ?>" aria-label="Manage files for <?= htmlspecialchars($websiteName, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder"></i></a>
+                  <?php if ($canManageFiles): ?>
+                    <a class="iw-button iw-button-outline" href="<?= htmlspecialchars($filesUrl, ENT_QUOTES, 'UTF-8') ?>" aria-label="Manage files for <?= htmlspecialchars($websiteName, ENT_QUOTES, 'UTF-8') ?>"><i data-lucide="folder"></i></a>
+                  <?php endif; ?>
                 </div>
               </article>
             <?php endforeach; ?>

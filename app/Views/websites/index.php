@@ -14,7 +14,7 @@ $formatBytes = static function (int $bytes): string {
       <div>
         <p class="auth-eyebrow">Website Projects</p>
         <h1>My Websites</h1>
-        <p>Create and manage website projects, edit draft files, preview changes, and publish when ready.</p>
+        <p>Create and manage website projects, customize template-based sites, edit blank-site files, preview changes, and publish when ready.</p>
       </div>
       <a class="btn btn-primary <?= $canCreate ? '' : 'disabled' ?>" href="<?= htmlspecialchars($baseUrl . '/dashboard/websites/create', ENT_QUOTES, 'UTF-8') ?>">
         <i data-lucide="plus"></i> Create Website
