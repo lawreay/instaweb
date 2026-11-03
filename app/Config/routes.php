@@ -10,6 +10,7 @@ use App\Controllers\LegalController;
 use App\Controllers\MarketingController;
 use App\Controllers\AdminController;
 use App\Controllers\WebsiteController;
+use App\Controllers\BusinessWebsiteController;
 use App\Controllers\PortfolioController;
 use App\Controllers\PortfolioContactController;
 use App\Controllers\AdvancedPortfolioController;
@@ -42,7 +43,8 @@ return [
         '/dashboard/websites' => [WebsiteController::class, 'index'],
         '/dashboard/websites/create' => [WebsiteController::class, 'create'],
         '/dashboard/websites/show' => [WebsiteController::class, 'show'],
-        '/dashboard/websites/edit' => [WebsiteController::class, 'edit'],\n        '/dashboard/websites/business' => [BusinessWebsiteController::class, 'edit'],
+        '/dashboard/websites/edit' => [WebsiteController::class, 'edit'],
+        '/dashboard/websites/business' => [BusinessWebsiteController::class, 'edit'],\n        '/dashboard/websites/business' => [BusinessWebsiteController::class, 'edit'],
         '/dashboard/websites/portfolio' => [PortfolioController::class, 'edit'],
         '/dashboard/websites/portfolio/advanced' => [AdvancedPortfolioController::class, 'edit'],
         '/dashboard/websites/portfolio/ai/status' => [PortfolioAiController::class, 'status'],
@@ -93,7 +95,8 @@ return [
         '/two-factor' => [AuthController::class, 'verifyTwoFactor'],
         '/logout' => [AuthController::class, 'logout'],
         '/dashboard/websites' => [WebsiteController::class, 'store'],
-        '/dashboard/websites/update' => [WebsiteController::class, 'update'],\n        '/dashboard/websites/business/save' => [BusinessWebsiteController::class, 'save'],
+        '/dashboard/websites/update' => [WebsiteController::class, 'update'],
+        '/dashboard/websites/business/save' => [BusinessWebsiteController::class, 'save'],\n        '/dashboard/websites/business/save' => [BusinessWebsiteController::class, 'save'],
         '/dashboard/websites/portfolio/save' => [PortfolioController::class, 'save'],
         '/dashboard/websites/portfolio/autosave' => [PortfolioController::class, 'autosave'],
         '/dashboard/websites/portfolio/avatar' => [PortfolioController::class, 'uploadAvatar'],
