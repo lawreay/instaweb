@@ -1,4 +1,4 @@
-<?php $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/'); $canManageFiles = \\App\\Services\\WebsiteEditingPolicy::canUseFileManager($website); ?>
+<?php $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/'); $canManageFiles = \App\Services\WebsiteEditingPolicy::canUseFileManager($website); ?>
 <section class="iw-client-page iw-preview-page">
 
     <header class="client-header">
