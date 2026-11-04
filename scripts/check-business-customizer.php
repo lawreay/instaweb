@@ -40,7 +40,7 @@ businessCheck(str_contains($controller, 'findForUser'), 'Business editor must lo
 businessCheck(str_contains($model, "w.template_key = 'business'"), 'Business content queries must enforce the template type.');
 businessCheck(str_contains($detail, "\$baseUrl . '/dashboard/websites/business?id='"), 'Website management page does not link to the Business customizer.');
 businessCheck(str_contains($view, 'data-service-item') && str_contains($view, 'add-service') && str_contains($view, 'data-move-down'), 'Business customizer must support adding, removing and reordering services.');
-businessCheck(str_contains($view, 'service_3_text'), 'Business customizer must retain legacy service field compatibility.');
+businessCheck(str_contains($view, 'service_{$i}_text'), 'Business customizer must retain legacy service field compatibility.');
 businessCheck(str_contains($migration, 'business_website_content'), 'Business content migration is missing its table.');
 
 $service = new App\Services\BusinessWebsiteService();
