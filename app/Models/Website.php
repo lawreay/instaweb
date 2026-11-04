@@ -115,7 +115,7 @@ class Website extends Model
 
         // Advanced tables deliberately have no foreign keys to legacy MyISAM
         // websites. All cleanup remains scoped to both website and owner.
-        foreach (['portfolio_advanced_items', 'portfolio_advanced_settings', 'portfolio_advanced_uploads', 'business_website_content', 'business_website_themes'] as $table) {
+        foreach (['portfolio_advanced_items', 'portfolio_advanced_settings', 'portfolio_advanced_uploads', 'business_website_content', 'business_website_themes', 'business_website_branding'] as $table) {
             $deleteAdvanced = $this->database->prepare(
                 "DELETE FROM {$table} WHERE website_id = :website_id AND user_id = :user_id"
             );
