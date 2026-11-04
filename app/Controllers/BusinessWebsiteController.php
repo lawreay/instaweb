@@ -296,7 +296,15 @@ class BusinessWebsiteController extends Controller
             $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
         }
         $storage = new ProjectStorageService();
-        $path = $storage->resolveProjectPath($userId, (string) $website['slug'], 'assets/media/' . $filename);
+        $relativePath = 'assets/media/' . $filename;
+        $draftIndex = $storage->projectPath($userId, (string) $website['slug']) . DIRECTORY_SEPARATOR . 'index.html';
+        $publishedIndex = (new \\App\\Services\\PublishingService())->publicSitePath($id, (string) $website['slug']) . DIRECTORY_SEPARATOR . 'index.html';
+        if ($this->htmlReferencesMediaFile($draftIndex, $relativePath)
+            || $this->htmlReferencesMediaFile($publishedIndex, $relativePath)) {
+            Session::flash('error', 'This image is still referenced by your draft or published website. Publish the updated website before deleting it.');
+            $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+        }
+        $path = $storage->resolveProjectPath($userId, (string) $website['slug'], $relativePath);
         if (!is_file($path) || !unlink($path)) {
             Session::flash('error', 'The media item could not be deleted.');
         } else {
@@ -304,6 +312,16 @@ class BusinessWebsiteController extends Controller
             Session::flash('success', 'Media item deleted.');
         }
         $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+    }
+
+    private function htmlReferencesMediaFile(string $htmlPath, string $relativePath): bool
+    {
+        if (!is_file($htmlPath)) {
+            return false;
+        }
+
+        $html = file_get_contents($htmlPath);
+        return is_string($html) && str_contains($html, $relativePath);
     }
 
     private function owned(): array
