@@ -29,7 +29,7 @@ $view = $read('app/Views/websites/business-edit.php');
 $detail = $read('app/Views/websites/show.php');
 $migration = $read('database/migrations/20261103_001_create_business_website_content.sql');
 
-businessCheck(str_contains($publishController, "$publishingService->publishBusiness("), 'Business publish must use the structured-content publishing path.');
+businessCheck(str_contains($publishController, '$publishingService->publishBusiness('), 'Business publish must use the structured-content publishing path.');
 businessCheck(str_contains($publishingService, 'function publishBusiness('), 'Business-specific publish renderer is missing.');
 businessCheck(str_contains($publishingService, 'findForOwner($projectId, $userId)'), 'Business publishing must load owner-scoped saved content.');
 businessCheck(str_contains($publishingService, 'writeDraft($userId, $slug, $content)'), 'Business publishing must regenerate index.html before copying it.');
