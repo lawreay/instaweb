@@ -50,7 +50,8 @@ class PublishingService
             $content = (new BusinessWebsiteService())->defaults($websiteName);
         }
 
-        (new BusinessWebsiteService())->writeDraft($userId, $slug, $content);
+        $themeService = new BusinessWebsiteThemeService();
+        $themeService->writeDraft($userId, $slug, $content, $themeService->current($projectId, $userId));
 
         return $this->publish($userId, $projectId, $slug);
     }
