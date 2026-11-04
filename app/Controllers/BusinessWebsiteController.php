@@ -130,6 +130,7 @@ class BusinessWebsiteController extends Controller
             'title' => 'Business Website Branding',
             'website' => $website,
             'branding' => (new BusinessWebsiteBranding())->findForOwner((int) $website['id'], $userId),
+            'storageSummary' => $this->storageSummary($userId, $website),
             'active' => 'websites',
         ], 'layouts/dashboard');
     }
@@ -252,6 +253,7 @@ class BusinessWebsiteController extends Controller
             'title' => 'Business Media Library',
             'website' => $website,
             'items' => $items,
+            'storageSummary' => $this->storageSummary($userId, $website),
             'selectTarget' => preg_match('/^[a-z_]{1,40}$/', (string) $this->input('select', '')) ? (string) $this->input('select', '') : '',
             'active' => 'websites',
         ], 'layouts/dashboard');
@@ -344,6 +346,35 @@ class BusinessWebsiteController extends Controller
      * Check a user's aggregate storage allowance using actual current project
      * size to correct any stale cached website storage value.
      */
+    /**
+     * Return account-wide storage usage and the current plan allowance.
+     */
+    private function storageSummary(int $userId, array $website): array
+    {
+        $websiteModel = new Website();
+        $plan = $websiteModel->userPlan($userId);
+        $planService = new PlanService();
+        $storage = new ProjectStorageService();
+        $actualProjectUsage = $storage->directorySize(
+            $storage->projectPath($userId, (string) $website['slug'])
+        );
+        $cachedProjectUsage = max(0, (int) ($website['storage_used'] ?? 0));
+        $usedBytes = max(
+            0,
+            $websiteModel->totalStorageForUser($userId) - $cachedProjectUsage + $actualProjectUsage
+        );
+        $limitBytes = $plan === 'premium'
+            ? $planService->premiumStorageBytes()
+            : $planService->freeStorageBytes();
+
+        return [
+            'plan' => $plan,
+            'used_bytes' => $usedBytes,
+            'limit_bytes' => $limitBytes,
+            'percent' => $limitBytes > 0 ? min(100, (int) round(($usedBytes / $limitBytes) * 100)) : 0,
+        ];
+    }
+
     private function hasStorageCapacity(int $userId, array $website, int $incomingBytes, int $replacedBytes = 0): bool
     {
         $websiteModel = new Website();
