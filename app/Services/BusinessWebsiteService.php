@@ -10,9 +10,11 @@ class BusinessWebsiteService
             'business_name'=>$name,'tagline'=>'Professional service. Personal attention.',
             'hero_title'=>'Good work. Built around you.','hero_description'=>'We help people and businesses move forward with reliable services and thoughtful solutions.',
             'about_title'=>'A business built on doing things well.','about_text'=>'Introduce your business, its experience and the people behind it.',
-            'service_1_title'=>'Service One','service_1_text'=>'Describe your first core service and the result customers can expect.',
-            'service_2_title'=>'Service Two','service_2_text'=>'Explain another service in plain language.',
-            'service_3_title'=>'Service Three','service_3_text'=>'Highlight a specialist service or area where your business stands out.',
+            'services'=>[
+                ['title'=>'Service One','text'=>'Describe your first core service and the result customers can expect.'],
+                ['title'=>'Service Two','text'=>'Explain another service in plain language.'],
+                ['title'=>'Service Three','text'=>'Highlight a specialist service or area where your business stands out.'],
+            ],
             'email'=>'','phone'=>'','address'=>'','cta_label'=>'Contact the business'
         ];
     }
@@ -20,13 +22,34 @@ class BusinessWebsiteService
     public function validate(array $input, string $fallbackName): array
     {
         $defaults=$this->defaults($fallbackName);
-        $limits=['business_name'=>120,'tagline'=>180,'hero_title'=>180,'hero_description'=>1200,'about_title'=>180,'about_text'=>3000,'service_1_title'=>100,'service_1_text'=>700,'service_2_title'=>100,'service_2_text'=>700,'service_3_title'=>100,'service_3_text'=>700,'email'=>190,'phone'=>40,'address'=>240,'cta_label'=>60];
+        $limits=['business_name'=>120,'tagline'=>180,'hero_title'=>180,'hero_description'=>1200,'about_title'=>180,'about_text'=>3000,'email'=>190,'phone'=>40,'address'=>240,'cta_label'=>60];
         $data=[];
         foreach($limits as $key=>$max){
             $value=trim((string)($input[$key]??$defaults[$key]));
             if($value==='' && in_array($key,['business_name','hero_title','hero_description'],true)) throw new \InvalidArgumentException('Business name, hero heading and introduction are required.');
             if(mb_strlen($value)>$max) throw new \InvalidArgumentException(ucwords(str_replace('_',' ',$key)).' is too long.');
             $data[$key]=$value;
+        }
+        $submittedServices = $input['services'] ?? $defaults['services'];
+        if (!is_array($submittedServices)) {
+            throw new \\InvalidArgumentException('Services must be submitted as a list.');
+        }
+        if (count($submittedServices) > 12) {
+            throw new \\InvalidArgumentException('You can add up to 12 services.');
+        }
+        $data['services'] = [];
+        foreach (array_values($submittedServices) as $service) {
+            if (!is_array($service)) continue;
+            $title = trim((string) ($service['title'] ?? ''));
+            $description = trim((string) ($service['text'] ?? ''));
+            if ($title === '' && $description === '') continue;
+            if ($title === '' || $description === '') {
+                throw new \\InvalidArgumentException('Each service needs both a title and a description.');
+            }
+            if (mb_strlen($title) > 100 || mb_strlen($description) > 700) {
+                throw new \\InvalidArgumentException('Service titles must be 100 characters or fewer and descriptions 700 characters or fewer.');
+            }
+            $data['services'][] = ['title' => $title, 'text' => $description];
         }
         if($data['email']!=='' && filter_var($data['email'],FILTER_VALIDATE_EMAIL)===false) throw new \InvalidArgumentException('Enter a valid business email address.');
         return $data;
@@ -52,8 +75,18 @@ class BusinessWebsiteService
         $faviconValid = $faviconPath !== '' && preg_match('~^assets/branding/favicon-[a-f0-9]{24}\\.(?:jpg|png|webp)$~', $faviconPath);
         $faviconUrl = $faviconValid ? (string) ($branding['favicon_url'] ?? $faviconPath) : '';
         $favicon = $faviconUrl !== '' ? '<link rel="icon" href="'.$e($faviconUrl).'">' : '';
-        $services='';
-        for($i=1;$i<=3;$i++) $services.='<article class="service"><small>0'.$i.'</small><h3>'.$e($d["service_{$i}_title"]??'').'</h3><p>'.nl2br($e($d["service_{$i}_text"]??'')).'</p></article>';
+        $serviceItems = $d['services'] ?? [];
+        if (!is_array($serviceItems) || $serviceItems === []) {
+            $serviceItems = [];
+            for ($i = 1; $i <= 3; $i++) {
+                $serviceItems[] = ['title' => $d["service_{$i}_title"] ?? '', 'text' => $d["service_{$i}_text"] ?? ''];
+            }
+        }
+        $services = '';
+        foreach (array_values($serviceItems) as $index => $item) {
+            if (!is_array($item)) continue;
+            $services .= '<article class="service"><small>' . sprintf('%02d', $index + 1) . '</small><h3>' . $e($item['title'] ?? '') . '</h3><p>' . nl2br($e($item['text'] ?? '')) . '</p></article>';
+        }
         $email=trim((string)($d['email']??''));$phone=trim((string)($d['phone']??''));
         $href=$email!==''?'mailto:'.$email:($phone!==''?'tel:'.preg_replace('/[^0-9+]/','',$phone):'#contact');
         $contactParts=[];if($email!=='') $contactParts[]='<a href="mailto:'.$e($email).'">'.$e($email).'</a>';if($phone!=='') $contactParts[]='<a href="tel:'.preg_replace('/[^0-9+]/','',$phone).'">'.$e($phone).'</a>';$contact=$contactParts!==[]?implode(' · ',$contactParts):'Contact us';
