@@ -42,6 +42,13 @@ class BusinessWebsiteController extends Controller
         try {
             $service = new BusinessWebsiteService();
             $content = $service->validate($this->request(), (string) $website['website_name']);
+            if ($content['hero_image_path'] !== '') {
+                try {
+                    (new ProjectStorageService())->downloadableFile($userId, (string) $website['slug'], $content['hero_image_path']);
+                } catch (\\Throwable) {
+                    throw new \\InvalidArgumentException('The selected hero image is no longer available. Choose it again from the media library.');
+                }
+            }
             (new BusinessWebsiteContent())->saveForOwner($id, $userId, $content);
             (new Website())->updateProject($id, $userId, $content['business_name']);
             $themeService = new BusinessWebsiteThemeService();
