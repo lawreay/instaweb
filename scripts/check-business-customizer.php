@@ -22,11 +22,17 @@ $read = static function (string $path) use ($root): string {
 
 $routes = $read('app/Config/routes.php');
 $controller = $read('app/Controllers/BusinessWebsiteController.php');
+$publishController = $read('app/Controllers/PublishController.php');
+$publishingService = $read('app/Services/PublishingService.php');
 $model = $read('app/Models/BusinessWebsiteContent.php');
 $view = $read('app/Views/websites/business-edit.php');
 $detail = $read('app/Views/websites/show.php');
 $migration = $read('database/migrations/20261103_001_create_business_website_content.sql');
 
+businessCheck(str_contains($publishController, "$publishingService->publishBusiness("), 'Business publish must use the structured-content publishing path.');
+businessCheck(str_contains($publishingService, 'function publishBusiness('), 'Business-specific publish renderer is missing.');
+businessCheck(str_contains($publishingService, 'findForOwner($projectId, $userId)'), 'Business publishing must load owner-scoped saved content.');
+businessCheck(str_contains($publishingService, 'writeDraft($userId, $slug, $content)'), 'Business publishing must regenerate index.html before copying it.');
 businessCheck(str_contains($routes, "BusinessWebsiteController::class, 'edit'"), 'Business GET route is missing.');
 businessCheck(str_contains($routes, "BusinessWebsiteController::class, 'save'"), 'Business POST route is missing.');
 businessCheck(str_contains($controller, 'Csrf::validate'), 'Business save must validate CSRF.');
