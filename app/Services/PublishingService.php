@@ -51,7 +51,7 @@ class PublishingService
         }
 
         $themeService = new BusinessWebsiteThemeService();
-        $branding = (new \\App\\Models\\BusinessWebsiteBranding())->findForOwner($projectId, $userId);
+        $branding = (new \App\Models\BusinessWebsiteBranding())->findForOwner($projectId, $userId);
         $themeService->writeDraft($userId, $slug, $content, $themeService->current($projectId, $userId), $branding);
 
         return $this->publish($userId, $projectId, $slug);
