@@ -32,7 +32,7 @@ $migration = $read('database/migrations/20261103_001_create_business_website_con
 businessCheck(str_contains($publishController, '$publishingService->publishBusiness('), 'Business publish must use the structured-content publishing path.');
 businessCheck(str_contains($publishingService, 'function publishBusiness('), 'Business-specific publish renderer is missing.');
 businessCheck(str_contains($publishingService, 'findForOwner($projectId, $userId)'), 'Business publishing must load owner-scoped saved content.');
-businessCheck(str_contains($publishingService, 'writeDraft($userId, $slug, $content)'), 'Business publishing must regenerate index.html before copying it.');
+businessCheck(str_contains($publishingService, 'writeDraft($userId, $slug, $content,'), 'Business publishing must regenerate index.html before copying it.');
 businessCheck(str_contains($routes, "BusinessWebsiteController::class, 'edit'"), 'Business GET route is missing.');
 businessCheck(str_contains($routes, "BusinessWebsiteController::class, 'save'"), 'Business POST route is missing.');
 businessCheck(str_contains($controller, 'Csrf::validate'), 'Business save must validate CSRF.');
