@@ -102,6 +102,6 @@ businessCheck(str_contains($controller, 'private function hasStorageCapacity')
     'Business uploads must enforce aggregate storage limits for the current plan.');
 businessCheck(str_contains($controller, 'hasStorageCapacity($userId, $website, (int) $file[\'size\'])'),
     'Media uploads must check available storage before saving.');
-businessCheck(str_contains($view, 'storageSummary[\'used_bytes\']') && str_contains($controller, 'storageSummary($userId, $website)'), 'Media library must show account-wide storage usage.');
+businessCheck(str_contains($mediaView, 'storageSummary[\'used_bytes\']') && str_contains($controller, 'storageSummary($userId, $website)'), 'Media library must show account-wide storage usage.');
 businessCheck(str_contains($routes, "BusinessWebsiteController::class, 'media'"), 'Business media route is missing.');
 echo "[business-check] PASS: routes, ownership guards, migration, form and renderer checks passed.\n";
