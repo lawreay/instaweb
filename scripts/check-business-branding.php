@@ -24,5 +24,6 @@ brandingCheck(str_contains($controller, 'getimagesize'), 'Branding upload must v
 brandingCheck(str_contains($renderer, 'logo_path') && str_contains($renderer, 'favicon_path'), 'Renderer must support logo and favicon.');
 brandingCheck(str_contains($controller, 'new BusinessWebsiteBranding()') && str_contains($theme, 'array $branding = []'), 'Theme-aware draft renderer must receive owner-scoped branding data.');
 brandingCheck(str_contains($view, 'enctype="multipart/form-data"'), 'Branding form must support file uploads.');
+brandingCheck(str_contains($view, 'storageSummary[\'used_bytes\']') && str_contains($controller, 'storageSummary($userId, $website)'), 'Branding page must show account-wide storage usage.');
 brandingCheck(str_contains($migration, 'business_website_branding'), 'Branding migration missing.');
 echo "[business-branding] PASS: routes, upload validation, renderer and migration checks passed.\n";
