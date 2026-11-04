@@ -31,6 +31,15 @@ $services = array_values($services);
 <?php foreach ($groups as $heading => $fields): ?><section class="be-card"><h2 class="h5 fw-bold mb-3"><?= $e($heading) ?></h2><div class="be-grid">
 <?php foreach ($fields as [$key, $label, $type]): ?><label class="<?= $type === 'textarea' ? 'wide' : '' ?>"><?= $e($label) ?><?php if ($type === 'textarea'): ?><textarea name="<?= $e($key) ?>" maxlength="<?= $key === 'about_text' ? 3000 : ($key === 'hero_description' ? 1200 : 240) ?>"><?= $e($content[$key] ?? '') ?></textarea><?php else: ?><input type="<?= $e($type) ?>" name="<?= $e($key) ?>" maxlength="<?= $key === 'business_name' ? 120 : ($key === 'email' ? 190 : 180) ?>" value="<?= $e($content[$key] ?? '') ?>" <?= in_array($key, ['business_name', 'hero_title', 'hero_description'], true) ? 'required' : '' ?>><?php endif; ?></label><?php endforeach; ?>
 </div></section><?php endforeach; ?>
+<section class="be-card" id="section-visibility">
+    <h2 class="h5 fw-bold mb-1">Section visibility</h2>
+    <p class="be-help mb-3">Choose which sections appear on your published website. Hiding a section does not delete its content.</p>
+    <div class="be-grid">
+        <?php foreach (['hero' => 'Hero section', 'services' => 'Services section', 'about' => 'About section', 'contact' => 'Contact section'] as $sectionKey => $sectionLabel): ?>
+        <label class="d-flex align-items-center gap-2"><input type="hidden" name="section_visibility[<?= $e($sectionKey) ?>]" value="0"><input type="checkbox" name="section_visibility[<?= $e($sectionKey) ?>]" value="1" <?= !isset($content['section_visibility'][$sectionKey]) || !empty($content['section_visibility'][$sectionKey]) ? 'checked' : '' ?>> <?= $e($sectionLabel) ?></label>
+        <?php endforeach; ?>
+    </div>
+</section>
 <section class="be-card" id="service-manager">
     <div class="service-tools"><div><h2 class="h5 fw-bold mb-1">Services</h2><p class="be-help mb-0">Add up to 12 services. Use the arrows to change their order.</p></div><button class="btn btn-outline-primary btn-sm" type="button" id="add-service">+ Add service</button></div>
     <div id="service-list">
