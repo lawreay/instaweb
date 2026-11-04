@@ -11,6 +11,7 @@ use App\Services\AuthService;
 use App\Services\BusinessWebsiteService;
 use App\Services\BusinessWebsiteThemeService;
 use App\Services\ProjectStorageService;
+use App\Services\PlanService;
 
 class BusinessWebsiteController extends Controller
 {
@@ -178,6 +179,16 @@ class BusinessWebsiteController extends Controller
                 Session::flash('error', 'Favicon images must be no larger than 1024 × 1024 pixels.');
                 $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
             }
+            $old = (string) ($current[$column] ?? '');
+            $oldBytes = 0;
+            if ($old !== '' && str_starts_with($old, 'assets/branding/')) {
+                $oldPath = $storage->resolveProjectPath($userId, (string) $website['slug'], $old);
+                $oldBytes = is_file($oldPath) ? (int) filesize($oldPath) : 0;
+            }
+            if (!$this->hasStorageCapacity($userId, $website, (int) $file['size'], $oldBytes)) {
+                Session::flash('error', 'Your storage limit has been reached. Remove unused files or upgrade your plan to upload more.');
+                $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
+            }
             $filename = $field . '-' . bin2hex(random_bytes(12)) . '.' . $types[$mime];
             $target = $directory . DIRECTORY_SEPARATOR . $filename;
             if (!move_uploaded_file($tmp, $target)) {
@@ -261,6 +272,10 @@ class BusinessWebsiteController extends Controller
             $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
         }
         $storage = new ProjectStorageService();
+        if (!$this->hasStorageCapacity($userId, $website, (int) $file['size'])) {
+            Session::flash('error', 'Your storage limit has been reached. Remove unused files or upgrade your plan to upload more.');
+            $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+        }
         $directory = $storage->ensureProjectDirectory($userId, (string) $website['slug'])
             . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'media';
         if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
@@ -312,6 +327,38 @@ class BusinessWebsiteController extends Controller
             Session::flash('success', 'Media item deleted.');
         }
         $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+    }
+
+    /**
+     * Check a user's aggregate storage allowance using actual current project
+     * size to correct any stale cached website storage value.
+     */
+    private function hasStorageCapacity(int $userId, array $website, int $incomingBytes, int $replacedBytes = 0): bool
+    {
+        $websiteModel = new Website();
+        $plan = $websiteModel->userPlan($userId);
+        $planService = new PlanService();
+        $limit = $plan === 'premium'
+            ? $planService->premiumStorageBytes()
+            : $planService->freeStorageBytes();
+
+        // A zero Premium limit means no configured cap.
+        if ($limit <= 0) {
+            return true;
+        }
+
+        $storage = new ProjectStorageService();
+        $actualProjectUsage = $storage->directorySize(
+            $storage->projectPath($userId, (string) $website['slug'])
+        );
+        $cachedProjectUsage = max(0, (int) ($website['storage_used'] ?? 0));
+        $aggregateUsage = max(
+            0,
+            $websiteModel->totalStorageForUser($userId) - $cachedProjectUsage + $actualProjectUsage
+        );
+        $projectedUsage = max(0, $aggregateUsage + $incomingBytes - $replacedBytes);
+
+        return $projectedUsage <= $limit;
     }
 
     private function htmlReferencesMediaFile(string $htmlPath, string $relativePath): bool
