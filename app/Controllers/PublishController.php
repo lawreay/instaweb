@@ -38,6 +38,13 @@ class PublishController extends Controller
             $publishingService = new PublishingService();
             if (($website['template_key'] ?? '') === 'portfolio') {
                 $publishingService->publishPortfolio((int) $website['id'], (string) $website['slug']);
+            } elseif (($website['template_key'] ?? '') === 'business') {
+                $publishingService->publishBusiness(
+                    $userId,
+                    (int) $website['id'],
+                    (string) $website['slug'],
+                    (string) $website['website_name']
+                );
             } else {
                 $publishingService->publish($userId, (int) $website['id'], $website['slug']);
             }
