@@ -11,7 +11,7 @@ $editorActive = (string) ($editorActive ?? 'content');
 $editorTabs = [
     ['key' => 'overview', 'label' => 'Overview', 'url' => $editorBaseUrl . '/dashboard/websites/show?id=' . $editorWebsiteId, 'available' => true],
     ['key' => 'content', 'label' => 'Content', 'url' => $editorBaseUrl . '/dashboard/websites/business?id=' . $editorWebsiteId, 'available' => true],
-    ['key' => 'themes', 'label' => 'Themes', 'url' => '', 'available' => false],
+    ['key' => 'themes', 'label' => 'Themes', 'url' => $editorBaseUrl . '/dashboard/websites/business/themes?id=' . $editorWebsiteId, 'available' => true],
     ['key' => 'branding', 'label' => 'Branding', 'url' => '', 'available' => false],
     ['key' => 'media', 'label' => 'Media', 'url' => '', 'available' => false],
     ['key' => 'seo', 'label' => 'SEO', 'url' => '', 'available' => false],
