@@ -79,6 +79,13 @@ class BusinessWebsiteController extends Controller
         header('Content-Type: text/html; charset=UTF-8');
         header('Cache-Control: private, no-store, no-cache, must-revalidate');
         $branding = (new BusinessWebsiteBranding())->findForOwner((int) $website['id'], $userId);
+        $assetRoute = rtrim((string) ($this->config['base_url'] ?? ''), '/') . '/dashboard/websites/preview/file?id=' . (int) $website['id'] . '&path=';
+        if (!empty($branding['logo_path'])) {
+            $branding['logo_url'] = $assetRoute . rawurlencode((string) $branding['logo_path']);
+        }
+        if (!empty($branding['favicon_path'])) {
+            $branding['favicon_url'] = $assetRoute . rawurlencode((string) $branding['favicon_path']);
+        }
         echo (new BusinessWebsiteThemeService())->render($content, $theme, $branding);
     }
 
