@@ -244,7 +244,7 @@ class BusinessWebsiteController extends Controller
             $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
         }
         $tmp = (string) $file['tmp_name'];
-        $mime = (new \\finfo(FILEINFO_MIME_TYPE))->file($tmp);
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($tmp);
         $info = @getimagesize($tmp);
         $types = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
         if (!is_string($mime) || !isset($types[$mime]) || $info === false
