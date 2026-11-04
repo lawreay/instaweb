@@ -18,7 +18,7 @@ brandingCheck(str_contains($controller, 'Csrf::validate'), 'Branding upload must
 brandingCheck(str_contains($controller, 'is_uploaded_file'), 'Branding upload must validate uploaded files.');
 brandingCheck(str_contains($controller, 'incomingBytes')
     && str_contains($controller, 'replacementBytes')
-    && str_contains($controller, 'hasStorageCapacity($userId, $website, $brandingIncomingBytes, $brandingReplacementBytes)'),
+    && str_contains($controller, 'hasStorageCapacity($userId, $website, $incomingBytes, $replacementBytes)'),
     'Branding uploads must preflight combined incoming bytes against the aggregate plan quota.');
 brandingCheck(str_contains($controller, 'getimagesize'), 'Branding upload must validate image contents.');
 $validationEnd = strpos($controller, '$uploads[$field] = [');
