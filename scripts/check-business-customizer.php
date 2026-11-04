@@ -76,11 +76,17 @@ businessCheck(!str_contains($hiddenHtml, 'class="hero"'), 'Hidden hero section m
 businessCheck(str_contains($hiddenHtml, 'id="services"'), 'Visible services section must render.');
 businessCheck(!str_contains($hiddenHtml, 'id="about"') && !str_contains($hiddenHtml, 'id="contact"'), 'Hidden About and Contact sections must not render.');
 businessCheck(!str_contains($hiddenHtml, 'href="#contact"') && !str_contains($hiddenHtml, 'href="#about"'), 'Navigation must not link to hidden sections.');
+$withImage = $service->validate(['business_name'=>'Image Business','hero_title'=>'Welcome','hero_description'=>'Intro','hero_image_path'=>'assets/media/media-0123456789abcdef01234567.webp'], 'Image Business');
+$imageHtml = $service->render($withImage);
+businessCheck(str_contains($imageHtml, 'assets/media/media-0123456789abcdef01234567.webp'), 'Valid selected hero image must render.');
 $legacyHtml = $service->render(['business_name' => 'Legacy Business', 'hero_title' => 'Welcome', 'hero_description' => 'Hello']);
 businessCheck(str_contains($legacyHtml, 'class="hero"') && str_contains($legacyHtml, 'id="contact"'), 'Legacy Business content without visibility settings must keep all sections visible.');
-businessCheck(str_contains($view, 'section_visibility[') && str_contains($view, 'id="section-visibility"'), 'Business editor must expose section visibility controls.');
+businessCheck(str_contains($view, 'hero_image_path') && str_contains($view, 'instaweb-media-selected'), 'Business editor must allow selecting a hero image from the media library.');
+businessCheck(str_contains($view, 'section_visibility[' && str_contains($view, 'id="section-visibility"'), 'Business editor must expose section visibility controls.');
 businessCheck(count($dynamic['services']) === 2, 'Service validation must preserve a variable number of services.');
 businessCheck(str_contains($dynamicHtml, 'Consulting') && str_contains($dynamicHtml, 'Training'), 'Renderer must output all submitted services.');
 businessCheck(!str_contains($dynamicHtml, 'Service Three'), 'Renderer must not inject removed default services into a customized list.');
 
+businessCheck(str_contains($controller, 'function media(): void') && str_contains($controller, 'function uploadMedia(): void') && str_contains($controller, 'function deleteMedia(): void'), 'Business media library actions must be present.');
+businessCheck(str_contains($routes, "BusinessWebsiteController::class, 'media'"), 'Business media route is missing.');
 echo "[business-check] PASS: routes, ownership guards, migration, form and renderer checks passed.\n";
