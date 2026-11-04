@@ -154,28 +154,11 @@ class BusinessWebsiteController extends Controller
             $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
         }
 
-        $saved = $current;
-        $brandingIncomingBytes = 0;
-        $brandingReplacementBytes = 0;
-        foreach (['logo' => 'logo_path', 'favicon' => 'favicon_path'] as $field => $column) {
-            $file = $_FILES[$field] ?? null;
-            if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-                continue;
-            }
-            if ((int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
-                $brandingIncomingBytes += max(0, (int) ($file['size'] ?? 0));
-            }
-            $old = (string) ($current[$column] ?? '');
-            if ($old !== '' && str_starts_with($old, 'assets/branding/')) {
-                $oldPath = $storage->resolveProjectPath($userId, (string) $website['slug'], $old);
-                $brandingReplacementBytes += is_file($oldPath) ? (int) filesize($oldPath) : 0;
-            }
-        }
-        if (!$this->hasStorageCapacity($userId, $website, $brandingIncomingBytes, $brandingReplacementBytes)) {
-            Session::flash('error', 'Your storage limit has been reached. Remove unused files or upgrade your plan to upload more.');
-            $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
-        }
-
+        // Validate every submitted file before moving any replacement into place.
+        $uploads = [];
+        $incomingBytes = 0;
+        $replacementBytes = 0;
+        $types = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
         foreach (['logo' => 'logo_path', 'favicon' => 'favicon_path'] as $field => $column) {
             $file = $_FILES[$field] ?? null;
             if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
@@ -187,10 +170,10 @@ class BusinessWebsiteController extends Controller
                 Session::flash('error', 'Each branding image must be a valid upload no larger than 3 MB.');
                 $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
             }
+
             $tmp = (string) $file['tmp_name'];
-            $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($tmp);
+            $mime = (new \\finfo(FILEINFO_MIME_TYPE))->file($tmp);
             $info = @getimagesize($tmp);
-            $types = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
             if (!is_string($mime) || !isset($types[$mime]) || $info === false
                 || ($info['mime'] ?? '') !== $mime || (int) $info[0] < 1 || (int) $info[1] < 1
                 || (int) $info[0] > 6000 || (int) $info[1] > 6000) {
@@ -201,18 +184,43 @@ class BusinessWebsiteController extends Controller
                 Session::flash('error', 'Favicon images must be no larger than 1024 × 1024 pixels.');
                 $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
             }
-            $filename = $field . '-' . bin2hex(random_bytes(12)) . '.' . $types[$mime];
-            $target = $directory . DIRECTORY_SEPARATOR . $filename;
-            if (!move_uploaded_file($tmp, $target)) {
-                Session::flash('error', 'The branding image could not be saved.');
-                $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
-            }
-            $saved[$column] = 'assets/branding/' . $filename;
+
+            $uploads[$field] = [
+                'column' => $column,
+                'tmp' => $tmp,
+                'extension' => $types[$mime],
+                'size' => (int) $file['size'],
+            ];
+            $incomingBytes += (int) $file['size'];
+
             $old = (string) ($current[$column] ?? '');
             if ($old !== '' && str_starts_with($old, 'assets/branding/')) {
                 $oldPath = $storage->resolveProjectPath($userId, (string) $website['slug'], $old);
-                if (is_file($oldPath)) { @unlink($oldPath); }
+                $replacementBytes += is_file($oldPath) ? (int) filesize($oldPath) : 0;
             }
+        }
+
+        if (!$this->hasStorageCapacity($userId, $website, $incomingBytes, $replacementBytes)) {
+            Session::flash('error', 'Your storage limit has been reached. Remove unused files or upgrade your plan to upload more.');
+            $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
+        }
+
+        $saved = $current;
+        $newFiles = [];
+        foreach ($uploads as $field => $upload) {
+            $filename = $field . '-' . bin2hex(random_bytes(12)) . '.' . $upload['extension'];
+            $target = $directory . DIRECTORY_SEPARATOR . $filename;
+            if (!move_uploaded_file($upload['tmp'], $target)) {
+                foreach ($newFiles as $newFile) {
+                    if (is_file($newFile)) {
+                        @unlink($newFile);
+                    }
+                }
+                Session::flash('error', 'The branding image could not be saved. Existing branding was left unchanged.');
+                $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
+            }
+            $newFiles[] = $target;
+            $saved[$upload['column']] = 'assets/branding/' . $filename;
         }
 
         $model->saveForOwner($id, $userId, $saved);
@@ -224,6 +232,18 @@ class BusinessWebsiteController extends Controller
             (new BusinessWebsiteThemeService())->current($id, $userId),
             $saved
         );
+
+        // Remove replaced files only after the new metadata and draft have been saved.
+        foreach ($uploads as $upload) {
+            $old = (string) ($current[$upload['column']] ?? '');
+            if ($old !== '' && str_starts_with($old, 'assets/branding/')) {
+                $oldPath = $storage->resolveProjectPath($userId, (string) $website['slug'], $old);
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+        }
+
         (new Website())->updateStorageUsed($id, $storage->directorySize($storage->projectPath($userId, (string) $website['slug'])));
         Session::flash('success', 'Branding saved to your private draft. Publish to update the live website.');
         $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
