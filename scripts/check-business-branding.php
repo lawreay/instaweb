@@ -16,6 +16,10 @@ brandingCheck(str_contains($routes, "'/dashboard/websites/business/branding'"), 
 brandingCheck(str_contains($routes, "'/dashboard/websites/business/branding/save'"), 'Branding save route missing.');
 brandingCheck(str_contains($controller, 'Csrf::validate'), 'Branding upload must validate CSRF.');
 brandingCheck(str_contains($controller, 'is_uploaded_file'), 'Branding upload must validate uploaded files.');
+brandingCheck(str_contains($controller, 'brandingIncomingBytes')
+    && str_contains($controller, 'brandingReplacementBytes')
+    && str_contains($controller, 'hasStorageCapacity($userId, $website, $brandingIncomingBytes, $brandingReplacementBytes)'),
+    'Branding uploads must preflight combined incoming bytes against the aggregate plan quota.');
 brandingCheck(str_contains($controller, 'getimagesize'), 'Branding upload must validate image contents.');
 brandingCheck(str_contains($renderer, 'logo_path') && str_contains($renderer, 'favicon_path'), 'Renderer must support logo and favicon.');
 brandingCheck(str_contains($controller, 'new BusinessWebsiteBranding()') && str_contains($theme, 'array $branding = []'), 'Theme-aware draft renderer must receive owner-scoped branding data.');
