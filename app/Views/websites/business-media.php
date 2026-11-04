@@ -22,6 +22,10 @@ $formatSize = static function ($bytes): string {
 .business-media .btn-outline-secondary:hover{background:var(--bm-soft);color:var(--bm-ink)}
 .business-media .btn-outline-danger{border:1px solid #D9B4B0;color:var(--bm-danger);background:#fff}
 .business-media .btn-outline-danger:hover{background:var(--bm-danger);border-color:var(--bm-danger);color:#fff}
+.business-media .storage-summary{display:grid;gap:.55rem;margin-bottom:1.1rem;padding:1rem 1.1rem;border:1px solid var(--bm-line);border-radius:14px;background:#fff}
+.business-media .storage-meta{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;color:var(--bm-muted);font-size:.84rem}
+.business-media .storage-track{height:9px;overflow:hidden;border-radius:99px;background:#E9EEE9}
+.business-media .storage-track span{display:block;height:100%;border-radius:inherit;background:var(--bm-green)}
 .business-media .media-banner{display:flex;gap:.7rem;align-items:flex-start;margin-bottom:1.1rem;padding:.9rem 1.1rem;border:1px solid #CFE5D8;border-radius:14px;background:#F2F8F4;color:#26382E;font-size:.9rem}
 .business-media .media-card{background:#fff;border:1px solid var(--bm-line);border-radius:20px;padding:clamp(1.1rem,3vw,1.5rem);margin-bottom:1.1rem}
 .business-media .media-card h2{margin:0;font-size:1.1rem;font-weight:800}
@@ -55,6 +59,17 @@ $formatSize = static function ($bytes): string {
         </div>
         <a class="btn btn-outline-secondary" href="<?= $e($baseUrl . '/dashboard/websites/business?id=' . $siteId) ?>">Back to content</a>
     </header>
+
+    <section class="storage-summary" aria-label="Account storage usage">
+        <div class="storage-meta">
+            <strong>Account storage</strong>
+            <span><?= $e($formatSize($storageSummary['used_bytes'])) ?> used<?= (int) $storageSummary['limit_bytes'] > 0 ? ' of ' . $e($formatSize($storageSummary['limit_bytes'])) : ' · Unlimited' ?></span>
+        </div>
+        <?php if ((int) $storageSummary['limit_bytes'] > 0): ?>
+            <div class="storage-track" role="progressbar" aria-label="Storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= (int) $storageSummary['percent'] ?>"><span style="width:<?= (int) $storageSummary['percent'] ?>%"></span></div>
+        <?php endif; ?>
+        <small class="media-count">Usage is shared across all your websites on the <?= $e(ucfirst($storageSummary['plan'])) ?> plan.</small>
+    </section>
 
     <?php if ($selectTarget !== ''): ?>
         <div class="media-banner" role="status">Choose an image below and press <strong>&nbsp;Use image&nbsp;</strong> to add it to your website.</div>
