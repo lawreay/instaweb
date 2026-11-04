@@ -38,6 +38,24 @@ class PublishingService
     }
 
     /**
+     * Publish a Business website from its saved structured content.
+     *
+     * Re-render immediately before copying so the public artifact cannot
+     * accidentally remain on an older starter index.html.
+     */
+    public function publishBusiness(int $userId, int $projectId, string $slug, string $websiteName): string
+    {
+        $content = (new \\App\\Models\\BusinessWebsiteContent())->findForOwner($projectId, $userId);
+        if ($content === null) {
+            $content = (new BusinessWebsiteService())->defaults($websiteName);
+        }
+
+        (new BusinessWebsiteService())->writeDraft($userId, $slug, $content);
+
+        return $this->publish($userId, $projectId, $slug);
+    }
+
+    /**
      * Publish a database-backed portfolio without generating static HTML copies.
      */
     public function publishPortfolio(int $projectId, string $slug): string
