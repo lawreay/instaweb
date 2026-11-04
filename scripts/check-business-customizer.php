@@ -82,7 +82,7 @@ businessCheck(str_contains($imageHtml, 'assets/media/media-0123456789abcdef01234
 $legacyHtml = $service->render(['business_name' => 'Legacy Business', 'hero_title' => 'Welcome', 'hero_description' => 'Hello']);
 businessCheck(str_contains($legacyHtml, 'class="hero"') && str_contains($legacyHtml, 'id="contact"'), 'Legacy Business content without visibility settings must keep all sections visible.');
 businessCheck(str_contains($view, 'hero_image_path') && str_contains($view, 'instaweb-media-selected'), 'Business editor must allow selecting a hero image from the media library.');
-businessCheck(str_contains($view, 'section_visibility[' && str_contains($view, 'id="section-visibility"'), 'Business editor must expose section visibility controls.');
+businessCheck(str_contains($view, 'section_visibility[') && str_contains($view, 'id="section-visibility"'), 'Business editor must expose section visibility controls.');
 businessCheck(count($dynamic['services']) === 2, 'Service validation must preserve a variable number of services.');
 businessCheck(str_contains($dynamicHtml, 'Consulting') && str_contains($dynamicHtml, 'Training'), 'Renderer must output all submitted services.');
 businessCheck(!str_contains($dynamicHtml, 'Service Three'), 'Renderer must not inject removed default services into a customized list.');
