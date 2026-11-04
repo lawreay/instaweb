@@ -62,6 +62,23 @@ $dynamic = $service->validate([
     ],
 ], 'Example Business');
 $dynamicHtml = $service->render($dynamic);
+businessCheck(($sample['section_visibility']['hero'] ?? false) === true, 'New Business sites must show sections by default.');
+$hidden = $service->validate([
+    'business_name' => 'Example Business',
+    'hero_title' => 'Welcome',
+    'hero_description' => 'Introduction',
+    'services' => [['title' => 'Consulting', 'text' => 'Practical advice.']],
+    'services_submitted' => '1',
+    'section_visibility' => ['hero' => '0', 'services' => '1', 'about' => '0', 'contact' => '0'],
+], 'Example Business');
+$hiddenHtml = $service->render($hidden);
+businessCheck(!str_contains($hiddenHtml, 'class="hero"'), 'Hidden hero section must not render.');
+businessCheck(str_contains($hiddenHtml, 'id="services"'), 'Visible services section must render.');
+businessCheck(!str_contains($hiddenHtml, 'id="about"') && !str_contains($hiddenHtml, 'id="contact"'), 'Hidden About and Contact sections must not render.');
+businessCheck(!str_contains($hiddenHtml, 'href="#contact"') && !str_contains($hiddenHtml, 'href="#about"'), 'Navigation must not link to hidden sections.');
+$legacyHtml = $service->render(['business_name' => 'Legacy Business', 'hero_title' => 'Welcome', 'hero_description' => 'Hello']);
+businessCheck(str_contains($legacyHtml, 'class="hero"') && str_contains($legacyHtml, 'id="contact"'), 'Legacy Business content without visibility settings must keep all sections visible.');
+businessCheck(str_contains($view, 'section_visibility[') && str_contains($view, 'id="section-visibility"'), 'Business editor must expose section visibility controls.');
 businessCheck(count($dynamic['services']) === 2, 'Service validation must preserve a variable number of services.');
 businessCheck(str_contains($dynamicHtml, 'Consulting') && str_contains($dynamicHtml, 'Training'), 'Renderer must output all submitted services.');
 businessCheck(!str_contains($dynamicHtml, 'Service Three'), 'Renderer must not inject removed default services into a customized list.');
