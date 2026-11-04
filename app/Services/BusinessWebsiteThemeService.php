@@ -45,18 +45,18 @@ class BusinessWebsiteThemeService
         (new BusinessWebsiteTheme())->saveForOwner($websiteId, $userId, $themeKey);
     }
 
-    public function render(array $content, string $themeKey): string
+    public function render(array $content, string $themeKey, array $branding = []): string
     {
         $theme = self::THEMES[$this->normalize($themeKey)];
-        $html = (new BusinessWebsiteService())->render($content);
+        $html = (new BusinessWebsiteService())->render($content, $branding);
         $style = '<style>' . $theme['css'] . '</style>';
         return str_replace('</head>', $style . '</head>', $html);
     }
 
-    public function writeDraft(int $userId, string $slug, array $content, string $themeKey): void
+    public function writeDraft(int $userId, string $slug, array $content, string $themeKey, array $branding = []): void
     {
         $path = (new ProjectStorageService())->ensureProjectDirectory($userId, $slug);
-        if (file_put_contents($path . DIRECTORY_SEPARATOR . 'index.html', $this->render($content, $themeKey), LOCK_EX) === false) {
+        if (file_put_contents($path . DIRECTORY_SEPARATOR . 'index.html', $this->render($content, $themeKey, $branding), LOCK_EX) === false) {
             throw new \RuntimeException('The Business website draft could not be updated.');
         }
     }
