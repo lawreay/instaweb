@@ -30,7 +30,7 @@ class BusinessWebsiteService
             if(mb_strlen($value)>$max) throw new \InvalidArgumentException(ucwords(str_replace('_',' ',$key)).' is too long.');
             $data[$key]=$value;
         }
-        $submittedServices = $input['services'] ?? $defaults['services'];
+        $submittedServices = array_key_exists('services_submitted', $input) ? ($input['services'] ?? []) : ($input['services'] ?? $defaults['services']);
         if (!is_array($submittedServices)) {
             throw new \InvalidArgumentException('Services must be submitted as a list.');
         }
