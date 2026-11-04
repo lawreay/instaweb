@@ -43,12 +43,15 @@ class BusinessWebsiteService
         $e=static fn($v)=>htmlspecialchars((string)$v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
         $name=$e($d['business_name']??'Business');
         $logoPath = (string) ($branding['logo_path'] ?? '');
-        $logo = $logoPath !== '' && preg_match('~^assets/branding/(?:logo|favicon)-[a-f0-9]{24}\\.(?:jpg|png|webp)$~', $logoPath)
-            ? '<img src="'.$e($logoPath).'" alt="'.$name.'" style="max-height:42px;max-width:180px;object-fit:contain">'
+        $logoValid = $logoPath !== '' && preg_match('~^assets/branding/(?:logo|favicon)-[a-f0-9]{24}\\.(?:jpg|png|webp)$~', $logoPath);
+        $logoUrl = $logoValid ? (string) ($branding['logo_url'] ?? $logoPath) : '';
+        $logo = $logoUrl !== ''
+            ? '<img src="'.$e($logoUrl).'" alt="'.$name.'" style="max-height:42px;max-width:180px;object-fit:contain">'
             : $name;
         $faviconPath = (string) ($branding['favicon_path'] ?? '');
-        $favicon = $faviconPath !== '' && preg_match('~^assets/branding/favicon-[a-f0-9]{24}\\.(?:jpg|png|webp)$~', $faviconPath)
-            ? '<link rel="icon" href="'.$e($faviconPath).'">' : '';
+        $faviconValid = $faviconPath !== '' && preg_match('~^assets/branding/favicon-[a-f0-9]{24}\\.(?:jpg|png|webp)$~', $faviconPath);
+        $faviconUrl = $faviconValid ? (string) ($branding['favicon_url'] ?? $faviconPath) : '';
+        $favicon = $faviconUrl !== '' ? '<link rel="icon" href="'.$e($faviconUrl).'">' : '';
         $services='';
         for($i=1;$i<=3;$i++) $services.='<article class="service"><small>0'.$i.'</small><h3>'.$e($d["service_{$i}_title"]??'').'</h3><p>'.nl2br($e($d["service_{$i}_text"]??'')).'</p></article>';
         $email=trim((string)($d['email']??''));$phone=trim((string)($d['phone']??''));
