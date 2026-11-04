@@ -45,7 +45,7 @@ class PublishingService
      */
     public function publishBusiness(int $userId, int $projectId, string $slug, string $websiteName): string
     {
-        $content = (new \\App\\Models\\BusinessWebsiteContent())->findForOwner($projectId, $userId);
+        $content = (new \App\Models\BusinessWebsiteContent())->findForOwner($projectId, $userId);
         if ($content === null) {
             $content = (new BusinessWebsiteService())->defaults($websiteName);
         }
