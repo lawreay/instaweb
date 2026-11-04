@@ -18,6 +18,10 @@ $faviconUrl = !empty($branding['favicon_path']) ? $baseUrl . '/dashboard/website
 .business-editor .btn-primary:hover{background:var(--be-green-dark);border-color:var(--be-green-dark);color:#fff}
 .business-editor .btn-outline-secondary{border:1px solid #D0D9D2;color:#26382E;background:#fff}
 .business-editor .btn-outline-secondary:hover{background:var(--be-soft);color:var(--be-ink)}
+.business-editor .storage-summary{display:grid;gap:.55rem;margin-bottom:1.1rem;padding:1rem 1.1rem;border:1px solid var(--be-line);border-radius:14px;background:#fff}
+.business-editor .storage-meta{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;color:var(--be-muted);font-size:.84rem}
+.business-editor .storage-track{height:9px;overflow:hidden;border-radius:99px;background:#E9EEE9}
+.business-editor .storage-track span{display:block;height:100%;border-radius:inherit;background:var(--be-green)}
 .business-editor .be-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:1.1rem;margin-bottom:1.1rem}
 .business-editor .be-card{display:flex;flex-direction:column;gap:.9rem;background:#fff;border:1px solid var(--be-line);border-radius:20px;padding:clamp(1.1rem,3vw,1.6rem)}
 .business-editor .be-card h2{margin:0;font-size:1.1rem;font-weight:800}
@@ -47,6 +51,16 @@ $faviconUrl = !empty($branding['favicon_path']) ? $baseUrl . '/dashboard/website
         </div>
         <a class="btn btn-outline-secondary" href="<?= $e($baseUrl . '/dashboard/websites/business?id=' . $siteId) ?>">Back to content</a>
     </header>
+    <section class="storage-summary" aria-label="Account storage usage">
+        <div class="storage-meta">
+            <strong>Account storage</strong>
+            <span><?= number_format((int) $storageSummary['used_bytes'] / 1048576, 1) ?> MB used<?= (int) $storageSummary['limit_bytes'] > 0 ? ' of ' . number_format((int) $storageSummary['limit_bytes'] / 1048576, 1) . ' MB' : ' · Unlimited' ?></span>
+        </div>
+        <?php if ((int) $storageSummary['limit_bytes'] > 0): ?>
+            <div class="storage-track" role="progressbar" aria-label="Storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= (int) $storageSummary['percent'] ?>"><span style="width:<?= (int) $storageSummary['percent'] ?>%"></span></div>
+        <?php endif; ?>
+        <small class="be-muted">Usage is shared across all your websites on the <?= $e(ucfirst($storageSummary['plan'])) ?> plan.</small>
+    </section>
     <form method="POST" enctype="multipart/form-data" action="<?= $e($baseUrl . '/dashboard/websites/business/branding/save') ?>">
         <?= \App\Core\Csrf::field() ?>
         <input type="hidden" name="id" value="<?= $siteId ?>">
