@@ -32,10 +32,10 @@ class BusinessWebsiteService
         }
         $submittedServices = $input['services'] ?? $defaults['services'];
         if (!is_array($submittedServices)) {
-            throw new \\InvalidArgumentException('Services must be submitted as a list.');
+            throw new \InvalidArgumentException('Services must be submitted as a list.');
         }
         if (count($submittedServices) > 12) {
-            throw new \\InvalidArgumentException('You can add up to 12 services.');
+            throw new \InvalidArgumentException('You can add up to 12 services.');
         }
         $data['services'] = [];
         foreach (array_values($submittedServices) as $service) {
@@ -44,10 +44,10 @@ class BusinessWebsiteService
             $description = trim((string) ($service['text'] ?? ''));
             if ($title === '' && $description === '') continue;
             if ($title === '' || $description === '') {
-                throw new \\InvalidArgumentException('Each service needs both a title and a description.');
+                throw new \InvalidArgumentException('Each service needs both a title and a description.');
             }
             if (mb_strlen($title) > 100 || mb_strlen($description) > 700) {
-                throw new \\InvalidArgumentException('Service titles must be 100 characters or fewer and descriptions 700 characters or fewer.');
+                throw new \InvalidArgumentException('Service titles must be 100 characters or fewer and descriptions 700 characters or fewer.');
             }
             $data['services'][] = ['title' => $title, 'text' => $description];
         }
