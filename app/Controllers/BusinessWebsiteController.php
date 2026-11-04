@@ -195,6 +195,106 @@ class BusinessWebsiteController extends Controller
         $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
     }
 
+    public function media(): void
+    {
+        [$userId, $website] = $this->owned();
+        $storage = new ProjectStorageService();
+        $directory = $storage->resolveProjectPath($userId, (string) $website['slug'], 'assets/media');
+        $items = [];
+        if (is_dir($directory)) {
+            foreach (scandir($directory) ?: [] as $filename) {
+                if (!preg_match('/^media-[a-f0-9]{24}\\.(?:jpg|png|webp)$/', $filename)) continue;
+                $path = $directory . DIRECTORY_SEPARATOR . $filename;
+                if (!is_file($path)) continue;
+                $items[] = [
+                    'filename' => $filename,
+                    'path' => 'assets/media/' . $filename,
+                    'size' => (int) filesize($path),
+                    'url' => rtrim((string) ($this->config['base_url'] ?? ''), '/') . '/dashboard/websites/preview/file?id=' . (int) $website['id'] . '&path=' . rawurlencode('assets/media/' . $filename),
+                ];
+            }
+        }
+        usort($items, static fn (array $a, array $b): int => strcmp($b['filename'], $a['filename']));
+        $this->view('websites/business-media', [
+            'title' => 'Business Media Library',
+            'website' => $website,
+            'items' => $items,
+            'selectTarget' => preg_match('/^[a-z_]{1,40}$/', (string) $this->input('select', '')) ? (string) $this->input('select', '') : '',
+            'active' => 'websites',
+        ], 'layouts/dashboard');
+    }
+
+    public function uploadMedia(): void
+    {
+        [$userId, $website] = $this->owned();
+        $id = (int) $website['id'];
+        if (!Csrf::validate($this->input('_csrf'))) {
+            Session::flash('error', 'Your session expired. Please try again.');
+            $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+        }
+        $file = $_FILES['media_file'] ?? null;
+        if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK
+            || !is_uploaded_file((string) ($file['tmp_name'] ?? ''))
+            || (int) ($file['size'] ?? 0) < 1 || (int) $file['size'] > 8 * 1024 * 1024) {
+            Session::flash('error', 'Choose an image no larger than 8 MB.');
+            $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+        }
+        $tmp = (string) $file['tmp_name'];
+        $mime = (new \\finfo(FILEINFO_MIME_TYPE))->file($tmp);
+        $info = @getimagesize($tmp);
+        $types = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        if (!is_string($mime) || !isset($types[$mime]) || $info === false
+            || ($info['mime'] ?? '') !== $mime || (int) $info[0] < 1 || (int) $info[1] < 1
+            || (int) $info[0] > 8000 || (int) $info[1] > 8000) {
+            Session::flash('error', 'Use a valid JPEG, PNG or WebP image up to 8000 × 8000 pixels.');
+            $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+        }
+        $storage = new ProjectStorageService();
+        $directory = $storage->ensureProjectDirectory($userId, (string) $website['slug'])
+            . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'media';
+        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+            Session::flash('error', 'The media directory could not be created.');
+            $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+        }
+        $filename = 'media-' . bin2hex(random_bytes(12)) . '.' . $types[$mime];
+        if (!move_uploaded_file($tmp, $directory . DIRECTORY_SEPARATOR . $filename)) {
+            Session::flash('error', 'The image could not be saved.');
+            $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+        }
+        (new Website())->updateStorageUsed($id, $storage->directorySize($storage->projectPath($userId, (string) $website['slug'])));
+        Session::flash('success', 'Image added to your media library.');
+        $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+    }
+
+    public function deleteMedia(): void
+    {
+        [$userId, $website] = $this->owned();
+        $id = (int) $website['id'];
+        if (!Csrf::validate($this->input('_csrf'))) {
+            Session::flash('error', 'Your session expired. Please try again.');
+            $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+        }
+        $filename = (string) $this->input('filename', '');
+        if (!preg_match('/^media-[a-f0-9]{24}\\.(?:jpg|png|webp)$/', $filename)) {
+            Session::flash('error', 'Invalid media item.');
+            $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+        }
+        $content = (new BusinessWebsiteContent())->findForOwner($id, $userId) ?? [];
+        if (($content['hero_image_path'] ?? '') === 'assets/media/' . $filename) {
+            Session::flash('error', 'This image is currently used by your hero section. Select another image before deleting it.');
+            $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+        }
+        $storage = new ProjectStorageService();
+        $path = $storage->resolveProjectPath($userId, (string) $website['slug'], 'assets/media/' . $filename);
+        if (!is_file($path) || !unlink($path)) {
+            Session::flash('error', 'The media item could not be deleted.');
+        } else {
+            (new Website())->updateStorageUsed($id, $storage->directorySize($storage->projectPath($userId, (string) $website['slug'])));
+            Session::flash('success', 'Media item deleted.');
+        }
+        $this->redirectTo('/dashboard/websites/business/media?id=' . $id);
+    }
+
     private function owned(): array
     {
         if (!AuthService::check()) {
