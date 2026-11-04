@@ -39,7 +39,8 @@ businessCheck(str_contains($controller, 'Csrf::validate'), 'Business save must v
 businessCheck(str_contains($controller, 'findForUser'), 'Business editor must load an owner-scoped website.');
 businessCheck(str_contains($model, "w.template_key = 'business'"), 'Business content queries must enforce the template type.');
 businessCheck(str_contains($detail, "\$baseUrl . '/dashboard/websites/business?id='"), 'Website management page does not link to the Business customizer.');
-businessCheck(str_contains($view, 'service_3_text'), 'Business customizer is missing service fields.');
+businessCheck(str_contains($view, 'data-service-item') && str_contains($view, 'add-service') && str_contains($view, 'data-move-down'), 'Business customizer must support adding, removing and reordering services.');
+businessCheck(str_contains($view, 'service_3_text'), 'Business customizer must retain legacy service field compatibility.');
 businessCheck(str_contains($migration, 'business_website_content'), 'Business content migration is missing its table.');
 
 $service = new App\Services\BusinessWebsiteService();
@@ -51,5 +52,18 @@ businessCheck(str_contains($html, 'A &amp; B &lt;script&gt;'), 'Rendered busines
 businessCheck(!str_contains($html, '<script>alert(1)</script>'), 'User content must not inject executable HTML.');
 businessCheck(str_contains($html, 'Service Three'), 'Renderer must include all three service cards.');
 businessCheck(str_contains($html, 'Reliable service'), 'Renderer must include saved hero content.');
+$dynamic = $service->validate([
+    'business_name' => 'Example Business',
+    'hero_title' => 'Welcome',
+    'hero_description' => 'Introduction',
+    'services' => [
+        ['title' => 'Consulting', 'text' => 'Practical advice.'],
+        ['title' => 'Training', 'text' => 'Skills development.'],
+    ],
+], 'Example Business');
+$dynamicHtml = $service->render($dynamic);
+businessCheck(count($dynamic['services']) === 2, 'Service validation must preserve a variable number of services.');
+businessCheck(str_contains($dynamicHtml, 'Consulting') && str_contains($dynamicHtml, 'Training'), 'Renderer must output all submitted services.');
+businessCheck(!str_contains($dynamicHtml, 'Service Three'), 'Renderer must not inject removed default services into a customized list.');
 
 echo "[business-check] PASS: routes, ownership guards, migration, form and renderer checks passed.\n";
