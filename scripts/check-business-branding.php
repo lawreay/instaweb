@@ -16,11 +16,15 @@ brandingCheck(str_contains($routes, "'/dashboard/websites/business/branding'"), 
 brandingCheck(str_contains($routes, "'/dashboard/websites/business/branding/save'"), 'Branding save route missing.');
 brandingCheck(str_contains($controller, 'Csrf::validate'), 'Branding upload must validate CSRF.');
 brandingCheck(str_contains($controller, 'is_uploaded_file'), 'Branding upload must validate uploaded files.');
-brandingCheck(str_contains($controller, 'brandingIncomingBytes')
-    && str_contains($controller, 'brandingReplacementBytes')
+brandingCheck(str_contains($controller, 'incomingBytes')
+    && str_contains($controller, 'replacementBytes')
     && str_contains($controller, 'hasStorageCapacity($userId, $website, $brandingIncomingBytes, $brandingReplacementBytes)'),
     'Branding uploads must preflight combined incoming bytes against the aggregate plan quota.');
 brandingCheck(str_contains($controller, 'getimagesize'), 'Branding upload must validate image contents.');
+$validationEnd = strpos($controller, '$uploads[$field] = [');
+$moveStart = strpos($controller, 'foreach ($uploads as $field => $upload)');
+brandingCheck($validationEnd !== false && $moveStart !== false && $validationEnd < $moveStart,
+    'All branding images must be validated before any replacement file is moved.');
 brandingCheck(str_contains($renderer, 'logo_path') && str_contains($renderer, 'favicon_path'), 'Renderer must support logo and favicon.');
 brandingCheck(str_contains($controller, 'new BusinessWebsiteBranding()') && str_contains($theme, 'array $branding = []'), 'Theme-aware draft renderer must receive owner-scoped branding data.');
 brandingCheck(str_contains($view, 'enctype="multipart/form-data"'), 'Branding form must support file uploads.');
