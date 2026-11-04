@@ -154,6 +154,27 @@ class BusinessWebsiteController extends Controller
         }
 
         $saved = $current;
+        $brandingIncomingBytes = 0;
+        $brandingReplacementBytes = 0;
+        foreach (['logo' => 'logo_path', 'favicon' => 'favicon_path'] as $field => $column) {
+            $file = $_FILES[$field] ?? null;
+            if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+            if ((int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+                $brandingIncomingBytes += max(0, (int) ($file['size'] ?? 0));
+            }
+            $old = (string) ($current[$column] ?? '');
+            if ($old !== '' && str_starts_with($old, 'assets/branding/')) {
+                $oldPath = $storage->resolveProjectPath($userId, (string) $website['slug'], $old);
+                $brandingReplacementBytes += is_file($oldPath) ? (int) filesize($oldPath) : 0;
+            }
+        }
+        if (!$this->hasStorageCapacity($userId, $website, $brandingIncomingBytes, $brandingReplacementBytes)) {
+            Session::flash('error', 'Your storage limit has been reached. Remove unused files or upgrade your plan to upload more.');
+            $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
+        }
+
         foreach (['logo' => 'logo_path', 'favicon' => 'favicon_path'] as $field => $column) {
             $file = $_FILES[$field] ?? null;
             if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
@@ -177,16 +198,6 @@ class BusinessWebsiteController extends Controller
             }
             if ($field === 'favicon' && max((int) $info[0], (int) $info[1]) > 1024) {
                 Session::flash('error', 'Favicon images must be no larger than 1024 × 1024 pixels.');
-                $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
-            }
-            $old = (string) ($current[$column] ?? '');
-            $oldBytes = 0;
-            if ($old !== '' && str_starts_with($old, 'assets/branding/')) {
-                $oldPath = $storage->resolveProjectPath($userId, (string) $website['slug'], $old);
-                $oldBytes = is_file($oldPath) ? (int) filesize($oldPath) : 0;
-            }
-            if (!$this->hasStorageCapacity($userId, $website, (int) $file['size'], $oldBytes)) {
-                Session::flash('error', 'Your storage limit has been reached. Remove unused files or upgrade your plan to upload more.');
                 $this->redirectTo('/dashboard/websites/business/branding?id=' . $id);
             }
             $filename = $field . '-' . bin2hex(random_bytes(12)) . '.' . $types[$mime];
