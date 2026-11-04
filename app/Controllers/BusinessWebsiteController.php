@@ -172,7 +172,7 @@ class BusinessWebsiteController extends Controller
             }
 
             $tmp = (string) $file['tmp_name'];
-            $mime = (new \\finfo(FILEINFO_MIME_TYPE))->file($tmp);
+            $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($tmp);
             $info = @getimagesize($tmp);
             if (!is_string($mime) || !isset($types[$mime]) || $info === false
                 || ($info['mime'] ?? '') !== $mime || (int) $info[0] < 1 || (int) $info[1] < 1
