@@ -1,4 +1,5 @@
 <?php
+$editorActive = 'content';
 $baseUrl=rtrim((string)($app['base_url']??''),'/');
 $e=static fn($v)=>htmlspecialchars((string)($v??''),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
 $groups=[
