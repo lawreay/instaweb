@@ -31,6 +31,11 @@ $services = array_values($services);
 <?php foreach ($groups as $heading => $fields): ?><section class="be-card"><h2 class="h5 fw-bold mb-3"><?= $e($heading) ?></h2><div class="be-grid">
 <?php foreach ($fields as [$key, $label, $type]): ?><label class="<?= $type === 'textarea' ? 'wide' : '' ?>"><?= $e($label) ?><?php if ($type === 'textarea'): ?><textarea name="<?= $e($key) ?>" maxlength="<?= $key === 'about_text' ? 3000 : ($key === 'hero_description' ? 1200 : 240) ?>"><?= $e($content[$key] ?? '') ?></textarea><?php else: ?><input type="<?= $e($type) ?>" name="<?= $e($key) ?>" maxlength="<?= $key === 'business_name' ? 120 : ($key === 'email' ? 190 : 180) ?>" value="<?= $e($content[$key] ?? '') ?>" <?= in_array($key, ['business_name', 'hero_title', 'hero_description'], true) ? 'required' : '' ?>><?php endif; ?></label><?php endforeach; ?>
 </div></section><?php endforeach; ?>
+<section class="be-card" id="hero-image-field">
+    <div class="service-tools"><div><h2 class="h5 fw-bold mb-1">Hero image</h2><p class="be-help mb-0">Optional image displayed above your main heading.</p></div><a class="btn btn-outline-primary btn-sm" href="<?= $e($baseUrl.'/dashboard/websites/business/media?id='.(int)$website['id'].'&select=hero_image_path') ?>" target="_blank" rel="noopener">Open media library</a></div>
+    <label class="mt-3">Selected image path<input type="text" id="hero_image_path" name="hero_image_path" maxlength="100" value="<?= $e($content['hero_image_path'] ?? '') ?>" readonly placeholder="No hero image selected"></label>
+    <?php if (!empty($content['hero_image_path'])): ?><p class="be-help mt-2 mb-0">Current image: <?= $e(basename($content['hero_image_path'])) ?></p><?php endif; ?>
+</section>
 <section class="be-card" id="section-visibility">
     <h2 class="h5 fw-bold mb-1">Section visibility</h2>
     <p class="be-help mb-3">Choose which sections appear on your published website. Hiding a section does not delete its content.</p>
@@ -56,6 +61,11 @@ $services = array_values($services);
 </form></section>
 <script>
 (function () {
+    window.addEventListener('message', (event) => {
+        if (event.origin !== window.location.origin || !event.data || event.data.type !== 'instaweb-media-selected' || event.data.target !== 'hero_image_path' || typeof event.data.path !== 'string') return;
+        const field = document.getElementById('hero_image_path');
+        if (field) field.value = event.data.path;
+    });
     const list = document.getElementById('service-list');
     const add = document.getElementById('add-service');
     const empty = document.getElementById('service-empty');
