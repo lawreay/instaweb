@@ -298,7 +298,7 @@ class BusinessWebsiteController extends Controller
         $storage = new ProjectStorageService();
         $relativePath = 'assets/media/' . $filename;
         $draftIndex = $storage->projectPath($userId, (string) $website['slug']) . DIRECTORY_SEPARATOR . 'index.html';
-        $publishedIndex = (new \\App\\Services\\PublishingService())->publicSitePath($id, (string) $website['slug']) . DIRECTORY_SEPARATOR . 'index.html';
+        $publishedIndex = (new \App\Services\PublishingService())->publicSitePath($id, (string) $website['slug']) . DIRECTORY_SEPARATOR . 'index.html';
         if ($this->htmlReferencesMediaFile($draftIndex, $relativePath)
             || $this->htmlReferencesMediaFile($publishedIndex, $relativePath)) {
             Session::flash('error', 'This image is still referenced by your draft or published website. Publish the updated website before deleting it.');
