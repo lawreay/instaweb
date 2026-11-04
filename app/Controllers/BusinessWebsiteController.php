@@ -79,11 +79,11 @@ class BusinessWebsiteController extends Controller
         header('Content-Type: text/html; charset=UTF-8');
         header('Cache-Control: private, no-store, no-cache, must-revalidate');
         $branding = (new BusinessWebsiteBranding())->findForOwner((int) $website['id'], $userId);
+        $assetRoute = rtrim((string) ($this->config['base_url'] ?? ''), '/') . '/dashboard/websites/preview/file?id=' . (int) $website['id'] . '&path=';
         $heroImagePath = (string) ($content['hero_image_path'] ?? '');
         if ($heroImagePath !== '') {
             $content['hero_image_url'] = $assetRoute . rawurlencode($heroImagePath);
         }
-        $assetRoute = rtrim((string) ($this->config['base_url'] ?? ''), '/') . '/dashboard/websites/preview/file?id=' . (int) $website['id'] . '&path=';
         if (!empty($branding['logo_path'])) {
             $branding['logo_url'] = $assetRoute . rawurlencode((string) $branding['logo_path']);
         }
