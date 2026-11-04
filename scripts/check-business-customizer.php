@@ -95,5 +95,12 @@ businessCheck(str_contains($controller, 'htmlReferencesMediaFile($draftIndex, $r
     && str_contains($controller, 'publicSitePath($id'),
     'Media deletion must preserve images referenced by draft and published Business HTML.');
 businessCheck(str_contains($controller, 'downloadableFile($userId') && str_contains($controller, 'selected hero image is no longer available'), 'Business content save must reject a missing or unavailable selected hero image.');
+businessCheck(str_contains($controller, 'private function hasStorageCapacity')
+    && str_contains($controller, 'totalStorageForUser($userId)')
+    && str_contains($controller, 'freeStorageBytes()')
+    && str_contains($controller, 'premiumStorageBytes()'),
+    'Business uploads must enforce aggregate storage limits for the current plan.');
+businessCheck(str_contains($controller, 'hasStorageCapacity($userId, $website, (int) $file[\'size\'])'),
+    'Media uploads must check available storage before saving.');
 businessCheck(str_contains($routes, "BusinessWebsiteController::class, 'media'"), 'Business media route is missing.');
 echo "[business-check] PASS: routes, ownership guards, migration, form and renderer checks passed.\n";
