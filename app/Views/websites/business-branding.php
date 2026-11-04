@@ -18,7 +18,7 @@ $e = static fn ($value) => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES 
         <section class="be-card">
             <h2 class="h5 fw-bold">Business logo</h2>
             <?php if (!empty($branding['logo_path'])): ?>
-                <p><img src="<?= $e($baseUrl . '/' . $branding['logo_path']) ?>" alt="Current business logo" style="max-width:220px;max-height:90px;object-fit:contain"></p>
+                <p><img src="<?= $e($baseUrl . '/dashboard/websites/preview/file?id=' . (int) $website['id'] . '&path=' . rawurlencode($branding['logo_path'])) ?>" alt="Current business logo" style="max-width:220px;max-height:90px;object-fit:contain"></p>
             <?php endif; ?>
             <label>Upload logo (JPEG, PNG or WebP, max 3 MB)
                 <input type="file" name="logo" accept="image/jpeg,image/png,image/webp">
@@ -27,7 +27,7 @@ $e = static fn ($value) => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES 
         <section class="be-card">
             <h2 class="h5 fw-bold">Browser favicon</h2>
             <?php if (!empty($branding['favicon_path'])): ?>
-                <p><img src="<?= $e($baseUrl . '/' . $branding['favicon_path']) ?>" alt="Current favicon" style="width:48px;height:48px;object-fit:contain"></p>
+                <p><img src="<?= $e($baseUrl . '/dashboard/websites/preview/file?id=' . (int) $website['id'] . '&path=' . rawurlencode($branding['favicon_path'])) ?>" alt="Current favicon" style="width:48px;height:48px;object-fit:contain"></p>
             <?php endif; ?>
             <label>Upload favicon (square image recommended, max 3 MB and 1024 × 1024 pixels)
                 <input type="file" name="favicon" accept="image/jpeg,image/png,image/webp">
