@@ -22,12 +22,35 @@ class BusinessWebsiteController extends Controller
         $themes = new BusinessWebsiteThemeService();
         $content = (new BusinessWebsiteContent())->findForOwner((int) $website['id'], $userId)
             ?? $service->defaults((string) $website['website_name']);
+        $siteId = (int) $website['id'];
+        $branding = (new BusinessWebsiteBranding())->findForOwner($siteId, $userId);
+        $storage = new ProjectStorageService();
+        $mediaDirectory = $storage->resolveProjectPath($userId, (string) $website['slug'], 'assets/media');
+        $mediaItems = [];
+        if (is_dir($mediaDirectory)) {
+            foreach (scandir($mediaDirectory) ?: [] as $filename) {
+                if (!preg_match('/^media-[a-f0-9]{24}\\.(?:jpg|png|webp)$/', $filename)) continue;
+                $filePath = $mediaDirectory . DIRECTORY_SEPARATOR . $filename;
+                if (!is_file($filePath)) continue;
+                $relativePath = 'assets/media/' . $filename;
+                $mediaItems[] = [
+                    'filename' => $filename,
+                    'path' => $relativePath,
+                    'size' => (int) filesize($filePath),
+                    'url' => rtrim((string) ($this->config['base_url'] ?? ''), '/') . '/dashboard/websites/preview/file?id=' . $siteId . '&path=' . rawurlencode($relativePath),
+                ];
+            }
+        }
+        usort($mediaItems, static fn (array $a, array $b): int => strcmp($b['filename'], $a['filename']));
         $this->view('websites/business-edit', [
             'title' => 'Customize Business Website',
             'website' => $website,
             'content' => $content,
-            'currentTheme' => $themes->current((int) $website['id'], $userId),
-            'branding' => (new BusinessWebsiteBranding())->findForOwner((int) $website['id'], $userId),
+            'currentTheme' => $themes->current($siteId, $userId),
+            'themes' => $themes->all(),
+            'branding' => $branding,
+            'mediaItems' => $mediaItems,
+            'storageSummary' => $this->storageSummary($userId, $website),
             'active' => 'websites',
         ], 'layouts/dashboard');
     }
