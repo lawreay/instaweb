@@ -24,6 +24,7 @@ $siteId = (int) $website['id'];
 <style>
 .business-editor{--be-ink:#14201A;--be-muted:#5B675F;--be-line:#E4EAE5;--be-soft:#F6F9F6;--be-green:#1F7A4D;--be-green-dark:#14532D;--be-danger:#A32A21;max-width:1050px;margin:auto;color:var(--be-ink)}
 .business-editor *{box-sizing:border-box}
+.business-editor .be-workspace-nav{display:flex;gap:.35rem;flex-wrap:wrap;padding:.35rem;margin:0 0 1.2rem;border:1px solid var(--be-line);border-radius:14px;background:#fff;position:sticky;top:0;z-index:8}.business-editor .be-workspace-nav button{border:0;border-radius:10px;background:transparent;color:var(--be-muted);padding:.75rem 1rem;font:inherit;font-size:.88rem;font-weight:750;cursor:pointer}.business-editor .be-workspace-nav button.is-active{background:var(--be-ink);color:#fff}.business-editor .be-workspace-nav button span{font-size:.75rem;opacity:.8}.business-editor .be-editor-panel[hidden]{display:none}.business-editor .be-theme-grid,.business-editor .be-brand-grid,.business-editor .be-media-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:1rem;margin-top:1rem}.business-editor .be-theme-card,.business-editor .be-media-item,.business-editor .be-brand-item{display:grid;gap:.7rem;border:1px solid var(--be-line);border-radius:14px;padding:1rem;min-width:0}.business-editor .be-theme-card iframe{width:100%;height:190px;border:1px solid var(--be-line);border-radius:10px;background:#fff}.business-editor .be-theme-card form,.business-editor .be-media-item form{margin:0}.business-editor .be-theme-card .btn,.business-editor .be-media-item .btn{width:100%}.business-editor .be-current{float:right;padding:.2rem .5rem;border-radius:99px;background:#e6f3eb;color:#14532d;font-size:.72rem;font-weight:800}.business-editor .be-brand-item img{max-width:100%;height:110px;object-fit:contain}.business-editor .be-brand-empty{display:grid;place-items:center;min-height:110px;background:var(--be-soft);border:1px dashed #c4d0c8;border-radius:10px;color:var(--be-muted)}.business-editor .be-upload-form{display:flex;align-items:end;flex-wrap:wrap;gap:1rem;margin-top:1rem}.business-editor .be-upload-form label{flex:1 1 220px}.business-editor .be-upload-form input[type=file]{width:100%;font:inherit;font-weight:400}.business-editor .be-storage{display:grid;grid-template-columns:1fr auto;gap:.5rem;padding:1rem;background:var(--be-soft);border-radius:12px;font-size:.85rem}.business-editor .be-storage-track{grid-column:1/-1;height:8px;border-radius:99px;background:#e3e9e4;overflow:hidden}.business-editor .be-storage-track span{display:block;height:100%;background:var(--be-green)}.business-editor .be-media-item img{width:100%;height:145px;object-fit:cover;border-radius:9px}.business-editor .be-media-item small{display:block;color:var(--be-muted)}.business-editor .be-media-item form button{margin-top:.4rem}@media(max-width:600px){.business-editor .be-workspace-nav{top:0}.business-editor .be-workspace-nav button{flex:1 1 40%;padding:.65rem .4rem}}
 .business-editor a{text-decoration:none}
 .business-editor .be-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;margin-bottom:1.4rem}
 .business-editor .be-eyebrow{margin:0 0 .5rem;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--be-green)}
@@ -69,7 +70,12 @@ $siteId = (int) $website['id'];
 @media(max-width:650px){.business-editor .be-grid{grid-template-columns:1fr}.business-editor .be-head-actions,.business-editor .be-head-actions>*{width:100%}.business-editor .be-actions>*{flex:1 1 100%}.business-editor .service-item-head{flex-wrap:wrap}}
 </style>
 <section class="client-dashboard iw-client-page business-editor">
-<?php require __DIR__ . '/partials/editor-navigation.php'; ?>
+<nav class="be-workspace-nav" aria-label="Business editor sections" role="tablist">
+  <button type="button" class="is-active" data-editor-tab="content" role="tab" aria-selected="true">Content</button>
+  <button type="button" data-editor-tab="design" role="tab" aria-selected="false">Design</button>
+  <button type="button" data-editor-tab="branding" role="tab" aria-selected="false">Branding</button>
+  <button type="button" data-editor-tab="media" role="tab" aria-selected="false">Media library <span><?= count($mediaItems ?? []) ?></span></button>
+</nav>
 <header class="be-head">
   <div>
     <p class="be-eyebrow">Business website / Customizer</p>
@@ -82,7 +88,7 @@ $siteId = (int) $website['id'];
   </div>
 </header>
 
-<form method="POST" action="<?= $e($baseUrl.'/dashboard/websites/business/save') ?>">
+<section class="be-editor-panel" data-editor-panel="content" role="tabpanel"><form method="POST" action="<?= $e($baseUrl.'/dashboard/websites/business/save') ?>">
 <?= \App\Core\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>"><input type="hidden" name="services_submitted" value="1">
 
 <?php foreach ($groups as $heading => $fields): ?>
@@ -144,10 +150,91 @@ $siteId = (int) $website['id'];
   <a class="btn btn-light" href="<?= $e($baseUrl.'/dashboard/websites/show?id='.$siteId) ?>">Cancel</a>
   <button class="btn btn-primary" type="submit">Save website content</button>
 </div>
-</form>
+</form></section>
+
+<section class="be-editor-panel" data-editor-panel="design" role="tabpanel" hidden>
+  <section class="be-card">
+    <h2>Choose your website theme</h2>
+    <p class="be-help">Themes change the visual presentation without replacing your content.</p>
+    <div class="be-theme-grid">
+      <?php foreach (($themes ?? []) as $themeKey => $theme): ?>
+      <article class="be-theme-card">
+        <div><strong><?= $e($theme['name']) ?></strong><?php if (($currentTheme ?? 'evergreen') === $themeKey): ?><span class="be-current">Current</span><?php endif; ?></div>
+        <p class="be-help"><?= $e($theme['description']) ?></p>
+        <iframe title="<?= $e($theme['name']) ?> preview" src="<?= $e($baseUrl.'/dashboard/websites/business/theme-preview?id='.$siteId.'&theme='.rawurlencode($themeKey)) ?>" loading="lazy" sandbox="allow-same-origin"></iframe>
+        <form method="POST" action="<?= $e($baseUrl.'/dashboard/websites/business/theme/apply') ?>">
+          <?= \\App\\Core\\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>"><input type="hidden" name="theme_key" value="<?= $e($themeKey) ?>">
+          <button class="btn <?= ($currentTheme ?? 'evergreen') === $themeKey ? 'btn-outline-secondary' : 'btn-primary' ?>" type="submit" <?= ($currentTheme ?? 'evergreen') === $themeKey ? 'disabled' : '' ?>><?= ($currentTheme ?? 'evergreen') === $themeKey ? 'Currently applied' : 'Apply theme' ?></button>
+        </form>
+      </article>
+      <?php endforeach; ?>
+    </div>
+  </section>
+</section>
+
+<section class="be-editor-panel" data-editor-panel="branding" role="tabpanel" hidden>
+  <section class="be-card">
+    <h2>Business identity</h2>
+    <p class="be-help">Add a logo and browser favicon. JPEG, PNG or WebP, maximum 3 MB each.</p>
+    <div class="be-brand-grid">
+      <?php foreach (['logo' => ['Business logo', 'logo_path'], 'favicon' => ['Browser favicon', 'favicon_path']] as $field => [$label, $pathKey]): ?>
+      <div class="be-brand-item">
+        <strong><?= $e($label) ?></strong>
+        <?php if (!empty($branding[$pathKey])): ?><img src="<?= $e($baseUrl.'/dashboard/websites/preview/file?id='.$siteId.'&path='.rawurlencode($branding[$pathKey])) ?>" alt="<?= $e($label) ?>"><?php else: ?><div class="be-brand-empty">No image uploaded</div><?php endif; ?>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <form method="POST" enctype="multipart/form-data" action="<?= $e($baseUrl.'/dashboard/websites/business/branding/save') ?>" class="be-upload-form">
+      <?= \\App\\Core\\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>">
+      <label>Business logo<input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></label>
+      <label>Browser favicon<input type="file" name="favicon" accept="image/jpeg,image/png,image/webp"></label>
+      <button class="btn btn-primary" type="submit">Save branding</button>
+    </form>
+  </section>
+</section>
+
+<section class="be-editor-panel" data-editor-panel="media" role="tabpanel" hidden>
+  <section class="be-card">
+    <h2>Media library</h2>
+    <p class="be-help">Upload images and select one as your hero image. Images are stored within this website.</p>
+    <div class="be-storage">
+      <strong>Account storage</strong>
+      <span><?= number_format((int) ($storageSummary['used_bytes'] ?? 0) / 1048576, 1) ?> MB used<?= (int) ($storageSummary['limit_bytes'] ?? 0) > 0 ? ' of '.number_format((int) $storageSummary['limit_bytes'] / 1048576, 1).' MB' : ' · Unlimited' ?></span>
+      <?php if ((int) ($storageSummary['limit_bytes'] ?? 0) > 0): ?><div class="be-storage-track"><span style="width:<?= (int) ($storageSummary['percent'] ?? 0) ?>%"></span></div><?php endif; ?>
+    </div>
+    <form method="POST" enctype="multipart/form-data" action="<?= $e($baseUrl.'/dashboard/websites/business/media/upload') ?>" class="be-upload-form">
+      <?= \\App\\Core\\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>">
+      <label>Upload image (JPEG, PNG or WebP, max 8 MB)<input type="file" name="media_file" accept="image/jpeg,image/png,image/webp" required></label>
+      <button class="btn btn-primary" type="submit">Upload image</button>
+    </form>
+    <?php if (($mediaItems ?? []) === []): ?><p class="service-empty">No images uploaded yet.</p><?php else: ?>
+    <div class="be-media-grid">
+      <?php foreach ($mediaItems as $media): ?>
+      <article class="be-media-item">
+        <img src="<?= $e($media['url']) ?>" alt="<?= $e($media['filename']) ?>" loading="lazy">
+        <div><strong><?= $e($media['filename']) ?></strong><small><?= number_format((int) $media['size'] / 1024, 1) ?> KB</small></div>
+        <button type="button" class="btn btn-outline-primary" data-use-hero="<?= $e($media['path']) ?>">Use as hero image</button>
+        <form method="POST" action="<?= $e($baseUrl.'/dashboard/websites/business/media/delete') ?>" onsubmit="return confirm('Delete this image?')">
+          <?= \\App\\Core\\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>"><input type="hidden" name="filename" value="<?= $e($media['filename']) ?>">
+          <button class="btn btn-outline-secondary" type="submit">Delete</button>
+        </form>
+      </article>
+      <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+  </section>
+</section>
 </section>
 <script>
 (function () {
+    const tabButtons = Array.from(document.querySelectorAll('[data-editor-tab]'));
+    const tabPanels = Array.from(document.querySelectorAll('[data-editor-panel]'));
+    function activateTab(key) {
+        tabButtons.forEach((button) => { const active = button.getAttribute('data-editor-tab') === key; button.classList.toggle('is-active', active); button.setAttribute('aria-selected', active ? 'true' : 'false'); });
+        tabPanels.forEach((panel) => { panel.hidden = panel.getAttribute('data-editor-panel') !== key; });
+    }
+    tabButtons.forEach((button) => button.addEventListener('click', () => activateTab(button.getAttribute('data-editor-tab'))));
+    document.querySelectorAll('[data-use-hero]').forEach((button) => button.addEventListener('click', () => { const field = document.getElementById('hero_image_path'); if (field) { field.value = button.getAttribute('data-use-hero') || ''; activateTab('content'); field.scrollIntoView({behavior:'smooth',block:'center'}); } }));
     window.addEventListener('message', (event) => {
         if (event.origin !== window.location.origin || !event.data || event.data.type !== 'instaweb-media-selected' || event.data.target !== 'hero_image_path' || typeof event.data.path !== 'string') return;
         const field = document.getElementById('hero_image_path');
