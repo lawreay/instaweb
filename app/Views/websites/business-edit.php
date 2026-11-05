@@ -1,5 +1,5 @@
 <?php
-$editorActive = 'content';
+$editorActive = in_array(($activeEditorPanel ?? 'content'), ['content', 'design', 'branding', 'media'], true) ? $activeEditorPanel : 'content';
 $baseUrl = rtrim((string) ($app['base_url'] ?? ''), '/');
 $e = static fn ($v) => htmlspecialchars((string) ($v ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $groups = [
@@ -71,10 +71,10 @@ $siteId = (int) $website['id'];
 </style>
 <section class="client-dashboard iw-client-page business-editor">
 <nav class="be-workspace-nav" aria-label="Business editor sections" role="tablist">
-  <button type="button" class="is-active" data-editor-tab="content" role="tab" aria-selected="true">Content</button>
-  <button type="button" data-editor-tab="design" role="tab" aria-selected="false">Design</button>
-  <button type="button" data-editor-tab="branding" role="tab" aria-selected="false">Branding</button>
-  <button type="button" data-editor-tab="media" role="tab" aria-selected="false">Media library <span><?= count($mediaItems ?? []) ?></span></button>
+  <button type="button" class="<?= $editorActive === 'content' ? 'is-active' : '' ?>" data-editor-tab="content" id="be-tab-content" aria-controls="be-panel-content" role="tab" aria-selected="<?= $editorActive === 'content' ? 'true' : 'false' ?>" tabindex="<?= $editorActive === 'content' ? '0' : '-1' ?>">Content</button>
+  <button type="button" class="<?= $editorActive === 'design' ? 'is-active' : '' ?>" data-editor-tab="design" id="be-tab-design" aria-controls="be-panel-design" role="tab" aria-selected="<?= $editorActive === 'design' ? 'true' : 'false' ?>" tabindex="<?= $editorActive === 'design' ? '0' : '-1' ?>">Design</button>
+  <button type="button" class="<?= $editorActive === 'branding' ? 'is-active' : '' ?>" data-editor-tab="branding" id="be-tab-branding" aria-controls="be-panel-branding" role="tab" aria-selected="<?= $editorActive === 'branding' ? 'true' : 'false' ?>" tabindex="<?= $editorActive === 'branding' ? '0' : '-1' ?>">Branding</button>
+  <button type="button" class="<?= $editorActive === 'media' ? 'is-active' : '' ?>" data-editor-tab="media" id="be-tab-media" aria-controls="be-panel-media" role="tab" aria-selected="<?= $editorActive === 'media' ? 'true' : 'false' ?>" tabindex="<?= $editorActive === 'media' ? '0' : '-1' ?>">Media library <span><?= count($mediaItems ?? []) ?></span></button>
 </nav>
 <header class="be-head">
   <div>
@@ -88,7 +88,7 @@ $siteId = (int) $website['id'];
   </div>
 </header>
 
-<section class="be-editor-panel" data-editor-panel="content" role="tabpanel"><form method="POST" action="<?= $e($baseUrl.'/dashboard/websites/business/save') ?>">
+<section class="be-editor-panel" data-editor-panel="content" id="be-panel-content" aria-labelledby="be-tab-content" role="tabpanel"<?= $editorActive === 'content' ? '' : ' hidden' ?>><form method="POST" action="<?= $e($baseUrl.'/dashboard/websites/business/save') ?>">
 <?= \App\Core\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>"><input type="hidden" name="services_submitted" value="1">
 
 <?php foreach ($groups as $heading => $fields): ?>
@@ -152,7 +152,7 @@ $siteId = (int) $website['id'];
 </div>
 </form></section>
 
-<section class="be-editor-panel" data-editor-panel="design" role="tabpanel" hidden>
+<section class="be-editor-panel" data-editor-panel="design" id="be-panel-design" aria-labelledby="be-tab-design" role="tabpanel"<?= $editorActive === 'design' ? '' : ' hidden' ?>>
   <section class="be-card">
     <h2>Choose your website theme</h2>
     <p class="be-help">Themes change the visual presentation without replacing your content.</p>
@@ -172,7 +172,7 @@ $siteId = (int) $website['id'];
   </section>
 </section>
 
-<section class="be-editor-panel" data-editor-panel="branding" role="tabpanel" hidden>
+<section class="be-editor-panel" data-editor-panel="branding" id="be-panel-branding" aria-labelledby="be-tab-branding" role="tabpanel"<?= $editorActive === 'branding' ? '' : ' hidden' ?>>
   <section class="be-card">
     <h2>Business identity</h2>
     <p class="be-help">Add a logo and browser favicon. JPEG, PNG or WebP, maximum 3 MB each.</p>
@@ -193,7 +193,7 @@ $siteId = (int) $website['id'];
   </section>
 </section>
 
-<section class="be-editor-panel" data-editor-panel="media" role="tabpanel" hidden>
+<section class="be-editor-panel" data-editor-panel="media" id="be-panel-media" aria-labelledby="be-tab-media" role="tabpanel"<?= $editorActive === 'media' ? '' : ' hidden' ?>>
   <section class="be-card">
     <h2>Media library</h2>
     <p class="be-help">Upload images and select one as your hero image. Images are stored within this website.</p>
@@ -229,17 +229,36 @@ $siteId = (int) $website['id'];
 (function () {
     const tabButtons = Array.from(document.querySelectorAll('[data-editor-tab]'));
     const tabPanels = Array.from(document.querySelectorAll('[data-editor-panel]'));
-    function activateTab(key) {
-        tabButtons.forEach((button) => { const active = button.getAttribute('data-editor-tab') === key; button.classList.toggle('is-active', active); button.setAttribute('aria-selected', active ? 'true' : 'false'); });
+    function activateTab(key, moveFocus = false) {
+        tabButtons.forEach((button) => {
+            const active = button.getAttribute('data-editor-tab') === key;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-selected', active ? 'true' : 'false');
+            button.tabIndex = active ? 0 : -1;
+            if (active && moveFocus) button.focus();
+        });
         tabPanels.forEach((panel) => { panel.hidden = panel.getAttribute('data-editor-panel') !== key; });
     }
-    tabButtons.forEach((button) => button.addEventListener('click', () => activateTab(button.getAttribute('data-editor-tab'))));
+    tabButtons.forEach((button, index) => {
+        button.addEventListener('click', () => activateTab(button.getAttribute('data-editor-tab')));
+        button.addEventListener('keydown', (event) => {
+            let nextIndex = index;
+            if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabButtons.length;
+            else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabButtons.length) % tabButtons.length;
+            else if (event.key === 'Home') nextIndex = 0;
+            else if (event.key === 'End') nextIndex = tabButtons.length - 1;
+            else return;
+            event.preventDefault();
+            activateTab(tabButtons[nextIndex].getAttribute('data-editor-tab'), true);
+        });
+    });
     document.querySelectorAll('[data-use-hero]').forEach((button) => button.addEventListener('click', () => { const field = document.getElementById('hero_image_path'); if (field) { field.value = button.getAttribute('data-use-hero') || ''; activateTab('content'); field.scrollIntoView({behavior:'smooth',block:'center'}); } }));
     window.addEventListener('message', (event) => {
         if (event.origin !== window.location.origin || !event.data || event.data.type !== 'instaweb-media-selected' || event.data.target !== 'hero_image_path' || typeof event.data.path !== 'string') return;
         const field = document.getElementById('hero_image_path');
         if (field) field.value = event.data.path;
     });
+    activateTab('<?= $e($editorActive) ?>');
     const list = document.getElementById('service-list');
     const add = document.getElementById('add-service');
     const empty = document.getElementById('service-empty');
