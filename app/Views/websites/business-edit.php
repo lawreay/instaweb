@@ -111,7 +111,7 @@ $siteId = (int) $website['id'];
 <section class="be-card" id="hero-image-field">
   <div class="service-tools">
     <div><h2>Hero image</h2><p class="be-help">Optional image displayed above your main heading.</p></div>
-    <a class="btn btn-outline-primary btn-sm" href="<?= $e($baseUrl.'/dashboard/websites/business/media?id='.$siteId.'&select=hero_image_path') ?>" target="_blank" rel="opener">Open media library</a>
+    <button class="btn btn-outline-primary btn-sm" type="button" data-editor-tab="media">Choose from media library</button>
   </div>
   <label style="margin-top:1rem">Selected image path<input type="text" id="hero_image_path" name="hero_image_path" maxlength="100" value="<?= $e($content['hero_image_path'] ?? '') ?>" readonly placeholder="No hero image selected"></label>
   <?php if (!empty($content['hero_image_path'])): ?><p class="be-help" style="margin-top:.5rem">Current image: <?= $e(basename($content['hero_image_path'])) ?></p><?php endif; ?>
@@ -163,7 +163,7 @@ $siteId = (int) $website['id'];
         <p class="be-help"><?= $e($theme['description']) ?></p>
         <iframe title="<?= $e($theme['name']) ?> preview" src="<?= $e($baseUrl.'/dashboard/websites/business/theme-preview?id='.$siteId.'&theme='.rawurlencode($themeKey)) ?>" loading="lazy" sandbox="allow-same-origin"></iframe>
         <form method="POST" action="<?= $e($baseUrl.'/dashboard/websites/business/theme/apply') ?>">
-          <?= \\App\\Core\\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>"><input type="hidden" name="theme_key" value="<?= $e($themeKey) ?>">
+          <?= \App\Core\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>"><input type="hidden" name="theme_key" value="<?= $e($themeKey) ?>">
           <button class="btn <?= ($currentTheme ?? 'evergreen') === $themeKey ? 'btn-outline-secondary' : 'btn-primary' ?>" type="submit" <?= ($currentTheme ?? 'evergreen') === $themeKey ? 'disabled' : '' ?>><?= ($currentTheme ?? 'evergreen') === $themeKey ? 'Currently applied' : 'Apply theme' ?></button>
         </form>
       </article>
@@ -185,7 +185,7 @@ $siteId = (int) $website['id'];
       <?php endforeach; ?>
     </div>
     <form method="POST" enctype="multipart/form-data" action="<?= $e($baseUrl.'/dashboard/websites/business/branding/save') ?>" class="be-upload-form">
-      <?= \\App\\Core\\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>">
+      <?= \App\Core\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>">
       <label>Business logo<input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></label>
       <label>Browser favicon<input type="file" name="favicon" accept="image/jpeg,image/png,image/webp"></label>
       <button class="btn btn-primary" type="submit">Save branding</button>
@@ -203,7 +203,7 @@ $siteId = (int) $website['id'];
       <?php if ((int) ($storageSummary['limit_bytes'] ?? 0) > 0): ?><div class="be-storage-track"><span style="width:<?= (int) ($storageSummary['percent'] ?? 0) ?>%"></span></div><?php endif; ?>
     </div>
     <form method="POST" enctype="multipart/form-data" action="<?= $e($baseUrl.'/dashboard/websites/business/media/upload') ?>" class="be-upload-form">
-      <?= \\App\\Core\\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>">
+      <?= \App\Core\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>">
       <label>Upload image (JPEG, PNG or WebP, max 8 MB)<input type="file" name="media_file" accept="image/jpeg,image/png,image/webp" required></label>
       <button class="btn btn-primary" type="submit">Upload image</button>
     </form>
@@ -215,7 +215,7 @@ $siteId = (int) $website['id'];
         <div><strong><?= $e($media['filename']) ?></strong><small><?= number_format((int) $media['size'] / 1024, 1) ?> KB</small></div>
         <button type="button" class="btn btn-outline-primary" data-use-hero="<?= $e($media['path']) ?>">Use as hero image</button>
         <form method="POST" action="<?= $e($baseUrl.'/dashboard/websites/business/media/delete') ?>" onsubmit="return confirm('Delete this image?')">
-          <?= \\App\\Core\\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>"><input type="hidden" name="filename" value="<?= $e($media['filename']) ?>">
+          <?= \App\Core\Csrf::field() ?><input type="hidden" name="id" value="<?= $siteId ?>"><input type="hidden" name="filename" value="<?= $e($media['filename']) ?>">
           <button class="btn btn-outline-secondary" type="submit">Delete</button>
         </form>
       </article>
