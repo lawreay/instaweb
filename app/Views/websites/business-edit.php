@@ -111,7 +111,7 @@ $siteId = (int) $website['id'];
 <section class="be-card" id="hero-image-field">
   <div class="service-tools">
     <div><h2>Hero image</h2><p class="be-help">Optional image displayed above your main heading.</p></div>
-    <button class="btn btn-outline-primary btn-sm" type="button" data-editor-tab="media">Choose from media library</button>
+    <button class="btn btn-outline-primary btn-sm" type="button" data-open-editor-tab="media">Choose from media library</button>
   </div>
   <label style="margin-top:1rem">Selected image path<input type="text" id="hero_image_path" name="hero_image_path" maxlength="100" value="<?= $e($content['hero_image_path'] ?? '') ?>" readonly placeholder="No hero image selected"></label>
   <?php if (!empty($content['hero_image_path'])): ?><p class="be-help" style="margin-top:.5rem">Current image: <?= $e(basename($content['hero_image_path'])) ?></p><?php endif; ?>
@@ -227,7 +227,7 @@ $siteId = (int) $website['id'];
 </section>
 <script>
 (function () {
-    const tabButtons = Array.from(document.querySelectorAll('[data-editor-tab]'));
+    const tabButtons = Array.from(document.querySelectorAll('.be-workspace-nav [data-editor-tab]'));
     const tabPanels = Array.from(document.querySelectorAll('[data-editor-panel]'));
     function activateTab(key, moveFocus = false) {
         tabButtons.forEach((button) => {
@@ -239,6 +239,7 @@ $siteId = (int) $website['id'];
         });
         tabPanels.forEach((panel) => { panel.hidden = panel.getAttribute('data-editor-panel') !== key; });
     }
+    document.querySelectorAll('[data-open-editor-tab]').forEach((button) => button.addEventListener('click', () => activateTab(button.getAttribute('data-open-editor-tab'))));
     tabButtons.forEach((button, index) => {
         button.addEventListener('click', () => activateTab(button.getAttribute('data-editor-tab')));
         button.addEventListener('keydown', (event) => {
