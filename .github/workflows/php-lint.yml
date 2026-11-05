@@ -32,6 +32,9 @@ jobs:
           php -l index.php
           php scripts/check-portfolio-integration.php
           php scripts/check-business-customizer.php
+          php scripts/check-editor-foundation.php
+          php scripts/check-business-themes.php
+          php scripts/check-business-branding.php
 
       - name: Set up Node.js for portfolio module syntax checks
         uses: actions/setup-node@v4
