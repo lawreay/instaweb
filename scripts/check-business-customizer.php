@@ -105,4 +105,72 @@ businessCheck(str_contains($controller, 'hasStorageCapacity($userId, $website, (
     'Media uploads must check available storage before saving.');
 businessCheck(str_contains($mediaView, 'storageSummary[\'used_bytes\']') && str_contains($controller, 'storageSummary($userId, $website)'), 'Media library must show account-wide storage usage.');
 businessCheck(str_contains($routes, "BusinessWebsiteController::class, 'media'"), 'Business media route is missing.');
-echo "[business-check] PASS: routes, ownership guards, migration, form and renderer checks passed.\n";
+$expectInvalid = static function (callable $callback, string $message): void {
+    try {
+        $callback();
+    } catch (InvalidArgumentException) {
+        return;
+    }
+    businessCheck(false, $message);
+};
+
+$validInput = [
+    'business_name' => 'Boundary Test Business',
+    'hero_title' => 'Welcome',
+    'hero_description' => 'A short introduction.',
+    'services_submitted' => '1',
+    'services' => [],
+];
+$expectInvalid(
+    static fn () => $service->validate($validInput + ['email' => 'not-an-email'], 'Fallback'),
+    'Invalid email addresses must be rejected.'
+);
+$expectInvalid(
+    static fn () => $service->validate([
+        'business_name' => 'Boundary Test Business',
+        'hero_title' => 'Welcome',
+        'hero_description' => 'A short introduction.',
+        'services_submitted' => '1',
+        'services' => array_fill(0, 13, ['title' => 'Service', 'text' => 'Description']),
+    ], 'Fallback'),
+    'More than 12 services must be rejected.'
+);
+$expectInvalid(
+    static fn () => $service->validate([
+        'business_name' => 'Boundary Test Business',
+        'hero_title' => 'Welcome',
+        'hero_description' => 'A short introduction.',
+        'hero_image_path' => '../uploads/private.jpg',
+    ], 'Fallback'),
+    'Arbitrary or traversal-style hero image paths must be rejected.'
+);
+$expectInvalid(
+    static fn () => $service->validate([
+        'business_name' => 'Boundary Test Business',
+        'hero_title' => 'Welcome',
+        'hero_description' => 'A short introduction.',
+        'services_submitted' => '1',
+        'services' => [['title' => 'Incomplete service', 'text' => '']],
+    ], 'Fallback'),
+    'Partially completed services must be rejected.'
+);
+$expectInvalid(
+    static fn () => $service->validate([
+        'business_name' => 'Boundary Test Business',
+        'hero_title' => '',
+        'hero_description' => 'A short introduction.',
+    ], 'Fallback'),
+    'Required hero content must not be empty.'
+);
+$emptyServices = $service->validate($validInput, 'Fallback');
+businessCheck($emptyServices['services'] === [], 'An explicitly submitted empty service list must remain empty.');
+
+$themeService = new App\\Services\\BusinessWebsiteThemeService();
+businessCheck($themeService->normalize('not-a-real-theme') === 'evergreen', 'Unknown theme keys must fall back to the safe default theme.');
+$themedHtml = $themeService->render($dynamic, 'evergreen');
+businessCheck(str_contains($themedHtml, '</head>') && str_contains($themedHtml, '<style>'), 'Theme rendering must inject its stylesheet into the document head.');
+businessCheck(str_contains($controller, 'finfo(FILEINFO_MIME_TYPE)') && str_contains($controller, 'getimagesize($tmp)'), 'Branding and media uploads must inspect actual file MIME type and image dimensions.');
+businessCheck(str_contains($controller, 'is_uploaded_file') && str_contains($controller, 'random_bytes(12)'), 'Uploads must require genuine HTTP uploads and generate unguessable filenames.');
+businessCheck(str_contains($publishController, 'requireCsrf') && str_contains($publishController, 'requireWebsiteFromPost'), 'Publishing must require CSRF validation and an owner-scoped website.');
+
+echo "[business-check] PASS: ownership, publishing, upload guards, validation boundaries, theme rendering and editor checks passed.\\n";
